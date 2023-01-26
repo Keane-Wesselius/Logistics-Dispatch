@@ -1,0 +1,81 @@
+10:00
+Accepting the meeting minutes from last week
+	meeting minutes should not be accepted lightly
+
+10:11min
+
+Updates
+Keane has the SRS 99% complete
+	Researched react native vs expo
+
+Joshua has the SRS basically complete
+
+Shiva has Looking into the google map api for expo
+	-we do not know if the map api for making routes
+	Something to look into definitely
+
+Galmo has a SRS that will be ready to submit before thursday
+	-Researched mongoDB for the project
+	-will continue to look into MongoDB
+
+Chris will have SRS finished by thursday
+	-Has used mongoDB for another class before (2 years ago)
+	-Will continue to look into MongoDB
+
+Connor has SRS 80% done
+	-research in mongoDB and nodeJS
+	-SRS should be done by today
+
+Lincoln is about 80% done on SRS
+	-Reviewed react projects that he has done before
+
+10:29	
+Make sure everyone can have the same enviornment (windows vs mac)
+every technology should run on all platforms that the dev team has
+
+
+SRS combo
+identify the parts the individual SRSs that are important
+	-if someone has a requirement that others dont add it in
+	
+	-we have good solutions but we need to take the good parts
+	and make a great solution
+	
+	-we dont need to take on piece from everyone's documents
+	if could be 90% of someones SRS that we add into
+
+	-The goal is to have a great SRS
+
+We forgot about the
+Midterm
+	Not next week but the week after
+	Might be good to have a demo that shows a map and puts a route between two points
+	or show some database examples
+	Show that we have some grasp of the technologies
+
+Presentation - (in order of how it should appear)
+	want to see the team (team name)
+	team logo
+	introduction of the team
+	problem statement - one slide
+	requirements
+	analyze the requirements - easy hard, functional nonfunctional
+	high level design
+	Low level design
+		interfaces between them
+			bi directional vs unidirectional
+	Based on requirements, what tools that we picked and why
+	Demo something if you can
+	Very detailed schedule before concluding
+		Keane will do this on saturday night from 9-12
+		ect
+	Conclusion
+	
+	40mins in length
+	everyone participates
+	nasty questions
+		why mongoDB vs maria DB
+		why on your schedule do you only do testing once?
+	dont just read the slides (prepare for the presentation)
+		
+	
