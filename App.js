@@ -1,20 +1,53 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { createStackNavigator } from "@react-navigation/stack";
+import { NavigationContainer } from "@react-navigation/native";
+import Landing from "./src/screens/landing";
+import Home from "./src/screens/home";
+import Delivery from "./src/screens/delivery";
+import Earning from "./src/screens/earning";
+import Profile from "./src/screens/profile";
+// import Register from "./src/screeens/register";
+import Register from "./src/screens/register";
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+const Stack = createStackNavigator();
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const App = () => (
+  <NavigationContainer>
+    <Stack.Navigator initialRouteName="Landing">
+      <Stack.Screen
+        name="Landing"
+        component={Landing}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={Register}
+        // options={{ headerShown: false, gesturesEnabled: false }}
+        options={{ title: "Register", headerShown: true }}
+      />
+      <Stack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false, gesturesEnabled: false }}
+      />
+      <Stack.Screen
+        name="Earning"
+        component={Earning}
+        options={{ headerShown: false, headerLeft: () => <View /> }}
+      />
+
+      <Stack.Screen
+        name="Delivery"
+        component={Delivery}
+        options={{ headerShown: false, gesturesEnabled: false }}
+      />
+
+      <Stack.Screen
+        name="Profile"
+        component={Profile}
+        options={{ headerShown: false, gesturesEnabled: false }}
+      />
+    </Stack.Navigator>
+  </NavigationContainer>
+);
+
+export default App;
