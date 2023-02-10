@@ -1,0 +1,20 @@
+compared to sql mongodb has a faster startup time to deployment
+
+Mongodb has looser restrictions on data as it as such it is a schema-less
+database, as we are working on with limited time and have little experience
+with creating a database we can implement a database and if it does not
+fit our needs we can modify it as we go without starting over. Once we
+have the structure locked in we can force a schema on the database to 
+require certain fields while still allowing some flexibility
+
+mariadb is a fork of sql and is rigid although mariadb would be a better
+choice over mysql because of its increased performance
+mariadb does not have native mobile features
+
+In short mongoDB is more flexible with the data and its structure that
+is better suited for an agile development life cycle. mongodb offers free
+cloud solutions where are mariadb does not have a free tier. In addition to
+being the better choice for this project mongodb is in high demand right
+now and would look good on a resume.
+
+

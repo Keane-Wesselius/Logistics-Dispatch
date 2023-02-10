@@ -1,0 +1,22 @@
+HOW TO START:
+
+install node.js THE VERSION NEEDS TO BE LESS THAN 17
+
+install expo go on mobile device
+
+cd to where you want the project to be
+
+npx create-expo-app PROJECTNAME
+
+cd into the project folder
+
+npm start
+
+creates a qr code, open expo go and scan the app
+
+DONE
+
+Error Handling:
+This took me like 2 days to troubleshoot: Make sure your network is set to
+private otherwise it will not work
+
