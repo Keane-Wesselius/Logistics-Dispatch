@@ -60,15 +60,20 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
             email: req.body.email,
             password: hashedPassword
         });
-        //const newUser = new User({
-        //    name: req.body.name,
-        //    email: req.body.email,
-        //    password: hashedPassword
-        //});
-        //await newUser.save();
-        //const firstUser = await User.findOne({});
-        //console.log(firstUser);
-        console.log(users); // Display users in console
+        
+        // Push user data to database
+        const newUser = new User({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashedPassword
+        });
+        await newUser.save();
+
+        // Print user data sent to database
+        const firstUser = await User.findOne({});
+        console.log(firstUser);
+
+        console.log(users); // Display users in console from users array
         res.redirect("/login") // redirect to login page
     } catch (e) {
         res.redirect("/register") // redirect to register on error
