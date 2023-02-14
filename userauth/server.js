@@ -25,11 +25,9 @@ db.once("open", function() {
 
 initializePassport(
     passport,
-    email => users.find(user => user.email === email),
-    id => users.find(user => user.id === id)
-    )
 
-const users = []
+)
+
 
 app.use(express.urlencoded({extended: false}))
 app.use(flash())
@@ -52,15 +50,7 @@ app.post("/login", checkNotAuthenticated, passport.authenticate("local", {
 // Configuring the register post functionality
 app.post("/register", checkNotAuthenticated, async (req, res) => {
     try{
-        // Push user data to users array
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
-            id: Date.now().toString(),
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword
-        });
-        
         // Push user data to database
         const newUser = new User({
             name: req.body.name,
@@ -72,8 +62,7 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
         // Print user data sent to database
         const firstUser = await User.findOne({});
         console.log(firstUser);
-
-        console.log(users); // Display users in console from users array
+        
         res.redirect("/login") // redirect to login page
     } catch (e) {
         res.redirect("/register") // redirect to register on error
