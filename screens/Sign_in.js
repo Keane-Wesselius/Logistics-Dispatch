@@ -2,6 +2,8 @@ import { ImageBackgroud, Alert, Button, TextInput, View} from 'react-native';
 import React, {useState} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {StyleSheet, Image,TouchableOpacity, Text} from 'react-native';
+import Tabs from '../navigation/Tabs';
+import { Tab } from 'react-native-elements';
 //import {Button} from 'native-base';
 //import axios from 'axios';
   
@@ -10,6 +12,10 @@ export default function Sign_in() {
     const[password, set_password] = useState('');
     const[error, set_error] = useState('');
     const navigation = useNavigation(); 
+    const handlePress = () =>{
+       navigation.navigate('HomeScreen')
+        console.log('shiva')
+    }
     /*const handle_sign_in =async() => {
         try{
             const res = await axios.post('https://www.google.com/'
@@ -25,7 +31,7 @@ export default function Sign_in() {
     return(
         <View style = {styles.container}>
             
-            <Image style = {styles.img} source = {require("../photos/logo_shiva.png")}/>
+            <Image style = {styles.img} source = {require("../assets/logo-black.png")}/>
             <TextInput style = {styles.inputcontainer}
             placeholder='Email'
             value={email}
@@ -40,17 +46,10 @@ export default function Sign_in() {
             onChangeText = {set_password}
             secureTextEntry = {true}
             />
-            {error && <Text>{error}</Text>}
+          
             <TouchableOpacity style = {styles.buttonContainer}
-           onPress ={()=>navigation.navigate('Home')} 
-            >
-
-            <Button style = {styles.input}
-             title = "Sign in"
-             color="#841584">
-                 Sign In
-             </Button>
-
+           onPress = {() => handlePress ()} >
+             <Text style= {{ color:"#841584", fontSize: 25}}>Sign In</Text>   
             </TouchableOpacity>
         </View>
     );

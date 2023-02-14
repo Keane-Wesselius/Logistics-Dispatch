@@ -3,15 +3,16 @@ import {View, Image, TouchableOpacity} from 'react-native';
 
 import {createBottomTabNavigator, BottomTabBar} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import Order from '../screens/Order';
+import OrderList from '../screens/OrderList';
 import Map from '../screens/Map';
-import Sign_in from '../screens/Sign_in';
+//import Sign_in from '../screens/Sign_in';
 import  {useLayoutEffect} from 'react';
- 
+import Profile from '../screens/Profile';
 import { Entypo, MaterialCommunityIcons , Octicons, Fontisto } from '@expo/vector-icons';
 import menu from '../assets/menu.png';
 import { useNavigation } from '@react-navigation/native';
 import Svg, {Path} from 'react-native-svg';
+//import BackgroundVideo from '../components/BackgroundVideo';
 //const for bottom tab
 const Tab = createBottomTabNavigator();
 
@@ -78,8 +79,8 @@ const Tabs = () => {
       ></Tab.Screen>
       
       <Tab.Screen
-        name = "Orders"
-        component={Order}
+        name = "OrdersList"
+        component={OrderList}
         options = {{
           
           tabBarIcon: ({focused}) => {
@@ -89,9 +90,10 @@ const Tabs = () => {
         }}
       >
       </Tab.Screen>
+      
       <Tab.Screen
         name = "Profile"
-        component={Sign_in}
+        component={Profile}
         options = {{
           tabBarIcon: ({focused}) => {
            return <MaterialCommunityIcons name="face-man-profile" size={25} color="black" />
@@ -99,6 +101,7 @@ const Tabs = () => {
         }}
       >
       </Tab.Screen>
+       
     </Tab.Navigator> 
     
   )

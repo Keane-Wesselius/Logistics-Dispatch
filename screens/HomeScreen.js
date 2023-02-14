@@ -103,7 +103,7 @@ function renderOrders(){
                     fontSize:30, 
                     justifyContent: 'center',
                     }}>
-                        Your Stats
+                        Completed Orders
             </Text>
             </View>
             <TouchableOpacity

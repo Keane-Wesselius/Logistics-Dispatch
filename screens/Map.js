@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
+import React, { useEffect, useRef, useState } from "react";
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from "react-native-maps";
 import {
   View,
   Image,
@@ -7,54 +7,125 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import MapViewDirections from "react-native-maps-directions";
-import { FontAwesome5, Entypo } from "@expo/vector-icons";
+import { FontAwesome5, Entypo,AntDesign } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import * as TaskManger from "expo-task-manager";
 
+const {width, height} = Dimensions.get('window');
+const ASPECT_RATIO = width/height;
+
 /**
  * Map component to display Map in screen
+ * { route, navigation }
  */
-const Map = ({ route, navigation }) => {
+const Map = (props) => {
+
+  //console.log(props);
   //for testing
   const fake_location = {
     latitude: 47.0001255,
     longitude: -120.5422917,
   };
+  /*
+    All const variables 
+  */
   const [region, setRegion] = useState(null);
   const [destRegion, setDestRegion] = useState(null);
-
+   //getting current position of drivers
+   const [location, setLocation] = useState(null);
+   //getting time to get to the location, getting angle of car right
+   const [duration, setDuration] = useState(0);
+   const [isReady, setIsReady] = useState(false);
+   const [angle, setAngle] = useState(0);
+   const mapViewRef = useRef();
   // for inputing address and getting coordinates
   const [address, setAddress] = useState("");
-  //const [destinatio, setCoordinates] = useState(null)
+  const fake_addressses = [ "400 N Ruby St, Ellensburg, WA 98926", "417 N Pine St, Ellensburg, WA 98926", "1800 Canyon Rd, Ellensburg, WA 98926"  ];
+  const [coordinates, setCoordinates] = useState([]);
+  /***
+   * Getting coordinates from a given array of addresses 
+   */
+  const getLocationAsync = async() => {
+    const promises = fake_addressses.map(async fake_address => {
+      let xyz = await Location.geocodeAsync(fake_address);
+      return xyz[0];
+    });
+    Promise.all(promises).then(xyzs =>{
+      setCoordinates(xyzs);
+    })};
+    //this prevents from infinite looping when trying find coordinates
+    useEffect(() => {
+      if (coordinates.length === 0) {
+        getLocationAsync();
+      }
+    }, [coordinates]);
 
+
+  //sets destination address for destination marker
   const handleAddress = (text) => {
     setAddress(text);
   };
 
+  //when clicked search button on map, handles, the minutes and routing
   const handleSubmit = async () => {
+  
     const result = await Location.geocodeAsync(address);
     if (result.length > 0) {
       setDestRegion(result[0]);
     }
+   
+     <Text>{Math.ceil(duration)} mins </Text>  
+    
   };
-  //getting current position of drivers
-  const [location, setLocation] = useState(null);
 
   /**
    * Getting permission right after starting the app
    */ useEffect(() => {
+      let timeoutId = null; 
     const getLocation = async () => {
+      try{
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") {
         const location = await Location.getCurrentPositionAsync({});
-        setLocation(location);
+        setLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          heading: location.coords.heading,
+        });
+      }}
+      catch(e){
+        console.log("shiva");
       }
     };
     getLocation();
-  }, []);
 
+    // retry every 3 second if location yet not available
+    timeoutId = setTimeout(getLocation, 3000);
+  
+    //changing rotation of marker as we rotate the phone
+    Location.watchPositionAsync(
+    {
+      accuracy: Location.Accuracy.High,
+      timeInterval: 1000,
+      distanceInterval: 0.1
+    },
+    location => {
+      setLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        heading: location.coords.heading
+      })
+    }
+    
+    )
+    return () => {
+      clearTimeout(timeoutId);
+    }
+  }, []);
+  //console.log(location);
   /**
    * Hard coded location for testing
    */
@@ -74,6 +145,20 @@ const Map = ({ route, navigation }) => {
   }, []);
 
   /**
+   * Calculate angle of car icon according to map directions
+   */
+
+  function calculateAngle(coordinates){
+    let startLat = coordinates[0]["latitude"]
+    let startLang = coordinates[0]["longitude"]
+    let endLat = coordinates[1]["latitude"]
+    let endLang = coordinates[1]["longitude"]
+    let dx = endLat - startLat
+    let dy = endLang - startLang
+
+    return Math.atan2(dy,dx) *180/ Math.PI;
+  }
+  /**
    * Renders Map to Screen
    * @returns
    */
@@ -85,11 +170,12 @@ const Map = ({ route, navigation }) => {
       return (
         <Marker coordinate={destRegion}>
           <View>
-            <Entypo name="location" size={24} color="black" />
+            <Entypo name="location" size={24} color="red" />
           </View>
         </Marker>
       );
     };
+    
     /**
      * Car Icon to display car in the map
      */
@@ -98,15 +184,23 @@ const Map = ({ route, navigation }) => {
         //for current location
 
         <Marker
-          //coordinate={location.coords}
-          coordinate={fake_location}
+          coordinate={location}
+          //coordinate={fake_location}
+
           //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
+          //rotation = {}
           anchor={{ x: 0.5, y: 0.5 }}
           flat={true}
           title="Driver Location"
+          //rotation={location.heading}
         >
           <View>
-            <FontAwesome5 name="car" size={24} color="black" />
+            <FontAwesome5 name="car" size={24} color="red" />
+            <Text style = {{
+             
+              fontSize: 15, 
+              fontWeight: 'bold', 
+              }}>{Math.ceil(duration)} mins </Text>  
           </View>
         </Marker>
       );
@@ -123,74 +217,158 @@ const Map = ({ route, navigation }) => {
           initialRegion={region}
           zoomEnabled={true}
           style={{ flex: 1 }}
+          followsUserLocation = {true}
+          rotateEnabled
         >
       
-          {/** Making textbox for inputing address */}
-          <View
-            
-            style={{
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "white",
-              opacity: 0.5,
-              width: "100%",
-              height: "20%",
-              flexDirection: "row",
-            }}
-          >
-            <TextInput
-              value={address}
-              onChangeText={handleAddress}
-              placeholder="Enter Address"
-              style={{
-                padding: 10,
-                backgroundColor: "white",
-                marginTop: "5%",
-                width: "60%",
-                height: "30%",
-                borderRadius: 10,
-              }}
-            />
-            <TouchableOpacity
-              style={{
-                backgroundColor: "white",
-                marginTop: "5%",
-                marginLeft: 10,
-                width: "30%",
-                height: '30%',
-                borderRadius: 10,
-              }}
-              onPress = {handleSubmit}
-            >
-             <Text> shiva</Text>
-            </TouchableOpacity>
-          </View>
-
           {/** MapViewDirection component to see route*/}
           <MapViewDirections
-            origin={fake_location }
-            //origin = {{latitude: location.coords.latitude, longitude: location.coords.longitude,}}
+            //origin={fake_location }
+            origin = {location}
             //destination = {{latitude: 47.64667644307501,
             //longitude: -122.33536691338327}}
             destination={destRegion}
+            strokeColor = 'purple'
+            strokeWidth= {3}
+            waypoints = {coordinates}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
-            stokeWidth={5}
-            stokeColor="red"
+            
+            //optimizing waypoints
             optimizeWaypoints={true}
+            waypoints_times = {duration} 
+            onReady = {result => {
+              setDuration(result.duration)
+
+              if(mapViewRef.current){
+                //fit route into maps
+                mapViewRef.current.fitToCoordinates(result.coordinates, {
+                  edgePadding:{
+                    right: (width/20),
+                    bottom: (height/20),
+                    left: (width/20),
+                    top: (height/20)
+                  }
+                })
+
+                //changing the car location to road block
+                let nextLoc = {
+                      latitude: result.coordinates[0]["latitude"],
+                      longitude: result.coordinates[0]["longitude"],
+                }
+                if(result.coordinates.length >= 2){
+                  let angle = calculateAngle(result.coordinates)
+                  setAngle(angle)
+                }
+                setLocation(nextLoc)
+                setIsReady(true)
+                
+              }
+            }}
           />
+         
           <CarIcon />
-          <DestinationMarker />
+          {coordinates.map(coordinate =>{
+            return(
+              <Marker 
+              key={coordinate.latitude}
+              coordinate={{latitude: coordinate.latitude, longitude: coordinate.longitude}}>
+                 <View>
+                     <Entypo name="location-pin" size={24} color="red" />
+                 </View>
+              </Marker>
+            )
+            })}
+
         </MapView>
       </View>
     );
   }
+  /**
+   * Puts header in map to put address
+   */
+  function renderDestinationHeader(){
+    return (
+      <View
+      style = {{
+        position: 'absolute',
+        top: 50,
+        left: 0,
+        right: 0,
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+      
+      }}
+      >
+        <View
+        style = {{
+          flexDirection: 'row',
+          alignItems: 'center',
+          width: width*0.9,
+          height: '100%',
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          backgroundColor: 'white'
+        }}>
+          <Entypo name="location-pin" size={20} color="black" />
+         
+          <TextInput
+              value={address}
+              onChangeText={handleAddress}
+              placeholder="Enter Address"
+              style={{
+                marginLeft: '5%',
+                width: '50%',
+                
+              }}
+            />
+            <TouchableOpacity
+              style={{
+                  alignItems: 'flex-end',
+                  width: '25%',
+                  marginLeft: '10%',
+                  height: '100%',
+                  backgroundColor: 'white',
+                  //boarderWidth: 10,
+                  borderColor: 'black',
+                 // backgroundColor: 'red',
+                  //padding: 10,
+                  borderRadius: 5,
+                  alignItems: 'center',
+                  flexDirection: 'row',
+              }}
+              onPress = {handleSubmit}
+            >
+            <AntDesign name="search1" size={20} color="black" />
+             <Text style = {{
+              marginLeft: 30,
+              fontSize: 18, 
+              fontWeight: 'bold', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              position: 'absolute'
+              }}>
+                Search
+            </Text>
+            </TouchableOpacity>
 
+        
+        </View>
+
+      </View>
+    )
+  }
   /**
    * Returning Main Map
    */
-  return <View style={{ flex: 1 }}>{renderMap()}</View>;
+  return <View style={{ flex: 1 }}>
+    
+    {renderMap()}
+    {renderDestinationHeader()}
+    </View>;
 };
 
 export default Map;
+

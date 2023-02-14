@@ -4,9 +4,10 @@ import Sign from './screens/Sign_in';
 import { NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from  '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
-import Order from './screens/Order';
+import OrderList from './screens/OrderList';
 import Map from './screens/Map';
 import Tabs from './navigation/Tabs';
+import BackgroundVideo from './components/BackgroundVideo';
 
 const Stack = createStackNavigator();
 const styles = StyleSheet.create({
@@ -44,12 +45,13 @@ export default function App() {
         screenOptions={{
           headerShown: false
         }}
-        initialRouteName = {"HomeScreen"}
+        initialRouteName = {"BackgroundVideo"}
       >
       <Stack.Screen name="HomeScreen" component={Tabs}/>
       <Stack.Screen name="Sign In" component={Sign}/> 
-      <Stack.Screen name="Orders" component={Order}/> 
-      <Stack.Screen name="Map" component={Map}/>   
+      <Stack.Screen name="OrderList" component={OrderList}/> 
+      <Stack.Screen name="Map" component={Map}/> 
+      <Stack.Screen name="BackgroundVideo" component={BackgroundVideo}/>   
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,0 +1,31 @@
+ [
+    {
+      "payload": "300",
+      "shippingName": "Shiva Shrestha",
+      "shippingAddress": "400 N Ruby St, Ellensburg, WA 98926",
+      "shippingInfo": "Ground",
+      "estimatedDelivery": "2023-02-18",
+      "shippingDate": "2023-02-15",
+      "buyerId": "1"
+    },
+    {
+      "payload": "150",
+      "shippingName": "Niranjan Malla",
+      "shippingAddress": "417 N Pine St, Ellensburg, WA 98926",
+      "shippingInfo": "Express",
+      "estimatedDelivery": "2023-02-18",
+      "shippingDate": "2023-02-15",
+      "buyerId": "2"
+    },
+    {
+      "payload": "100",
+      "shippingName": "Nima Sherpa",
+      "shippingAddress": "1800 Canyon Rd, Ellensburg, WA 98926",
+      "shippingInfo": "Express plus" ,
+      "estimatedDelivery": "2023-02-18",
+      "shippingDate": "2023-02-16",
+      "buyerId": "3"
+    }
+    
+      
+]

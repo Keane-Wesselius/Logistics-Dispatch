@@ -7,7 +7,7 @@
     "icon": "./assets/delivery-truck.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/home_background.jpg",
+      "image": "./assets/home_background.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
