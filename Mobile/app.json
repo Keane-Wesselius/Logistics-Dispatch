@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "my-app",
+    "slug": "my-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/delivery-truck.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/home_background.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes":["location", "fetch"],
+        "NSRemindersUsageDescription": "This app needs access to your calendar to create and manage reminders."
+      },
+      "config": {
+          "googleMapsApiKey": "AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
+      }   
+    },
+    "android": {
+      "permissions": ["READ_CALENDAR", "WRITE_CALENDAR"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
