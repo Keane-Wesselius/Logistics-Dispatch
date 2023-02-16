@@ -1,4 +1,4 @@
-import { Image,SafeAreaView, StyleSheet, Text,TouchableOpacity,Button, View, Platform } from 'react-native'
+import { Image,SafeAreaView,ScrollView, StyleSheet, Text,TouchableOpacity,Button, View, Platform } from 'react-native'
 import React, {useLayoutEffect, useState, useEffect} from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { SimpleLineIcons } from '@expo/vector-icons'; 
@@ -9,7 +9,7 @@ import * as Calendar from 'expo-calendar';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { FlatList } from 'react-native-gesture-handler';
 //import Tabs from '../navigation/tabs.js';
-
+import Orders from '../components/Orders';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
@@ -94,7 +94,8 @@ function renderOrders(){
     return(
         <SafeAreaView style={{
             width: '100%',
-            height: '23.5%',
+            height: '100%',
+            // /backgroundColor: 'black',
             }}>
             <View style ={{  marginBottom: '1%',alignItems:'center'}}>
             <Text style ={{ 
@@ -106,6 +107,14 @@ function renderOrders(){
                         Completed Orders
             </Text>
             </View>
+            <ScrollView  style = {styles.scroll_container}> 
+                <Orders />
+                <Orders />
+                <Orders />
+                <Orders />
+                <Orders />
+            </ScrollView>
+            {/**  
             <TouchableOpacity
                 
             >   
@@ -142,7 +151,8 @@ function renderOrders(){
         style={{
        
         }}
-    >   
+    >
+     
     <View 
       >
         <Image
@@ -170,7 +180,9 @@ function renderOrders(){
             <Text>Order 2</Text>     
         </View>
     </View>
+     
     </TouchableOpacity>
+    */}
 </SafeAreaView>  
     );
 }
@@ -273,5 +285,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fdf6e4',
        flexDirection: 'row',
+      },
+      scroll_container:{
+        marginTop: '5%',
+        margin: '5%',
+        
+        //backgroundColor: 'black',
       },
 })

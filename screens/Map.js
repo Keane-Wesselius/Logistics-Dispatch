@@ -8,33 +8,41 @@ import {
   Button,
   TouchableOpacity,
   Dimensions,
+  Animated, PanResponder, StatusBar,
 } from "react-native";
 import MapViewDirections from "react-native-maps-directions";
 import { FontAwesome5, Entypo,AntDesign } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import * as TaskManger from "expo-task-manager";
+import { useNavigation } from '@react-navigation/native'
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomSheet from "../components/BottomSheet";
+
+//import { BottomSheet } from "react-native-elements";
 
 const {width, height} = Dimensions.get('window');
 const ASPECT_RATIO = width/height;
 
 /**
  * Map component to display Map in screen
- * { route, navigation }
+ * { route, navigation },
  */
-const Map = (props) => {
+const Map = ({ route}) => {
 
-  //console.log(props);
-  //for testing
-  const fake_location = {
-    latitude: 47.0001255,
-    longitude: -120.5422917,
-  };
+  //getting delivery addresss from orderlist on press
+ const [deliveryAddress, setDeliveryAddress] = useState(null);
+  useEffect(() => {
+    if(route.params && route.params.deliveryAddress){
+    setDeliveryAddress(route.params.deliveryAddress);
+    }
+  
+  }, [route.params]);
+ 
+
   /*
     All const variables 
   */
-  const [region, setRegion] = useState(null);
-  const [destRegion, setDestRegion] = useState(null);
-   //getting current position of drivers
+ //getting current position of drivers
    const [location, setLocation] = useState(null);
    //getting time to get to the location, getting angle of car right
    const [duration, setDuration] = useState(0);
@@ -45,9 +53,27 @@ const Map = (props) => {
   const [address, setAddress] = useState("");
   const fake_addressses = [ "400 N Ruby St, Ellensburg, WA 98926", "417 N Pine St, Ellensburg, WA 98926", "1800 Canyon Rd, Ellensburg, WA 98926"  ];
   const [coordinates, setCoordinates] = useState([]);
+  
+  const getLocationAsync = async () => {
+    try {
+      let result = await Location.geocodeAsync(deliveryAddress);
+      let latlng = {
+        latitude: result[0].latitude,
+        longitude: result[0].longitude,
+      };
+      setCoordinates([latlng]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getLocationAsync();
+  }, [deliveryAddress]);
+ 
   /***
    * Getting coordinates from a given array of addresses 
-   */
+ 
   const getLocationAsync = async() => {
     const promises = fake_addressses.map(async fake_address => {
       let xyz = await Location.geocodeAsync(fake_address);
@@ -63,18 +89,24 @@ const Map = (props) => {
       }
     }, [coordinates]);
 
-
+  */
   //sets destination address for destination marker
   const handleAddress = (text) => {
     setAddress(text);
   };
 
-  //when clicked search button on map, handles, the minutes and routing
+  //console.log(coordinates);
+
+  /**
+   * 
+   * when clicked search button on map, handles, the minutes and routing
+   * */
   const handleSubmit = async () => {
   
     const result = await Location.geocodeAsync(address);
     if (result.length > 0) {
-      setDestRegion(result[0]);
+      //console.log(result[0]);
+      setDeliveryAddress(result[0]);
     }
    
      <Text>{Math.ceil(duration)} mins </Text>  
@@ -94,10 +126,12 @@ const Map = (props) => {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           heading: location.coords.heading,
+          latitudeDelta: 0.09,
+          longitudeDelta: 0.04,
         });
       }}
       catch(e){
-        console.log("shiva");
+        //console.log("shiva");
       }
     };
     getLocation();
@@ -116,7 +150,9 @@ const Map = (props) => {
       setLocation({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        heading: location.coords.heading
+        heading: location.coords.heading,
+        latitudeDelta: 0.09,
+        longitudeDelta: 0.04,
       })
     }
     
@@ -126,24 +162,8 @@ const Map = (props) => {
     }
   }, []);
   //console.log(location);
-  /**
-   * Hard coded location for testing
-   */
-  useEffect(() => {
-    let mapRegion = {
-      latitude: 47.0001255,
-      longitude: -120.5422917,
-      latitudeDelta: 0.09,
-      longitudeDelta: 0.04,
-    };
-    let mapDestRegion = {
-      latitude: 47.64667644307501,
-      longitude: -122.33536691338327,
-    };
-    setRegion(mapRegion);
-    //setDestRegion(mapDestRegion)
-  }, []);
-
+ 
+  
   /**
    * Calculate angle of car icon according to map directions
    */
@@ -158,6 +178,7 @@ const Map = (props) => {
 
     return Math.atan2(dy,dx) *180/ Math.PI;
   }
+
   /**
    * Renders Map to Screen
    * @returns
@@ -166,19 +187,23 @@ const Map = (props) => {
     /**
      * Putting Destination in the Map
      */
+   
     const DestinationMarker = () => {
       return (
-        <Marker coordinate={destRegion}>
+        
+        <Marker coordinate={deliveryAddress}>
           <View>
             <Entypo name="location" size={24} color="red" />
           </View>
         </Marker>
       );
-    };
     
+    };
+  
     /**
      * Car Icon to display car in the map
      */
+ 
     const CarIcon = () => {
       return (
         //for current location
@@ -205,7 +230,7 @@ const Map = (props) => {
         </Marker>
       );
     };
-
+  
     /**
      * Returns Map View
      */
@@ -214,7 +239,7 @@ const Map = (props) => {
       <View style={{ flex: 1 }}>
         <MapView
           provider={PROVIDER_GOOGLE}
-          initialRegion={region}
+          initialRegion={location}
           zoomEnabled={true}
           style={{ flex: 1 }}
           followsUserLocation = {true}
@@ -227,15 +252,17 @@ const Map = (props) => {
             origin = {location}
             //destination = {{latitude: 47.64667644307501,
             //longitude: -122.33536691338327}}
-            destination={destRegion}
+            destination={deliveryAddress}
             strokeColor = 'purple'
             strokeWidth= {3}
-            waypoints = {coordinates}
+            //waypoints = {coordinates}
+            alternatives = {true}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
             
             //optimizing waypoints
             optimizeWaypoints={true}
+         
             waypoints_times = {duration} 
             onReady = {result => {
               setDuration(result.duration)
@@ -268,7 +295,15 @@ const Map = (props) => {
           />
          
           <CarIcon />
-          {coordinates.map(coordinate =>{
+          {coordinates.map((coord, index) => (
+          <Marker key={index} coordinate={coord} title={deliveryAddress} >
+             <View>
+                     <Entypo name="location-pin" size={24} color="red" />
+                 </View>
+          </Marker>
+        ))}
+           {/**
+          { coordinates.map(coordinate =>{
             return(
               <Marker 
               key={coordinate.latitude}
@@ -279,7 +314,7 @@ const Map = (props) => {
               </Marker>
             )
             })}
-
+             */}
         </MapView>
       </View>
     );
@@ -361,14 +396,34 @@ const Map = (props) => {
     )
   }
   /**
+   * Renders slide up confirm delivery on Map
+   */
+  function renderConfirmDelivery(){
+    return (
+      <GestureHandlerRootView style ={{}}>
+        <View style = {{
+          flex: 1,
+          backgroundColor: '#111',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <StatusBar style = "light"/>
+          <BottomSheet/>
+        </View>
+        
+        
+      </GestureHandlerRootView>
+    )
+  }
+  /**
    * Returning Main Map
    */
   return <View style={{ flex: 1 }}>
     
     {renderMap()}
     {renderDestinationHeader()}
+    {renderConfirmDelivery()}
     </View>;
 };
 
 export default Map;
-

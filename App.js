@@ -38,7 +38,13 @@ const styles = StyleSheet.create({
  *   
 */
 
-export default function App() {
+import React, { useState } from 'react'
+
+const App = ( props) => {
+  const[deliveryAddress, setDeliveryAddress] = useState(null);
+  const onOrderPress = (shippingAddress) => {
+    setDeliveryAddress(shippingAddress)
+  }
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -49,11 +55,12 @@ export default function App() {
       >
       <Stack.Screen name="HomeScreen" component={Tabs}/>
       <Stack.Screen name="Sign In" component={Sign}/> 
-      <Stack.Screen name="OrderList" component={OrderList}/> 
+      <Stack.Screen name="OrdersList" component={OrderList}/> 
       <Stack.Screen name="Map" component={Map}/> 
       <Stack.Screen name="BackgroundVideo" component={BackgroundVideo}/>   
       </Stack.Navigator>
     </NavigationContainer>
-  );
+  )
 }
 
+export default App

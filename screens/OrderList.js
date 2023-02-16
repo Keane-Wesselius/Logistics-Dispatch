@@ -3,10 +3,16 @@ import Orders from '../components/Orders';
 import {View, ScrollView, StyleSheet,Text,TextInput,Button,  TouchableOpacity} from 'react-native';
 import { addDays, eachDayOfInterval, eachWeekOfInterval, format, subDays } from 'date-fns';
 import orders_json from '../components/orders.json';
-
+import { useNavigation } from '@react-navigation/native'
+//import Map from './Map';
 import PagerView from 'react-native-pager-view';
 
-const OrderList = () => {
+const OrderList = ({navigation, props}) => {
+ 
+  //const navigation = useNavigation();
+ // navigation.navigate('Map', {
+  //  deliveryAddress: 'shiva'
+ // });
   //generating dates in between 1-15 days
   const dates = eachWeekOfInterval({
     start: subDays(new Date(), 1),
@@ -66,7 +72,9 @@ const OrderList = () => {
       shippingAddress={order.shippingAddress}
       shippingInfo={order.shippingInfo}
       shippingDate={order.shippingDate} 
-      text = {'Order 1'}/>
+      text = {'Order 1'}
+     
+      />
      
       ))}
     </View>

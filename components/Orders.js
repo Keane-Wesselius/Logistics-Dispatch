@@ -4,16 +4,18 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import orders_json from './orders.json';
 import { useNavigation } from '@react-navigation/native'
 import Map from '../screens/Map';
-const Orders = (props, dest_address) => {
+
+
+const Orders = (props) => {
     const navigation = useNavigation();
   const[currentIndex, setCurrentIndex] = useState(null);
-  const[selectOrder, setSelectOrder] = useState(null);
-
+  //const[shippingAddress, setShippingAddress] = useState('');
+  const {shippingAddress, onPress} = props;
   const handlePress = (dest_address) =>{
-    navigation.navigate(Map, {
-        shippingAddress: dest_address
+    navigation.navigate('Map', {
+       deliveryAddress: dest_address
     })
-   console.log(dest_address);
+   //console.log(dest_address);
   }
   //parsing from json file
     /*
@@ -50,7 +52,7 @@ const Orders = (props, dest_address) => {
    
    
     
-    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress (props.shippingAddress)} >
+    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress(props.shippingAddress)} >
         <Text>Deliver</Text>
         </TouchableOpacity>   
     
