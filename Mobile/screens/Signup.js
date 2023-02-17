@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-const Register = ({ navigation }) => {
+const Signup = ({ navigation }) => {
   const [accType, setAccType] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,7 @@ const Register = ({ navigation }) => {
 
   const handleSubmit = () => {
     if (username && password) {
-        navigation.navigate('HomeScreen')
+      navigation.navigate("Login");
     } else {
       alert("wrong input");
     }
@@ -23,7 +23,7 @@ const Register = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-        <Text style = {styles.heading}>Create a New Account</Text>
+      <Text style={styles.heading}>Create a New Account</Text>
       <View style={styles.accType}>
         <Text>Account Type</Text>
         <TextInput
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#D0EDF6',
+    backgroundColor: "#D0EDF6",
   },
 
   submit: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: 50,
     width: 200,
-    marginTop: '5%'
+    marginTop: "5%",
   },
 
   input: {
@@ -101,14 +101,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "black",
     marginVertical: 10,
-    borderRadius: 10
+    borderRadius: 10,
   },
   heading: {
     fontSize: 30,
-    marginBottom: '5%', 
-    fontWeight: 'bold'
-
+    marginBottom: "5%",
+    fontWeight: "bold",
   },
 });
 
-export default Register;
+export default Signup;

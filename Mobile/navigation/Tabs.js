@@ -21,7 +21,7 @@ import {
 import menu from "../assets/menu.png";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Svg, { Path } from "react-native-svg";
-import Register from "../screens/Register";
+import Signup from "../screens/Signup";
 import Earnings from "../screens/Earnings";
 //import BackgroundVideo from '../components/BackgroundVideo';
 //const for bottom tab

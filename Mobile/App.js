@@ -9,7 +9,7 @@ import Map from "./screens/Map";
 import Tabs from "./navigation/Tabs";
 import Landing from "./components/Landing";
 import React, { useState } from "react";
-import Register from "./screens/Register";
+import Signup from "./screens/Signup";
 import Earnings from "./screens/Earnings";
 
 const Stack = createStackNavigator();
@@ -57,7 +57,7 @@ const App = (props) => {
         <Stack.Screen name="OrdersList" component={OrderList} />
         <Stack.Screen name="Map" component={Map} />
         <Stack.Screen name="Landing" component={Landing} />
-        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Earnings" component={Earnings} />
       </Stack.Navigator>
     </NavigationContainer>

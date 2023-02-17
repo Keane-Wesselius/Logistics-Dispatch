@@ -13,7 +13,7 @@ export default function Sign_in() {
     const[error, set_error] = useState('');
     const navigation = useNavigation(); 
     const handlePress = () =>{
-       navigation.navigate('HomeScreen')
+       navigation.navigate('Home')
         console.log('shiva')
     }
     /*const handle_sign_in =async() => {
@@ -117,8 +117,8 @@ const Sign_in = ({ navigation }) => {
     }
   };
 
-  const handleRegister = () => {
-    navigation.navigate("Register");
+  const handleSignup = () => {
+    navigation.navigate("Signup");
   };
   return (
     <View style={styles.loginContainer}>
@@ -155,7 +155,7 @@ const Sign_in = ({ navigation }) => {
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.login}>Login</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
           <Text style={styles.login}>Create A New Account</Text>
         </TouchableOpacity>
       </View>
