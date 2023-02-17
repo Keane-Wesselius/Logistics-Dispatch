@@ -9,15 +9,6 @@ const Header = () => {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{page}</Text>
-      <TouchableOpacity style={styles.buttons}>
-        <Button
-          color="blue"
-          title="Logout"
-          onPress={() =>
-            navigation.navigate('BackgroundVideo')
-          }
-        />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -26,23 +17,16 @@ const styles = StyleSheet.create({
   header: {
     flex: 1,
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "gray",
   },
 
   title: {
-    marginRight: "24%",
-    marginTop: 30,
+    // marginRight: "24%",
+    marginTop: 50,
     color: "white",
     fontSize: 20,
-  },
-
-  buttons: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    marginTop: 40,
-    marginRight: 10,
   },
 });
 
