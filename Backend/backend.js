@@ -18,7 +18,7 @@ wss.on("connection", function connection(ws) {
 		// Check if the jsonObject is valid. By this point, we should be able to assume the JSON object is both safe and valid.
 		if (jsonObject != null) {
 			console.log("Got valid JSON object: " + jsonObject);
-			ws.send("from backend to desktop");
+			ws.send("From backend to desktop");
 		} else {
 			console.log("Got invalid JSON object");
 		}
