@@ -1,0 +1,2 @@
+@REM For this to work, I needed to run this command rather than the standard ones, as it would spit out a cryptic error which seems to be known ( https://github.com/expo/expo-cli/issues/4575#issuecomment-1295006089 ).
+npx cross-env NODE_OPTIONS=--openssl-legacy-provider expo start --web

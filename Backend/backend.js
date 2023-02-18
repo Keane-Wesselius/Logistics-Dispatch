@@ -1,5 +1,8 @@
 const WebSocket = require("ws");
+const PacketDefinitions = require("./packet_definitions.js");
 const wss = new WebSocket.WebSocketServer({ port: 5000 });
+
+authenticated_clients = [];
 
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
@@ -17,6 +20,12 @@ wss.on("connection", function connection(ws) {
 
 		// Check if the jsonObject is valid. By this point, we should be able to assume the JSON object is both safe and valid.
 		if (jsonObject != null) {
+			// Some examples of packets which need to be implemented:
+			// Authentication Packets: Upon initial communication, client sends username and password to authenticate with the system. The server will send back if that authentication is valid or not.
+			if (jsonObject.type == PacketDefinitions.AUTHENTICATION) {
+				console.log("Authentication Data: " + data);
+			}
+
 			console.log("Got valid JSON object: " + jsonObject);
 			ws.send("From backend to desktop");
 		} else {
