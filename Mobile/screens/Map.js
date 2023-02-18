@@ -209,7 +209,11 @@ const Map = ({ route}) => {
         //for current location
 
         <Marker
-          coordinate={location}
+          
+          //coordinate={location}
+          //SHIVA this is keane ^^^ The above line is whats screwing up on android devices
+          //For now I have placed the line beneath so the app doesnt freakout
+          coordinate={{latitude: 0, longitude: 0}}
           //coordinate={fake_location}
 
           //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
