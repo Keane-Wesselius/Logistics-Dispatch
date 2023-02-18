@@ -1,0 +1,2 @@
+_packets_source.js is the real JavaScript file, which is then compiled into packets.js which is cross-platform with Node.js and the browser. 
+!!! ANY modification to packets.js will be erased each time _packets_source.js is built !!!

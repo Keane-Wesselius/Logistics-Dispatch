@@ -1,2 +1,0 @@
-@REM Essentially, this 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
-rollup _packets_source.js --file packets.js --format umd --name "Packets"
