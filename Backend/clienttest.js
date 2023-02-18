@@ -11,20 +11,15 @@ ws.on('error', console.error);
 
 ws.on('open', function open() {
 	setInterval(() => {
-		// Taken From 2/17/2023 4:22 PM: https://javascript.info/json#json-stringify
-		// let authenticationPacket = {
-		// 	type: PacketDefinitions.AUTHENTICATION,
-		// 	username: "TestUser1",
-		// 	password: "password1",
-		// };
-
 		const loginPacket = new Packets.LoginPacket("Test1", "password1");
+		console.log("Login Packet String: " + loginPacket.toString());
 
-		console.log(loginPacket.toString());
-
-		// ws.send('from desktop to backend');
-		// ws.send('{"type": true}');
 		ws.send(loginPacket.toString());
+
+		const checkIfUserExists = new Packets.DoesUserExistPacket("test@cwu.edu", "password1");
+		console.log("checkIfUserExists Packet String: " + checkIfUserExists.toString());
+
+		ws.send(checkIfUserExists.toString());
 	}, 1000);
 });
 

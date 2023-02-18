@@ -9,6 +9,7 @@
 	// Contains constant names for JSON tags.
 	const Constants = {
 		USERNAME: "username",
+		EMAIL: "email",
 		PASSWORD: "password",
 		AREA: "area",
 		TYPE: "type",
@@ -18,7 +19,7 @@
 	const PacketTypes = {
 		LOGIN: "login",
 		GET_ACTIVE_JOBS: "get_active_jobs",
-		FIND_IF_USER_EXISTS: "findIfUserExists",
+		FIND_IF_USER_EXISTS: "find_if_user_exists",
 	};
 
 	// Helper Functions
@@ -48,7 +49,7 @@
 		return null;
 	}
 
-	function getType(jsonString) {
+	function getPacketType(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return tryGet(jsonObject, Constants.TYPE);
 	}
@@ -70,6 +71,11 @@
 
 			return null;
 		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new Packet(tryGet(jsonObject, Constants.type));
+		}
 	}
 
 	class LoginPacket extends Packet {
@@ -83,8 +89,6 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			console.log("STRING: " + jsonString);
-			console.log("jsonObject" + jsonObject);
 			return new LoginPacket(tryGet(jsonObject, Constants.USERNAME), tryGet(jsonObject, Constants.PASSWORD));
 		}
 	}
@@ -104,11 +108,28 @@
 		}
 	}
 
+	class DoesUserExistPacket extends Packet {
+		constructor(email, password) {
+			super(PacketTypes.FIND_IF_USER_EXISTS);
+
+			// TODO: Sanitize
+			this.email = email;
+			// TODO: Does finding if a user exists need to have password included? Authorization should likely be checked for the connection rather than the password.
+			this.password = password;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetActiveJobsPacket(tryGet(jsonObject, Constants.email), tryGet(jsonObject, Constants.password));
+		}
+	}
+
 	exports.Constants = Constants;
+	exports.DoesUserExistPacket = DoesUserExistPacket;
 	exports.GetActiveJobsPacket = GetActiveJobsPacket;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
-	exports.getType = getType;
+	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 
 }));

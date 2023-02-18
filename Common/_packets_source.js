@@ -3,6 +3,7 @@
 // Contains constant names for JSON tags.
 export const Constants = {
 	USERNAME: "username",
+	EMAIL: "email",
 	PASSWORD: "password",
 	AREA: "area",
 	TYPE: "type",
@@ -12,7 +13,7 @@ export const Constants = {
 export const PacketTypes = {
 	LOGIN: "login",
 	GET_ACTIVE_JOBS: "get_active_jobs",
-	FIND_IF_USER_EXISTS: "findIfUserExists",
+	FIND_IF_USER_EXISTS: "find_if_user_exists",
 };
 
 // Helper Functions
@@ -42,7 +43,7 @@ export function parseJSON(jsonString) {
 	return null;
 }
 
-export function getType(jsonString) {
+export function getPacketType(jsonString) {
 	const jsonObject = parseJSON(jsonString);
 	return tryGet(jsonObject, Constants.TYPE);
 }
@@ -64,6 +65,11 @@ class Packet {
 
 		return null;
 	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new Packet(tryGet(jsonObject, Constants.type));
+	}
 }
 
 export class LoginPacket extends Packet {
@@ -77,8 +83,6 @@ export class LoginPacket extends Packet {
 
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
-		console.log("STRING: " + jsonString);
-		console.log("jsonObject" + jsonObject);
 		return new LoginPacket(tryGet(jsonObject, Constants.USERNAME), tryGet(jsonObject, Constants.PASSWORD));
 	}
 }
@@ -95,5 +99,21 @@ export class GetActiveJobsPacket extends Packet {
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
+	}
+}
+
+export class DoesUserExistPacket extends Packet {
+	constructor(email, password) {
+		super(PacketTypes.FIND_IF_USER_EXISTS);
+
+		// TODO: Sanitize
+		this.email = email;
+		// TODO: Does finding if a user exists need to have password included? Authorization should likely be checked for the connection rather than the password.
+		this.password = password;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new GetActiveJobsPacket(tryGet(jsonObject, Constants.email), tryGet(jsonObject, Constants.password));
 	}
 }

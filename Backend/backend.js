@@ -5,13 +5,17 @@ const wss = new WebSocket.WebSocketServer({ port: 5000 });
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
 const doDatabase = false;
 
+// TODO: These should be 'const', but need to be 'let' to support toggling database support on and off. This should be removed in production.
+let uri = null;
+let dbClient = null;
+
 if (doDatabase) {
 	const { MongoClient } = require('mongodb');
-	const uri = "MONGO KEY HERE";
-	const dbClient = new MongoClient(uri);
+	uri = "MONGO KEY HERE";
+	dbClient = new MongoClient(uri);
 }
 
-authenticated_clients = [];
+const authenticatedClients = [];
 
 if (doDatabase) {
 	// Creates a connection to the database
@@ -36,32 +40,33 @@ wss.on("connection", function connection(ws) {
 
 	// Handles receiving a message from the current connection, with the data is in a buffer.
 	ws.on("message", function message(data) {
-		console.log("DATA: " + data);
+		console.log("Raw Received Data: " + data);
 
 		// TODO: Keeping the connection alive by permanently storing it?
-		if (!authenticated_clients.includes(ws)) {
-
+		if (!authenticatedClients.includes(ws)) {
 			// Attempt to parse any packet receive as a Login packet, as that is the required first packet for clients.
 			// TODO: If the client fails to send a valid login packet after a few attempts, they should be blocked from connecting for a period to avoid DOS attacks.
 			const loginPacket = Packets.LoginPacket.fromJSONString(data);
-			console.log("Login Packet String: " + loginPacket.toString());
 
 			if (loginPacket.username != null && loginPacket.password != null) {
 				console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
-				authenticated_clients.push(ws);
+				authenticatedClients.push(ws);
 			} else {
 				console.log("Got invalid login");
 			}
 		} else {
-			// Client is authenticated, check what kind of function they are attempting to call.
-			const jsonObject = Packets.parseJSON(data);
+			// The user in this case has already been authenticated, so any packets they send can be received and processed by the server.
 
-			// Check if the jsonObject is valid. By this point, we should be able to assume the JSON object is both safe and valid.
-			if (jsonObject != null) {
-				console.log("JSON values = " + JSON.stringify(jsonObject));
+			// TODO: Requiring some kind of token to be sent with each packet from a client to the server might be a good additional security measure, at the cost of more network traffic.
+			// Attempt to parse the packet type from the data.
 
-				// Now that we have a JSON from the frontend we can check if we are trying to call a function
-				if (jsonObject.remoteFunction == Packets.Functions.FIND_IF_USER_EXISTS) {
+			// TODO: This parsing required getting the JSON JavaScript object to check the type parameter. At the very least, this will check if the JSON is valid, but that is already being done when parsing fromJsonString(). Slightly inefficient, so maybe having a way to construct a Packet from a JSON JavaScript might want to be looked into.
+			const packetType = Packets.getPacketType(data);
+			if (packetType == Packets.PacketTypes.FIND_IF_USER_EXISTS) {
+				const findIfUserExistsPacket = Packets.DoesUserExistPacket.fromJSONString(data);
+
+				// Check if the jsonObject is valid. By this point, we should be able to assume the JSON object is both safe and valid.
+				if (findIfUserExistsPacket != null) {
 					console.log("FIND USER EXISTS");
 					if (doDatabase) {
 						findIfUserExists(dbClient, jsonObject.email, jsonObject.password)
@@ -74,14 +79,15 @@ wss.on("connection", function connection(ws) {
 								ws.send('Internal server error');
 							});
 					}
+				} else {
+					console.log("Got invalid JSON object: " + data);
 				}
-			} else {
-				console.log("Got invalid JSON object: " + data);
 			}
 		}
 	});
 });
 
+// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
 if (doDatabase) {
 	//This function looks into the database and finds if an email and password exists in the database
 	//If it does we return true and false if not
