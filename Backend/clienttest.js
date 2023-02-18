@@ -1,8 +1,14 @@
+
+const PacketDefinitions = require("../Common/packets");
 const WebSocket = require("ws");
-const PacketDefinitions = require("./packet_definitions.js");
 const ws = new WebSocket(address = 'ws://127.0.0.1:5000');
 
 ws.on('error', console.error);
+
+console.log(PacketDefinitions.Packet.toString());
+// const testAuthenticatioNPacket = new PacketDefinitions.AuthenticationPacket("test");
+// console.log(testAuthenticatioNPacket);
+// console.log(PacketDefinitions.Constants.AUTHENTICATION);
 
 ws.on('open', function open() {
 	setInterval(() => {

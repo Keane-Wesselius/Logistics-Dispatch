@@ -1,0 +1,14 @@
+{
+	"name": "common",
+	"version": "1.0.0",
+	"description": "",
+	"main": "packets.js",
+	"scripts": {
+		"build": "rollup _packets_source.js --file packets.js --format umd --name \"Packets\""
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"rollup": "^3.17.1"
+	}
+}
