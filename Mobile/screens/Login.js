@@ -122,7 +122,7 @@ const Sign_in = ({ navigation }) => {
   };
   return (
     <View style={styles.loginContainer}>
-      {/* <Image style={styles.img} source={require("../assets/logo-black.png")} /> */}
+      <Image style={styles.img} source={require("../assets/logo-black.png")} />
       {/* <TextInput
         style={styles.inputcontainer}
         //placeholder='Email'

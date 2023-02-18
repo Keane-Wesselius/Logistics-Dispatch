@@ -39,12 +39,6 @@ const Earning = ({ navigation, route }) => {
       week.getMonth(),
       week.getDate() - week.getDay() + 6
     );
-    // console.log("\n");
-    // console.log("Day: " + week.getDay());
-    // console.log("start: " + startOfWeek);
-    // console.log(week.getMonth() + "/" + week.getDate());
-    // console.log("end: " + endOfWeek);
-    // console.log("\n");
   };
 
   const prevWeek = () => {
@@ -57,13 +51,26 @@ const Earning = ({ navigation, route }) => {
   const nextWeek = () => {
     const newWeek = new Date(week);
     newWeek.setDate(week.getDate() + 7);
-    setWeek(newWeek);
-    getEarningsForWeek(newWeek);
+
+    const today = new Date();
+    const nextWeekStart = new Date(
+      newWeek.getFullYear(),
+      newWeek.getMonth(),
+      newWeek.getDate() - newWeek.getDay()
+    );
+
+    if (today >= nextWeekStart) {
+      setWeek(newWeek);
+      getEarningsForWeek(newWeek);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Header navigation={navigation} />
+      <View style={styles.header}>
+        <Header navigation={navigation} />
+      </View>
+
       <View style={styles.content}>
         <View style={styles.earningHeader}>
           <TouchableOpacity onPress={prevWeek}>
@@ -91,9 +98,9 @@ const Earning = ({ navigation, route }) => {
           {/* {week.getMonth() + 1 + "/" + week.getDate()} */}
         </Text>
       </View>
-      <View style={styles.footer}>
-        {/* <AppNavigator navigation={navigation} username={username} /> */}
-      </View>
+      {/* <View style={styles.footer}>
+        <AppNavigator navigation={navigation} username={username} />
+      </View> */}
     </View>
   );
 };
@@ -103,20 +110,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  header: {
+    flex: 1,
+    backgroundColor: "gray",
+  },
+
+  content: {
+    flex: 7,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    // justifyContent: "center",
+    // height: "100%",
+  },
+
   footer: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "lightyellow",
+    backgroundColor: "red",
     // marginBottom: 36,
   },
-  content: {
-    flex: 8,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    // justifyContent: "center",
-  },
+
   earningHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -125,6 +140,7 @@ const styles = StyleSheet.create({
     padding: 20,
     // backgroundColor: "blue",
   },
+
   title: {
     fontSize: 20,
   },

@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Button,
+} from "react-native";
 //import AppNavigator from "../components/navigator";
 import Header from "../components/header";
 import Logout from "../components/Logout";
@@ -13,11 +20,24 @@ const Profile = ({ navigation, route }) => {
       </View>
       <Logout />
       <View style={styles.content}>
-        <Text> {username}'s Profile Page</Text>
+        <View style={styles.profile}>
+          <Image
+            style={styles.profilePic}
+            source={require("../assets/profile.png")}
+          />
+          <Text style={styles.name}> First Last</Text>
+          <TouchableOpacity style={styles.edit}>
+            <Text style={styles.editButton}>edit</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.below}>
+          <Text>Total Deliveries: 23</Text>
+        </View>
       </View>
-      <View style={styles.footer}>
-        {/*<AppNavigator navigation={navigation} username={username} />*/}
-      </View>
+      {/* <View style={styles.footer}>
+        <AppNavigator navigation={navigation} username={username} />
+      </View> */}
     </View>
   );
 };
@@ -25,36 +45,46 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "lightblue",
+    // backgroundColor: "gold",
   },
 
   header: {
     flex: 1,
-    flexDirection: "row",
-    // justifyContent: "center",
-    // alignItems: "center",
+    // flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "gray",
   },
 
-  title: {
-    marginTop: 40,
-    color: "white",
-    fontSize: 20,
-  },
-
   content: {
-    flex: 8,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 9,
+    // flexDirection: "row",
+    // justifyContent: "center",
+    // alignItems: "center",
+    // backgroundColor: "brown",
   },
 
-  footer: {
+  profile: {
     flex: 1,
-    flexDirection: "row",
+    backgroundColor: "lightblue",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "lightyellow",
+    borderRadius: "20%",
+  },
+
+  profilePic: {
+    // flex: 1,
+    borderRadius: "120%",
+  },
+
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+
+  below: {
+    flex: 1,
+    // backgroundColor: "#red",
   },
 });
 
