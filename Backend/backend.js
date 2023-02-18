@@ -3,7 +3,7 @@ const Packets = require("../Common/packets.js");
 const wss = new WebSocket.WebSocketServer({ port: 5000 });
 const { MongoClient } = require('mongodb');
 
-const uri = "MONGO KEY HERE";
+const uri = "Mongo";
 const dbClient = new MongoClient(uri);
 
 authenticated_clients = [];
@@ -38,7 +38,8 @@ wss.on("connection", function connection(ws) {
 		} catch (ignored) {
 		}
 
-		new Packets.AuthenticationPacket()
+		//Keane here The line below is giving me TypeError: Packets.AuthenticationPacket is not a constructor
+		//new Packets.AuthenticationPacket()
 
 		// Check if the jsonObject is valid. By this point, we should be able to assume the JSON object is both safe and valid.
 		if (jsonObject != null) {
