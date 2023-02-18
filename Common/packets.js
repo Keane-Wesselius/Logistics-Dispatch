@@ -6,6 +6,21 @@
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
+	// Contains constant names for JSON tags.
+	const Constants = {
+		USERNAME: "username",
+		PASSWORD: "password",
+		AREA: "area",
+		TYPE: "type",
+	};
+
+	// Contains function names, essentially Packet types.
+	const PacketTypes = {
+		LOGIN: "login",
+		GET_ACTIVE_JOBS: "get_active_jobs",
+		FIND_IF_USER_EXISTS: "findIfUserExists",
+	};
+
 	// Helper Functions
 	function tryGet(object, field) {
 		try {
@@ -15,33 +30,41 @@
 
 		return null;
 	}
-	// 
 
-	const Constants = {
-		AUTHENTICATION: "authentication",
-		USERNAME: "username",
-		PASSWORD: "password",
-	};
+	// Helper method for when / if we need more security / data sanitization in the future.
+	function parseJSON(jsonString) {
+		try {
+			// jsonString, if passed from the 'data' in WebSockets, might not actually be a string, so call the toString method to ensure it is.
+			// TODO: Ensure toString() is secure.
+			jsonString = jsonString.toString();
 
-	const Functions = {
-		LOGIN: "login",
-		FIND_IF_USER_EXISTS: "findIfUserExists",
-	};
-
-	class Packet {
-		constructor(data) {
-			this.data = data;
-			this.jsonObject = null;
-
-			try {
-				this.jsonObject = JSON.parse(this.data);
-			} catch (ignored) {
+			// 1000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
+			if (jsonString != null && jsonString.length <= 1000) {
+				return JSON.parse(jsonString);
 			}
+		} catch (ignored) {
 		}
 
-		toJSONString() {
+		return null;
+	}
+
+	function getType(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return tryGet(jsonObject, Constants.TYPE);
+	}
+	// End Helper Functions
+
+	// Packet classes have two primary functions: converting from JSON into a valid, secure JavaScript object and converting back into JSON to be sent over WebSockets.
+	// When parsed from JSON, the returned JavaScript object should be validated to ensure no unsanitized data is allowed into the system. By the point the variable is set in the object, the data MUST be able to be assumed to be fully sanitized and safe.
+	class Packet {
+		constructor(type) {
+			this.type = type;
+		}
+
+		// Overrides the base toString() method, which is desirable for our application.
+		toString() {
 			try {
-				return JSON.stringify(this.jsonObject);
+				return JSON.stringify(this);
 			} catch (ignored) {
 			}
 
@@ -49,24 +72,43 @@
 		}
 	}
 
-	// Essentially, packets in our application are kinda like Remote Procedure Calls ( https://en.wikipedia.org/wiki/Remote_procedure_call ) where we are essentially calling a function on the receiving end with parameters set using the JSON format. So the LoginPacket essentially is essentially stating that the client wants to call the 'login' function on the receivers side with the 'username' and 'password' fields.
-
-	// While switching to a 'real' RPC library might simplify this process significantly, this allows us to have full control over the data stream, as well as it's security (which may be two things supported by a real RPC library). Definitely something to look into.
 	class LoginPacket extends Packet {
-		constructor(data) {
-			super(data);
+		constructor(username, password) {
+			super(PacketTypes.LOGIN);
 
-			this.function = Functions.LOGIN;
+			// TODO: Sanitize
+			this.username = username;
+			this.password = password;
+		}
 
-			// I'm not sure if we want to secure the constructors like this, as while it does prevent errors will significantly clutter the code base. Doing this does at the very least guarantee that we can call toJSONString() without needing to worry if the object is valid or not.
-			this.username = tryGet(this.jsonObject, Constants.username);
-			this.password = tryGet(this.jsonObject, Constants.PASSWORD);
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			console.log("STRING: " + jsonString);
+			console.log("jsonObject" + jsonObject);
+			return new LoginPacket(tryGet(jsonObject, Constants.USERNAME), tryGet(jsonObject, Constants.PASSWORD));
+		}
+	}
+
+	// TODO: Not an actual implementation, but shows how the schemes should work.
+	class GetActiveJobsPacket extends Packet {
+		constructor(area) {
+			super(PacketTypes.GET_ACTIVE_JOBS);
+
+			// TODO: Sanitize
+			this.area = area;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
 		}
 	}
 
 	exports.Constants = Constants;
-	exports.Functions = Functions;
+	exports.GetActiveJobsPacket = GetActiveJobsPacket;
 	exports.LoginPacket = LoginPacket;
-	exports.Packet = Packet;
+	exports.PacketTypes = PacketTypes;
+	exports.getType = getType;
+	exports.parseJSON = parseJSON;
 
 }));
