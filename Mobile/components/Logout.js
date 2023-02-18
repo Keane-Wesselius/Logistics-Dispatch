@@ -17,12 +17,17 @@ const Logout = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.buttons}>
-        <Button
-          color="blue"
-          title="Logout"
-          onPress={() => navigation.navigate("Landing")}
-        />
+      <TouchableOpacity
+        style={styles.buttons}
+        onPress={() => navigation.navigate("Landing")}
+      >
+        <Text
+          // color="blue"
+          // title="Logout"
+          style={styles.textButtons}
+        >
+          Logout
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -40,8 +45,13 @@ const styles = StyleSheet.create({
 
   buttons: {
     backgroundColor: "white",
-    borderRadius: 10,
     height: 40,
+    borderRadius: 10,
+  },
+  textButtons: {
+    color: "blue",
+    height: 40,
+    padding: 10,
   },
 });
 
