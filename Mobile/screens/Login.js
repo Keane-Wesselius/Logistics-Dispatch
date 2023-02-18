@@ -105,16 +105,43 @@ const styles = StyleSheet.create({
   });
  */
 
-const Sign_in = ({ navigation }) => {
+const Sign_in  = ({ navigation }) => {
+
+  
+  let ws = new WebSocket('ws://127.0.0.1:5000/');
+  //onopen happens when the websocket connects
+  ws.onopen = () => {
+    //ws.send sends data to backend.js 
+    //We MUST send a string and not a JSON to the backend
+    //ws.send(JSON.stringify({function: "findIfUserExists", email: 'test@gmail.com', password: '$2b$10$WiSov1jp8GHWjEMAf7rFaejT7NHgbC9VBDLGQcO27.VqxKWnBtiJa' }));
+  }
+  ws.onclose = () => console.log('ws closed');
+
+  //When we get an answer back this is called 
+  ws.onmessage = e => {
+    const message = e;
+    
+    if (e.data == "true") {
+      navigation.replace("Home", { username });
+    } 
+    else if (e.data == "false") {
+      alert("wrong username or password");
+    }
+    console.log(e.data);
+    //console.log('e', message);
+  };
+
+  ws.onerror = (e) => {
+    console.error('WebSocket error:', e.message);
+  };
+
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   // const [email, set_email] = useState("");
   const handleLogin = () => {
-    if (username && password) {
-      navigation.replace("Home", { username });
-    } else {
-      alert("wrong username or password");
-    }
+    ws.send(JSON.stringify({function: "findIfUserExists", email: username, "password": password}))
+    
   };
 
   const handleSignup = () => {

@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 
   title: {
     // marginRight: "24%",
-    marginTop: 50,
+    marginTop: 40,
     color: "white",
     fontSize: 20,
   },
