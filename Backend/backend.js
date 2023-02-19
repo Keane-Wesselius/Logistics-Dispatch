@@ -1,6 +1,6 @@
 const WebSocket = require("ws");
 const Packets = require("../Common/packets.js");
-const wss = new WebSocket.WebSocketServer({ port: 5000 });
+const wss = new WebSocket.WebSocketServer({ port: 5005 });
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
 const doDatabase = true;
@@ -10,27 +10,26 @@ let uri = null;
 let dbClient = null;
 
 if (doDatabase) {
-	const { MongoClient } = require('mongodb');
-	uri = "MONGO KEY HERE";
-	dbClient = new MongoClient(uri);
+  const { MongoClient } = require("mongodb");
+  uri = "MONGO KEY HERE";
+  dbClient = new MongoClient(uri);
 }
 
 const authenticatedClients = [];
 
 if (doDatabase) {
-	// Creates a connection to the database
-	async function startDatabase() {
-		try {
-			await dbClient.connect();
-		}
-		catch (e) {
-			console.error(e);
-		}
-		// finally {
-		//   await client.close();
-		// }
-	};
-	startDatabase();
+  // Creates a connection to the database
+  async function startDatabase() {
+    try {
+      await dbClient.connect();
+    } catch (e) {
+      console.error(e);
+    }
+    // finally {
+    //   await client.close();
+    // }
+  }
+  startDatabase();
 }
 
 // async function findIfUserExists(client, userEmail) {
@@ -67,12 +66,12 @@ async function getUserData(userEmail) {
 
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
-	// If an error occurs in this connection. print to the console the error.
-	ws.on("error", console.error);
+  // If an error occurs in this connection. print to the console the error.
+  ws.on("error", console.error);
 
-	// Handles receiving a message from the current connection, with the data is in a buffer.
-	ws.on("message", function message(data) {
-		console.log("Raw Received Data: " + data);
+  // Handles receiving a message from the current connection, with the data is in a buffer.
+  ws.on("message", function message(data) {
+    console.log("Raw Received Data: " + data);
 
 		// TODO: Keeping the connection alive by permanently storing it?
 		// TODO: Cannot have this be assumed this is the first packet, as the user might want to sign in.
@@ -166,8 +165,8 @@ wss.on("connection", function connection(ws) {
 		} else {
 			// The user in this case has already been authenticated, so any packets they send can be received and processed by the server.
 
-			// TODO: Requiring some kind of token to be sent with each packet from a client to the server might be a good additional security measure, at the cost of more network traffic.
-			// Attempt to parse the packet type from the data.
+      // TODO: Requiring some kind of token to be sent with each packet from a client to the server might be a good additional security measure, at the cost of more network traffic.
+      // Attempt to parse the packet type from the data.
 
 			// TODO: This parsing required getting the JSON JavaScript object to check the type parameter. At the very least, this will check if the JSON is valid, but that is already being done when parsing fromJsonString(). Slightly inefficient, so maybe having a way to construct a Packet from a JSON JavaScript might want to be looked into.
 			const packetType = Packets.getPacketType(data);

@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, Image, TouchableOpacity, Text } from "react-native";
 import Tabs from "../navigation/Tabs";
 import { Tab } from "react-native-elements";
+const Packets = require("./packets");
 //import {Button} from 'native-base';
 //import axios from 'axios';
 /*  
@@ -105,26 +106,34 @@ const styles = StyleSheet.create({
   });
  */
 
-const Sign_in  = ({ navigation }) => {
-
-  
-  let ws = new WebSocket('ws://127.0.0.1:5000/');
+const Sign_in = ({ navigation }) => {
+  let ws = new WebSocket("ws://192.168.0.180:5005/");
   //onopen happens when the websocket connects
   ws.onopen = () => {
-    //ws.send sends data to backend.js 
+    // const loginPacket = new Packets.LoginPacket("Test1", "password1");
+    // console.log("Login Packet String: " + loginPacket.toString());
+    // ws.send(loginPacket.toString());
+    // const checkIfUserExists = new Packets.DoesUserExistPacket(
+    //   "test@cwu.edu",
+    //   "password1"
+    // );
+    // console.log(
+    //   "checkIfUserExists Packet String: " + checkIfUserExists.toString()
+    // );
+    // ws.send(checkIfUserExists.toString());
+    //ws.send sends data to backend.js
     //We MUST send a string and not a JSON to the backend
     //ws.send(JSON.stringify({function: "findIfUserExists", email: 'test@gmail.com', password: '$2b$10$WiSov1jp8GHWjEMAf7rFaejT7NHgbC9VBDLGQcO27.VqxKWnBtiJa' }));
-  }
-  ws.onclose = () => console.log('ws closed');
+  };
+  ws.onclose = () => console.log("ws closed");
 
-  //When we get an answer back this is called 
-  ws.onmessage = e => {
+  //When we get an answer back this is called
+  ws.onmessage = (e) => {
     const message = e;
-    
+
     if (e.data == "true") {
       navigation.replace("Home", { username });
-    } 
-    else if (e.data == "false") {
+    } else if (e.data == "false") {
       alert("wrong username or password");
     }
     console.log(e.data);
@@ -132,16 +141,29 @@ const Sign_in  = ({ navigation }) => {
   };
 
   ws.onerror = (e) => {
-    console.error('WebSocket error:', e.message);
+    console.error("WebSocket error:", e.message);
   };
-
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   // const [email, set_email] = useState("");
   const handleLogin = () => {
-    ws.send(JSON.stringify({function: "findIfUserExists", email: username, "password": password}))
-    
+    const loginPacket = new Packets.LoginPacket(username, password);
+    console.log("Login Packet String: " + loginPacket.toString());
+
+    ws.send(loginPacket.toString());
+
+    const checkIfUserExists = new Packets.DoesUserExistPacket(
+      "test@cwu.edu",
+      "password1"
+    );
+    console.log(
+      "checkIfUserExists Packet String: " + checkIfUserExists.toString()
+    );
+
+    ws.send(checkIfUserExists.toString());
+
+    navigation.navigate("Home");
   };
 
   const handleSignup = () => {
