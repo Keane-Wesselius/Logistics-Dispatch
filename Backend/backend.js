@@ -11,7 +11,7 @@ let dbClient = null;
 
 if (doDatabase) {
   const { MongoClient } = require("mongodb");
-  uri = "MONGO KEY HERE";
+  uri = "Mongo Key Here";
   dbClient = new MongoClient(uri);
 }
 
@@ -60,7 +60,7 @@ if (doDatabase) {
 
 async function getUserData(userEmail) {
 	// TODO: Add support for getting user data via email or username
-	const result = await client.db("test").collection("users").findOne({ email: userEmail });
+	const result = await dbClient.db("test").collection("users").findOne({ email: userEmail });
 	return result;
 }
 
@@ -125,6 +125,7 @@ wss.on("connection", function connection(ws) {
 					if (userData != null) {
 						userUsernameWasValid = true;
 
+
 						if (userData.password === loginPacket.password) {
 							console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
 							authenticatedClients.push(ws);
@@ -140,10 +141,14 @@ wss.on("connection", function connection(ws) {
 					// TODO: Check if error is stating database is down, return a fatal error in that case.
 				});
 
+				//TODO: Because the above codeblock is connecting to the database its taking time before setting [userUsernameWasValid]
+				//Thus it is causing the backend to send a failed packet and then it is sending a success packet
 				let userErrorMessage = null;
 				if (!userUsernameWasValid) {
-					userErrorMessage = "User name / email is invalid.";
+					console.log("option 1");
+					userErrorMessage = "User name is invalid.";
 				} else if (!userPasswordWasValid) {
+					console.log("option 2");
 					userErrorMessage = "User password is invalid.";
 				}
 
@@ -159,7 +164,8 @@ wss.on("connection", function connection(ws) {
 					// {"type": "authentication_failed", "error_message": "Invalid username / password"}
 					ws.send(authenticationFailedPacket.toString());
 				}
-			} else {
+			} 
+			else {
 				console.log("Got invalid login");
 			}
 		} else {

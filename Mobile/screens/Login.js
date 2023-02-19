@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
  */
 
 const Sign_in = ({ navigation }) => {
-  let ws = new WebSocket("ws://192.168.0.180:5005/");
+  let ws = new WebSocket("ws://192.168.24.24:5005/");
   //onopen happens when the websocket connects
   ws.onopen = () => {
     // const loginPacket = new Packets.LoginPacket("Test1", "password1");
@@ -128,16 +128,21 @@ const Sign_in = ({ navigation }) => {
   ws.onclose = () => console.log("ws closed");
 
   //When we get an answer back this is called
-  ws.onmessage = (e) => {
-    const message = e;
+  //This function is called when we get an answer back from the server
+  //Due to a backend.js bug we will see the error message even if we are successfully signing into application
+  //Shiva or Galmo this is keane will one of you show me how to pass varibles between the different screens of the application
+  //we need to keep the same websocket
+  ws.onmessage = (response) => {
+    const packet = response.data;
+    console.log(packet);
 
-    if (e.data == "true") {
+    if(Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_SUCCESS) {
       navigation.replace("Home", { username });
-    } else if (e.data == "false") {
+		}
+    else if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
       alert("wrong username or password");
     }
-    console.log(e.data);
-    //console.log('e', message);
+      
   };
 
   ws.onerror = (e) => {
@@ -147,23 +152,14 @@ const Sign_in = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   // const [email, set_email] = useState("");
+
   const handleLogin = () => {
+    //We create a packet to send to the backend using the username and password entered on the screen
     const loginPacket = new Packets.LoginPacket(username, password);
     console.log("Login Packet String: " + loginPacket.toString());
 
     ws.send(loginPacket.toString());
 
-    const checkIfUserExists = new Packets.DoesUserExistPacket(
-      "test@cwu.edu",
-      "password1"
-    );
-    console.log(
-      "checkIfUserExists Packet String: " + checkIfUserExists.toString()
-    );
-
-    ws.send(checkIfUserExists.toString());
-
-    navigation.navigate("Home");
   };
 
   const handleSignup = () => {
