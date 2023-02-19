@@ -7,13 +7,18 @@ export const Constants = {
 	PASSWORD: "password",
 	AREA: "area",
 	TYPE: "type",
+	ERROR_MESSAGE: "error_message",
 };
+
+// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
 
 // Contains function names, essentially Packet types.
 export const PacketTypes = {
 	LOGIN: "login",
 	GET_ACTIVE_JOBS: "get_active_jobs",
-	FIND_IF_USER_EXISTS: "find_if_user_exists",
+	// FIND_IF_USER_EXISTS: "find_if_user_exists",
+	AUTHENTICATION_FAILED: "authentication_failed",
+	AUTHENTICATION_SUCCESS: "authentication_success",
 };
 
 // Helper Functions
@@ -87,6 +92,32 @@ export class LoginPacket extends Packet {
 	}
 }
 
+export class AuthenticationFailedPacket extends Packet {
+	constructor(errorMessage) {
+		super(PacketTypes.AUTHENTICATION_FAILED);
+
+		// TODO: Sanitize
+		this.errorMessage = errorMessage;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AuthenticationFailedPacket(tryGet(jsonObject, Constants.ERROR_MESSAGE));
+	}
+}
+
+// TODO: Probably should send back more of the user information rather than an empty packet.
+export class AuthenticationSuccessPacket extends Packet {
+	constructor() {
+		super(PacketTypes.AUTHENTICATION_SUCCESS);
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AuthenticationSuccessPacket();
+	}
+}
+
 // TODO: Not an actual implementation, but shows how the schemes should work.
 export class GetActiveJobsPacket extends Packet {
 	constructor(area) {
@@ -99,21 +130,5 @@ export class GetActiveJobsPacket extends Packet {
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
-	}
-}
-
-export class DoesUserExistPacket extends Packet {
-	constructor(email, password) {
-		super(PacketTypes.FIND_IF_USER_EXISTS);
-
-		// TODO: Sanitize
-		this.email = email;
-		// TODO: Does finding if a user exists need to have password included? Authorization should likely be checked for the connection rather than the password.
-		this.password = password;
-	}
-
-	static fromJSONString(jsonString) {
-		const jsonObject = parseJSON(jsonString);
-		return new GetActiveJobsPacket(tryGet(jsonObject, Constants.email), tryGet(jsonObject, Constants.password));
 	}
 }
