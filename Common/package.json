@@ -4,11 +4,14 @@
 	"description": "",
 	"main": "packets.js",
 	"scripts": {
-		"build": "rollup _packets_source.js --file packets.js --format umd --name \"Packets\""
+		"build": "rollup _packets_source.js --file packets.js --format umd --name \"Packets\" && shx cp \"packets.js\" \"../Mobile/screens/packets.js\""
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
 		"rollup": "^3.17.1"
+	},
+	"devDependencies": {
+		"shx": "^0.3.4"
 	}
 }

@@ -16,11 +16,12 @@
 		ERROR_MESSAGE: "error_message",
 	};
 
+	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
+
 	// Contains function names, essentially Packet types.
 	const PacketTypes = {
 		LOGIN: "login",
 		GET_ACTIVE_JOBS: "get_active_jobs",
-		// FIND_IF_USER_EXISTS: "find_if_user_exists",
 		AUTHENTICATION_FAILED: "authentication_failed",
 		AUTHENTICATION_SUCCESS: "authentication_success",
 	};
@@ -110,18 +111,20 @@
 		}
 	}
 
+	// TODO: Probably should send back more of the user information rather than an empty packet.
 	class AuthenticationSuccessPacket extends Packet {
 		constructor() {
 			super(PacketTypes.AUTHENTICATION_SUCCESS);
 		}
 
 		static fromJSONString(jsonString) {
+			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
 			parseJSON(jsonString);
 			return new AuthenticationSuccessPacket();
 		}
 	}
 
-	// TODO: Not an actual implementation, but shows how the schemes should work.
+	// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
 	class GetActiveJobsPacket extends Packet {
 		constructor(area) {
 			super(PacketTypes.GET_ACTIVE_JOBS);
@@ -135,6 +138,8 @@
 			return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
 		}
 	}
+
+	// TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
 
 	exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;

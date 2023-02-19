@@ -16,7 +16,6 @@ export const Constants = {
 export const PacketTypes = {
 	LOGIN: "login",
 	GET_ACTIVE_JOBS: "get_active_jobs",
-	// FIND_IF_USER_EXISTS: "find_if_user_exists",
 	AUTHENTICATION_FAILED: "authentication_failed",
 	AUTHENTICATION_SUCCESS: "authentication_success",
 };
@@ -113,12 +112,13 @@ export class AuthenticationSuccessPacket extends Packet {
 	}
 
 	static fromJSONString(jsonString) {
+		// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
 		const jsonObject = parseJSON(jsonString);
 		return new AuthenticationSuccessPacket();
 	}
 }
 
-// TODO: Not an actual implementation, but shows how the schemes should work.
+// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
 export class GetActiveJobsPacket extends Packet {
 	constructor(area) {
 		super(PacketTypes.GET_ACTIVE_JOBS);
@@ -132,3 +132,5 @@ export class GetActiveJobsPacket extends Packet {
 		return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
 	}
 }
+
+// TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
