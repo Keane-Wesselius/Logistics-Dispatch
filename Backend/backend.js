@@ -196,8 +196,41 @@ wss.on("connection", function connection(ws) {
 });
 
 // TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
+// TODO: All of these functions are accessing the test database and we will have to update them as soon as we get the real data base entries with correct schemas
 if (doDatabase) {
 	//This function looks into the database and finds if an email and password exists in the database
 	//If it does we return true and false if not
 	//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
+}
+
+//Database call to create a new user
+//newUser is a JSON that contains at the bare minimum an email and a password field
+async function createNewUser(client, newUser){
+
+	//Checks to see if the username and password already exists in the database 
+    const result = await client.db("test").collection("users").findOne({ email: newUser.email, password: newUser.password });
+    //This case refers to when the user already exists
+    if (result)
+    {
+        console.log("Tried to create new user but they already exist");
+    }
+	//This means the user does not exist and we are creating a new user
+    else
+    {
+        const result = await client.db("test").collection("users").insertOne(newUser);
+        console.log("New user created");
+    }
+}
+
+//This function will find all the jobs available for the drivers to accept
+//Note we can sort the jobs coming from the database 
+//In this case results is an array of the jobs in JSON form
+async function getAllJobs(client)
+{
+    const cursor = client.db("test").collection("jobs").find();
+    const results = await cursor.toArray();
+
+    results.forEach((result, i) => {
+        console.log(result);
+    });
 }
