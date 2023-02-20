@@ -24,10 +24,8 @@ db.once("open", function() {
   });
 
 initializePassport(
-    passport,
-
+    passport
 )
-
 
 app.use(express.urlencoded({extended: false}))
 app.use(flash())
@@ -50,12 +48,15 @@ app.post("/login", checkNotAuthenticated, passport.authenticate("local", {
 // Configuring the register post functionality
 app.post("/register", checkNotAuthenticated, async (req, res) => {
     try{
-        const hashedPassword = await bcrypt.hash(req.body.password, 10)
+        // Push user data to users array
+        const hashedPassword = await bcrypt.hash(req.body.password, 10) // encrypts password
+
         // Push user data to database
         const newUser = new User({
             name: req.body.name,
             email: req.body.email,
-            password: hashedPassword
+            password: hashedPassword,
+            type: req.body.type
         });
         await newUser.save();
 
@@ -71,7 +72,7 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
 
 // Render front end
 app.get('/',checkAuthenticated, (req, res) => {
-    res.render("index.ejs", {name: req.user.name})
+    res.render("index.ejs", {name: req.user.name, type: req.user.type})
 })
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
