@@ -3,6 +3,12 @@ const Packets = require("../Common/packets.js");
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
 const wss = new WebSocket.WebSocketServer({ port: 5005 });
+const bcrypt = require("bcrypt");
+
+//saltRounds refers to bcrypt, the higher the saltRounds the more secure the password
+//by default bcrypt recommends 10 saltRounds, using a 2gz processor that will give us roughly 10 hashs/second
+//going too high on this number could cause a hash to run for multiple days, best to leave it as it is
+const saltRounds = 10;
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
 const doDatabase = true;
@@ -12,8 +18,9 @@ let uri = null;
 let dbClient = null;
 
 if (doDatabase) {
+
 	const { MongoClient } = require("mongodb");
-	uri = "Mongo Key Here";
+	uri = "MONGO KEY";
 	dbClient = new MongoClient(uri);
 
 	// Creates a connection to the database
@@ -28,6 +35,7 @@ if (doDatabase) {
 		// }
 	}
 	startDatabase();
+
 }
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
@@ -70,18 +78,21 @@ wss.on("connection", function connection(ws) {
 
 					if (userData != null) {
 						userUsernameWasValid = true;
-
-
-						if (userData.password === loginPacket.password) {
-							console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
-							// TODO: Keeping the connection alive by permanently storing it?
-							authenticatedClients.push(ws);
-							const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
-							// The JSON of this packet (what is returned via authenticationSuccessPacket.toString()) is {"type": "authentication_success"}
-							ws.send(authenticationSuccessPacket.toString());
-
-							userPasswordWasValid = true;
-						}
+						
+						bcrypt.compare(loginPacket.password, userData.password, function(err, result) {
+							if (result == true) {
+								console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
+								authenticatedClients.push(ws);
+								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
+								ws.send(authenticationSuccessPacket.toString());
+		
+								// {"type": "authentication_success"}
+		
+								userPasswordWasValid = true;
+							}
+						});
+						
+						
 					}
 
 					let userErrorMessage = null;
@@ -159,20 +170,27 @@ async function getUserData(userEmail) {
 
 //Database call to create a new user
 //newUser is a JSON that contains at the bare minimum an email and a password field
-async function createNewUser(client, newUser) {
-	//Checks to see if the username and password already exists in the database 
-	const result = await client.db("test").collection("users").findOne({ email: newUser.email, password: newUser.password });
-	//This case refers to when the user already exists
-	if (result) {
-		console.log("Tried to create new user but they already exist");
-	}
-	//This means the user does not exist and we are creating a new user
-	else {
-		const result = await client.db("test").collection("users").insertOne(newUser);
-		console.log("New user created");
-	}
-}
+async function createNewUser(client, newUser){
 
+	const hashedPassword = await bcrypt.hash(newUser.password, 10)
+	//Checks to see if the username and password already exists in the database 
+    const result = await client.db("test").collection("users").findOne({ email: newUser.email, password: hashedPassword });
+    //This case refers to when the user already exists
+    if (result)
+    {
+        console.log("Tried to create new user but they already exist");
+    }
+	//This means the user does not exist and we are creating a new user
+    else
+    {
+        const hashedUser = ({
+            email: newUser.email,
+            password: hashedPassword
+        });
+        const result = await client.db("test").collection("users").insertOne(hashedUser);
+        console.log("New user created");
+    }
+}
 //This function will find all the jobs available for the drivers to accept
 //Note we can sort the jobs coming from the database 
 //In this case results is an array of the jobs in JSON form

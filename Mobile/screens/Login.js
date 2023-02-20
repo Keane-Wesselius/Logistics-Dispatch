@@ -107,23 +107,9 @@ const styles = StyleSheet.create({
  */
 
 const Sign_in = ({ navigation }) => {
-  let ws = new WebSocket("ws://192.168.24.24:5005/");
+  let ws = new WebSocket("ws://192.168.23.53:5005/");
   //onopen happens when the websocket connects
   ws.onopen = () => {
-    // const loginPacket = new Packets.LoginPacket("Test1", "password1");
-    // console.log("Login Packet String: " + loginPacket.toString());
-    // ws.send(loginPacket.toString());
-    // const checkIfUserExists = new Packets.DoesUserExistPacket(
-    //   "test@cwu.edu",
-    //   "password1"
-    // );
-    // console.log(
-    //   "checkIfUserExists Packet String: " + checkIfUserExists.toString()
-    // );
-    // ws.send(checkIfUserExists.toString());
-    //ws.send sends data to backend.js
-    //We MUST send a string and not a JSON to the backend
-    //ws.send(JSON.stringify({function: "findIfUserExists", email: 'test@gmail.com', password: '$2b$10$WiSov1jp8GHWjEMAf7rFaejT7NHgbC9VBDLGQcO27.VqxKWnBtiJa' }));
   };
   ws.onclose = () => console.log("ws closed");
 
