@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.packets = {}));
 })(this, (function (exports) { 'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
@@ -11,6 +11,7 @@
 		USERNAME: "username",
 		EMAIL: "email",
 		PASSWORD: "password",
+		ACCTYPE: "acctype",
 		AREA: "area",
 		TYPE: "type",
 		ERROR_MESSAGE: "error_message",
@@ -24,6 +25,9 @@
 		GET_ACTIVE_JOBS: "get_active_jobs",
 		AUTHENTICATION_FAILED: "authentication_failed",
 		AUTHENTICATION_SUCCESS: "authentication_success",
+		ACCOUNT_CREATE_FAILED: "account_create_failed",
+		ACCOUNT_CREATE_SUCCESS: "account_create_success",
+		CREATE_ACCOUNT: "create_account",
 	};
 
 	// Helper Functions
@@ -97,6 +101,45 @@
 		}
 	}
 
+	class CreateAccountPacket extends Packet {
+		constructor(email, password, acctype) {
+			super(PacketTypes.CREATE_ACCOUNT);
+
+			this.email = email;
+			this.password = password;
+			this.acctype = acctype;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new CreateAccountPacket(tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.TYPE));
+		}
+	}
+
+	class AccountCreateFailedPacket extends Packet {
+		constructor(errorMessage) {
+			super(PacketTypes.ACCOUNT_CREATE_FAILED);
+
+			this.errorMessage = errorMessage;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new AccountCreateFailedPacket(tryGet(jsonObject, Constants.ERROR_MESSAGE));
+		}
+	}
+
+	class AccountCreateSuccessPacket extends Packet {
+		constructor() {
+			super(PacketTypes.ACCOUNT_CREATE_SUCCESS);
+		}
+
+		static fromJSONString(jsonString) {
+			parseJSON(jsonString);
+			return new AccountCreateSuccessPacket();
+		}
+	}
+
 	class AuthenticationFailedPacket extends Packet {
 		constructor(errorMessage) {
 			super(PacketTypes.AUTHENTICATION_FAILED);
@@ -141,9 +184,12 @@
 
 	// TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
 
+	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
+	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
+	exports.CreateAccountPacket = CreateAccountPacket;
 	exports.GetActiveJobsPacket = GetActiveJobsPacket;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;

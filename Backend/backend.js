@@ -20,7 +20,7 @@ let dbClient = null;
 if (doDatabase) {
 
 	const { MongoClient } = require("mongodb");
-	uri = "MONGO KEY";
+	uri = "MONGO KEY HERE";
 	dbClient = new MongoClient(uri);
 
 	// Creates a connection to the database
@@ -132,6 +132,21 @@ wss.on("connection", function connection(ws) {
 			getAllJobs(dbClient).then((results) => {
 			}).catch(() => {
 			})
+		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
+			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
+
+			if (accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
+				createNewUser(dbClient, accountPacket).then((result) => {
+
+					if (result != null) {
+						const accountCreateFailedPacket = new Packets.AccountCreateFailedPacket(result);
+						ws.send(accountCreateFailedPacket.toString());
+					} else {
+						const accountCreateSuccessPacket = new Packets.AccountCreateSuccessPacket();
+						ws.send(accountCreateSuccessPacket.toString());
+					}
+				});
+			}
 		}
 
 		// TODO: Example showing packet implementation, remove later.
@@ -174,11 +189,14 @@ async function createNewUser(client, newUser){
 
 	const hashedPassword = await bcrypt.hash(newUser.password, 10)
 	//Checks to see if the username and password already exists in the database 
-    const result = await client.db("test").collection("users").findOne({ email: newUser.email, password: hashedPassword });
+    const emailExists = await client.db("test").collection("users").findOne({ email: newUser.email});
+
+	let result = null;
     //This case refers to when the user already exists
-    if (result)
+    if (emailExists)
     {
         console.log("Tried to create new user but they already exist");
+		result = "Tried to create a new user but they already exist";
     }
 	//This means the user does not exist and we are creating a new user
     else
@@ -190,6 +208,7 @@ async function createNewUser(client, newUser){
         const result = await client.db("test").collection("users").insertOne(hashedUser);
         console.log("New user created");
     }
+	return result;
 }
 //This function will find all the jobs available for the drivers to accept
 //Note we can sort the jobs coming from the database 

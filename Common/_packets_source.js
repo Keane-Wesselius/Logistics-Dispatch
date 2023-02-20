@@ -5,6 +5,7 @@ export const Constants = {
 	USERNAME: "username",
 	EMAIL: "email",
 	PASSWORD: "password",
+	ACCTYPE: "acctype",
 	AREA: "area",
 	TYPE: "type",
 	ERROR_MESSAGE: "error_message",
@@ -18,6 +19,9 @@ export const PacketTypes = {
 	GET_ACTIVE_JOBS: "get_active_jobs",
 	AUTHENTICATION_FAILED: "authentication_failed",
 	AUTHENTICATION_SUCCESS: "authentication_success",
+	ACCOUNT_CREATE_FAILED: "account_create_failed",
+	ACCOUNT_CREATE_SUCCESS: "account_create_success",
+	CREATE_ACCOUNT: "create_account",
 };
 
 // Helper Functions
@@ -88,6 +92,45 @@ export class LoginPacket extends Packet {
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return new LoginPacket(tryGet(jsonObject, Constants.USERNAME), tryGet(jsonObject, Constants.PASSWORD));
+	}
+}
+
+export class CreateAccountPacket extends Packet {
+	constructor(email, password, acctype) {
+		super(PacketTypes.CREATE_ACCOUNT);
+
+		this.email = email;
+		this.password = password;
+		this.acctype = acctype;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new CreateAccountPacket(tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.TYPE));
+	}
+}
+
+export class AccountCreateFailedPacket extends Packet {
+	constructor(errorMessage) {
+		super(PacketTypes.ACCOUNT_CREATE_FAILED);
+
+		this.errorMessage = errorMessage;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AccountCreateFailedPacket(tryGet(jsonObject, Constants.ERROR_MESSAGE));
+	}
+}
+
+export class AccountCreateSuccessPacket extends Packet {
+	constructor() {
+		super(PacketTypes.ACCOUNT_CREATE_SUCCESS);
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AccountCreateSuccessPacket();
 	}
 }
 
