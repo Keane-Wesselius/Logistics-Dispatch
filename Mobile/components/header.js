@@ -19,14 +19,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "gray",
+    backgroundColor: "silver",
   },
 
   title: {
     // marginRight: "24%",
     marginTop: 40,
     color: "white",
-    fontSize: 20,
+    fontSize: 25,
   },
 });
 
