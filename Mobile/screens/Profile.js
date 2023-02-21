@@ -1,20 +1,46 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
-  Button,
   Modal,
 } from "react-native";
-//import AppNavigator from "../components/navigator";
 import Header from "../components/header";
 import Logout from "../components/Logout";
+import CompletedDelivery from "../components/completedDelivery";
+import { AntDesign } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
 const Profile = ({ navigation, route }) => {
   const username = route.params.username;
   const [modalVisible, setModalVisible] = useState(false);
+
+  let defaultProf = require("../assets/profile.png");
+
+  const [hasPermission, setHasPermission] = useState();
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const galleryStatus = await ImagePicker.requestCameraPermissionsAsync();
+      setHasPermission(galleryStatus.status === "granted");
+    })();
+  }, []);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -24,14 +50,21 @@ const Profile = ({ navigation, route }) => {
       <Logout />
       <View style={styles.content}>
         <View style={styles.profile}>
-          <Image
-            style={styles.profilePic}
-            source={require("../assets/profile.png")}
-          />
-          <Text style={styles.name}> First Last</Text>
-          <TouchableOpacity style={styles.edit}>
-            <Text style={styles.editButton}>edit</Text>
+          <TouchableOpacity
+            style={styles.editProfile}
+            onPress={() => pickImage()}
+          >
+            {
+              <Image
+                source={image ? { uri: image } : defaultProf}
+                style={styles.profilePic}
+              />
+            }
           </TouchableOpacity>
+          <Text style={styles.name}> First Last</Text>
+          {/* <TouchableOpacity style={styles.edit} onPress={() => pickImage()}>
+            <Text style={styles.editButton}>edit</Text>
+          </TouchableOpacity> */}
         </View>
 
         <View style={styles.below}>
@@ -45,13 +78,23 @@ const Profile = ({ navigation, route }) => {
       </View>
       <Modal visible={modalVisible} animationType="slide">
         <View style={styles.modal}>
-          <Text style={styles.modalText}>completed Deliveries</Text>
-          <Button title="Close" onPress={() => setModalVisible(false)} />
+          <View style={styles.modalTitle}>
+            <Text style={styles.modalTitleText}>Completed Deliveries</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.closeButton}
+            title="Close"
+            onPress={() => setModalVisible(false)}
+          >
+            {/* <Text style={styles.closeText}>x</Text> */}
+            <View style={styles.closeText}>
+              <AntDesign name="close" size={44} color="darkblue" />
+            </View>
+          </TouchableOpacity>
+
+          <CompletedDelivery />
         </View>
       </Modal>
-      {/* <View style={styles.footer}>
-        <AppNavigator navigation={navigation} username={username} />
-      </View> */}
     </View>
   );
 };
@@ -59,23 +102,17 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "gold",
   },
 
   header: {
     flex: 1,
-    // flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "gray",
+    backgroundColor: "silver",
   },
 
   content: {
     flex: 9,
-    // flexDirection: "row",
-    // justifyContent: "center",
-    // alignItems: "center",
-    // backgroundColor: "brown",
   },
 
   profile: {
@@ -88,7 +125,6 @@ const styles = StyleSheet.create({
   },
 
   profilePic: {
-    // flex: 1,
     borderRadius: 100,
     height: 200,
     width: 200,
@@ -101,7 +137,6 @@ const styles = StyleSheet.create({
 
   below: {
     flex: 1,
-    // backgroundColor: "#red",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -115,13 +150,33 @@ const styles = StyleSheet.create({
   },
   modal: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "lightblue",
   },
   modalText: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+  },
+
+  modalTitle: {
+    flex: 0.13,
+    backgroundColor: "silver",
+    alignItems: "center",
+  },
+
+  modalTitleText: {
+    fontSize: 23,
+    marginTop: 40,
+  },
+
+  closeButton: {
+    alignItems: "flex-end",
+  },
+
+  closeText: {
+    color: "darkblue",
+    paddingRight: 10,
+    fontSize: 35,
   },
 });
 
