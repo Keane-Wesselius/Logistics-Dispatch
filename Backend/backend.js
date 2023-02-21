@@ -11,31 +11,70 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
-const doDatabase = true;
+let doDatabase = true;
 
 // TODO: These should be 'const', but need to be 'let' to support toggling database support on and off. This should be removed in production.
+// !!! DO NOT MANUALLY SET THE MONGODB API KEY, SET IT IN A FILE CALLED 'secrets.config' !!!
 let uri = null;
+// !!! DO NOT MANUALLY SET THE MONGODB API KEY, SET IT IN A FILE CALLED 'secrets.config' !!!
+
 let dbClient = null;
 
 if (doDatabase) {
+	if (uri != null) {
+		console.error("Manual MongoDB uri detected, shutting program down.");
+		process.exit();
+	}
 
 	const { MongoClient } = require("mongodb");
-	uri = "mongodb+srv://cwulogisticdispatch:cargocommanders123@cluster0.mxfax5h.mongodb.net/?retryWrites=true&w=majority";
-	dbClient = new MongoClient(uri);
 
-	// Creates a connection to the database
-	async function startDatabase() {
+	let fs = require('fs');
+	let secretsFilePath = "secrets.config";
+	let fatalError = true;
+
+	if (fs.existsSync(secretsFilePath)) {
 		try {
-			await dbClient.connect();
-		} catch (e) {
-			console.error(e);
-		}
-		// finally {
-		//   await client.close();
-		// }
-	}
-	startDatabase();
+			const content = fs.readFileSync(process.cwd() + "/" + secretsFilePath).toString();
 
+			for (let line of content.split('\n')) {
+				// The line for the config should be in the format 'MONGO_API_KEY=mongodb+srv://...'
+				// TODO: Remove hardcoded strings here and throughout the project.
+				if (line.startsWith("MONGO_API_KEY=")) {
+					uri = line.split("MONGO_API_KEY=", 2)[1];
+					console.log(uri);
+				}
+			}
+
+			if (uri != null) {
+				console.log("Successfully parsed MongoDB API key from '" + secretsFilePath + "'");
+			} else {
+				console.log("Couldn't read valid MongoDB uri from '" + secretsFilePath + "'");
+			}
+
+			fatalError = false;
+		} catch (ignored) {
+		}
+	}
+
+	if (!fatalError) {
+		dbClient = new MongoClient(uri);
+
+		// Creates a connection to the database
+		async function startDatabase() {
+			try {
+				await dbClient.connect();
+			} catch (e) {
+				console.error(e);
+			}
+			// finally {
+			//   await client.close();
+			// }
+		}
+		startDatabase();
+	} else {
+		console.error("Could not read 'secrets.config' in the current working directory. Disabling database integration.");
+		doDatabase = false;
+	}
 }
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
@@ -78,14 +117,14 @@ wss.on("connection", function connection(ws) {
 
 					if (userData != null) {
 						userUsernameWasValid = true;
-						
-						bcrypt.compare(loginPacket.password, userData.password, function(err, result) {
+
+						bcrypt.compare(loginPacket.password, userData.password, function (err, result) {
 							if (result == true) {
 								console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
 								authenticatedClients.push(ws);
 								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
 								ws.send(authenticationSuccessPacket.toString());
-		
+
 								// {"type": "authentication_success"}
 								userPasswordWasValid = true;
 							}
@@ -182,29 +221,27 @@ async function getUserData(userEmail) {
 
 //Database call to create a new user
 //newUser is a JSON that contains at the bare minimum an email and a password field
-async function createNewUser(client, newUser){
+async function createNewUser(client, newUser) {
 
-	const hashedPassword = await bcrypt.hash(newUser.password, 10)
+	const hashedPassword = await bcrypt.hash(newUser.password, saltRounds)
 	//Checks to see if the username and password already exists in the database 
-    const emailExists = await client.db("test").collection("users").findOne({ email: newUser.email});
+	const emailExists = await client.db("test").collection("users").findOne({ email: newUser.email });
 
 	let result = null;
-    //This case refers to when the user already exists
-    if (emailExists)
-    {
-        console.log("Tried to create new user but they already exist");
+	//This case refers to when the user already exists
+	if (emailExists) {
+		console.log("Tried to create new user but they already exist");
 		result = "Tried to create a new user but they already exist";
-    }
+	}
 	//This means the user does not exist and we are creating a new user
-    else
-    {
-        const hashedUser = ({
-            email: newUser.email,
-            password: hashedPassword
-        });
-        const result = await client.db("test").collection("users").insertOne(hashedUser);
-        console.log("New user created");
-    }
+	else {
+		const hashedUser = ({
+			email: newUser.email,
+			password: hashedPassword
+		});
+		const result = await client.db("test").collection("users").insertOne(hashedUser);
+		console.log("New user created");
+	}
 	return result;
 }
 //This function will find all the jobs available for the drivers to accept
