@@ -14,7 +14,7 @@ const methodOverride = require("method-override")
 const mongoose = require("mongoose")
 const User = require("./model")
 
-mongoose.connect("***DB LINK GOES HERE***");
+mongoose.connect("mongodb+srv://cwulogisticdispatch:cargocommanders123@cluster0.mxfax5h.mongodb.net/?retryWrites=true&w=majority");
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -83,6 +83,14 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render("register.ejs")
 })
 
+app.get('/dashboard', checkNotAuthenticated, (req, res) => {
+    res.render("dashboard.ejs")
+})
+
+app.get('/scheduling', checkNotAuthenticated, (req, res) => {
+    res.render("scheduling.ejs")
+})
+
 app.delete("/logout", (req, res) => {
     req.logout(req.user, err => {
         if (err) return next(err)
@@ -99,7 +107,7 @@ function checkAuthenticated(req, res, next){
 }
 function checkNotAuthenticated(req, res, next){
     if(req.isAuthenticated()){
-        return res.redirect("/")
+        return res.redirect("/scheduling")
     }
     next()
 }

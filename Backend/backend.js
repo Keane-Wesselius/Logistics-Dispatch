@@ -20,7 +20,7 @@ let dbClient = null;
 if (doDatabase) {
 
 	const { MongoClient } = require("mongodb");
-	uri = "MONGO KEY HERE";
+	uri = "mongodb+srv://cwulogisticdispatch:cargocommanders123@cluster0.mxfax5h.mongodb.net/?retryWrites=true&w=majority";
 	dbClient = new MongoClient(uri);
 
 	// Creates a connection to the database
@@ -87,12 +87,9 @@ wss.on("connection", function connection(ws) {
 								ws.send(authenticationSuccessPacket.toString());
 		
 								// {"type": "authentication_success"}
-		
 								userPasswordWasValid = true;
 							}
 						});
-						
-						
 					}
 
 					let userErrorMessage = null;

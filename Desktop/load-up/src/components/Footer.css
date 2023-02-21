@@ -1,0 +1,14 @@
+.footer-container {
+    bottom: 0;
+    width: 100%;
+    background-color: #1b1919;
+  }
+  
+  .footer-section {
+    font-size: 1rem;
+    color: #fff;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',
+      'Lucida Sans', Arial, sans-serif;
+    text-align: center;
+    padding: 1rem;;
+  }
