@@ -7,39 +7,58 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+const Packets = require ("./packets");
+
 const Signup = ({ navigation }) => {
-  const [accType, setAccType] = useState("");
-  const [username, setUsername] = useState("");
+  //Replace websocket IP with the IP of the machine running Backend.js
+  let ws = new WebSocket("ws://10.0.0.183:5005/");
+
+  ws.onopen = () => {};
+  ws.onclose = () => console.log("ws closed: Signup page");
+
+  ws.onmessage = (response) => {
+    const packet = response.data;
+    console.log(packet);
+
+    if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
+      alert("Account created successfully, returning to login")
+      navigation.navigate("Login");
+    } else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
+      alert("Error creating account");
+    }
+  };
+
+  ws.onerror = (e) => {
+    console.error("WebSocket error: ", e.message);
+  };
+
+  const accType = "Driver";
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = () => {
-    if (username && password) {
-      navigation.navigate("Login");
+    if (password == confirmPassword) {
+      const accountPacket = new Packets.CreateAccountPacket(email, password, accType);
+      console.log("Account create string: " + accountPacket.toString());
+
+      ws.send(accountPacket.toString());
     } else {
-      alert("wrong input");
+      alert("Error: passwords do not match");
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Create a New Account</Text>
-      <View style={styles.accType}>
-        <Text>Account Type</Text>
-        <TextInput
+
+      <View style={styles.email}>
+        <Text>Email</Text>
+        <TextInput 
           style={styles.input}
-          value={accType}
-          placeholder="Driver/Merchant/Supplier"
-          onChangeText={setAccType}
-        />
-      </View>
-      <View style={styles.username}>
-        <Text>Username</Text>
-        <TextInput
-          style={styles.input}
-          value={username}
-          placeholder="username"
-          onChangeText={setUsername}
+          value={email}
+          placeholder="email"
+          onChangeText={setEmail}
         />
       </View>
 
