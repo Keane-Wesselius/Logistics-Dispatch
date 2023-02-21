@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
 // import AppNavigator from "../component/navigator";
 import Header from "../components/header";
 import moment from "moment";
-
+import { AntDesign } from "@expo/vector-icons";
+// import { Fontisto } from "@expo/vector-icons";
 const Earning = ({ navigation, route }) => {
   // const username = route.params.username;
   // const { username } = route.params;
@@ -74,11 +75,12 @@ const Earning = ({ navigation, route }) => {
       <View style={styles.content}>
         <View style={styles.earningHeader}>
           <TouchableOpacity onPress={prevWeek}>
-            <Text style={styles.arrow}>{"<"}</Text>
+            {/* <Text style={styles.arrow}>{"<"}</Text> */}
+            <AntDesign name="leftcircleo" size={45} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}> {startOfWeek + " - " + endOfWeek}</Text>
           <TouchableOpacity onPress={nextWeek}>
-            <Text style={styles.arrow}>{">"}</Text>
+            <AntDesign name="rightcircleo" size={45} color="black" />
           </TouchableOpacity>
         </View>
         <View style={styles.earningsContainer}>
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 7,
-    backgroundColor: "#fff",
+    backgroundColor: "lightblue",
     alignItems: "center",
     // justifyContent: "center",
     // height: "100%",
@@ -160,9 +162,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 250,
     justifyContent: "space-between",
-
-    // backgroundColor: "gray",
+    backgroundColor: "#FFFFFF",
     marginBottom: 10,
+    padding: 10,
+    borderRadius: 10,
   },
 
   day: {
