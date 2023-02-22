@@ -2,6 +2,7 @@
 
 // Contains constant names for JSON tags.
 export const Constants = {
+	NAME: "name",
 	USERNAME: "username",
 	EMAIL: "email",
 	PASSWORD: "password",
@@ -81,24 +82,25 @@ class Packet {
 }
 
 export class LoginPacket extends Packet {
-	constructor(username, password) {
+	constructor(email, password) {
 		super(PacketTypes.LOGIN);
 
 		// TODO: Sanitize
-		this.username = username;
+		this.email = email;
 		this.password = password;
 	}
 
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
-		return new LoginPacket(tryGet(jsonObject, Constants.USERNAME), tryGet(jsonObject, Constants.PASSWORD));
+		return new LoginPacket(tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD));
 	}
 }
 
 export class CreateAccountPacket extends Packet {
-	constructor(email, password, acctype) {
+	constructor(name, email, password, acctype) {
 		super(PacketTypes.CREATE_ACCOUNT);
 
+		this.name = name;
 		this.email = email;
 		this.password = password;
 		this.acctype = acctype;
@@ -106,7 +108,7 @@ export class CreateAccountPacket extends Packet {
 
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
-		return new CreateAccountPacket(tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.TYPE));
+		return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.TYPE));
 	}
 }
 

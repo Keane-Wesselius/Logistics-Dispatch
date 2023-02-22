@@ -33,13 +33,14 @@ const Signup = ({ navigation }) => {
   };
 
   const accType = "Driver";
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = () => {
     if (password == confirmPassword) {
-      const accountPacket = new Packets.CreateAccountPacket(email, password, accType);
+      const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
       console.log("Account create string: " + accountPacket.toString());
 
       ws.send(accountPacket.toString());
@@ -51,6 +52,16 @@ const Signup = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Create a New Account</Text>
+
+      <View style={styles.name}>
+        <Text>Name</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          placeholder="name"
+          onChangeText={setName}
+        />
+      </View>
 
       <View style={styles.email}>
         <Text>Email</Text>

@@ -2,6 +2,7 @@ const WebSocket = require("ws");
 const Packets = require("../Common/packets.js");
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
+
 const wss = new WebSocket.WebSocketServer({ port: 5005 });
 const bcrypt = require("bcrypt");
 
@@ -20,7 +21,7 @@ let dbClient = null;
 if (doDatabase) {
 
 	const { MongoClient } = require("mongodb");
-	uri = "MONGO KEY HERE";
+	uri = "";
 	dbClient = new MongoClient(uri);
 
 	// Creates a connection to the database
@@ -68,20 +69,20 @@ wss.on("connection", function connection(ws) {
 			// TODO: If the client fails to send a valid login packet after a few attempts, they should be blocked from connecting for a period to avoid DOS attacks.
 			const loginPacket = Packets.LoginPacket.fromJSONString(data);
 
-			if (loginPacket.username != null && loginPacket.password != null) {
+			if (loginPacket.email != null && loginPacket.password != null) {
 				// TODO: Using loose verbiage of 'username' and 'email', should standardize which one it is / be explicit that it can accept both
 				// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
 				// TODO: All of these functions are accessing the test database and we will have to update them as soon as we get the real data base entries with correct schemas
-				getUserData(loginPacket.username).then(userData => {
-					let userUsernameWasValid = false;
+				getUserData(loginPacket.email).then(userData => {
+					let userEmailWasValid = false;
 					let userPasswordWasValid = false;
 
 					if (userData != null) {
-						userUsernameWasValid = true;
+						userEmailWasValid = true;
 						
 						bcrypt.compare(loginPacket.password, userData.password, function(err, result) {
 							if (result == true) {
-								console.log("Got valid login: " + loginPacket.username + " " + loginPacket.password);
+								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
 								authenticatedClients.push(ws);
 								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
 								ws.send(authenticationSuccessPacket.toString());
@@ -96,7 +97,7 @@ wss.on("connection", function connection(ws) {
 					}
 
 					let userErrorMessage = null;
-					if (!userUsernameWasValid) {
+					if (!userEmailWasValid) {
 						console.log("option 1");
 						// TODO: Move into global, translatable user strings file.
 						userErrorMessage = "User name is invalid.";
@@ -108,7 +109,7 @@ wss.on("connection", function connection(ws) {
 
 					if (userErrorMessage != null) {
 						// TODO: Probably shouldn't log username / password to console.
-						console.log("Got invalid username / password: " + loginPacket.username + " " + loginPacket.password);
+						console.log("Got invalid username / password: " + loginPacket.email + " " + loginPacket.password);
 						const authenticationFailedPacket = new Packets.AuthenticationFailedPacket(userErrorMessage);
 
 						// Example of checking PacketTypes.
@@ -124,6 +125,7 @@ wss.on("connection", function connection(ws) {
 			} else {
 				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to clientside input verification, but if it does, we'll catch it.
 				console.log("Got invalid login");
+				userErrorMessage = "Invalid login.";
 				const authenticationFailedPacket = new Packets.AuthenticationFailedPacket(userErrorMessage);
 				ws.send(authenticationFailedPacket.toString());
 			}
@@ -187,7 +189,7 @@ async function getUserData(userEmail) {
 //newUser is a JSON that contains at the bare minimum an email and a password field
 async function createNewUser(client, newUser){
 
-	const hashedPassword = await bcrypt.hash(newUser.password, 10)
+	const hashedPassword = await bcrypt.hash(newUser.password, saltRounds)
 	//Checks to see if the username and password already exists in the database 
     const emailExists = await client.db("test").collection("users").findOne({ email: newUser.email});
 
@@ -202,8 +204,10 @@ async function createNewUser(client, newUser){
     else
     {
         const hashedUser = ({
+			name: newUser.name,
             email: newUser.email,
-            password: hashedPassword
+            password: hashedPassword,
+			type: newUser.acctype
         });
         const result = await client.db("test").collection("users").insertOne(hashedUser);
         console.log("New user created");

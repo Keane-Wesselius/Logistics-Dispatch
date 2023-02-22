@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
  */
 
 const Sign_in = ({ navigation }) => {
-  let ws = new WebSocket("ws://192.168.23.53:5005/");
+  let ws = new WebSocket("ws://");
   //onopen happens when the websocket connects
   ws.onopen = () => {
   };
@@ -123,6 +123,8 @@ const Sign_in = ({ navigation }) => {
     console.log(packet);
 
     if(Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_SUCCESS) {
+      const emailSplit = email.split("@");
+      const username = emailSplit[0];
       navigation.replace("Home", { username });
 		}
     else if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
@@ -135,13 +137,13 @@ const Sign_in = ({ navigation }) => {
     console.error("WebSocket error:", e.message);
   };
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // const [email, set_email] = useState("");
 
   const handleLogin = () => {
     //We create a packet to send to the backend using the username and password entered on the screen
-    const loginPacket = new Packets.LoginPacket(username, password);
+    const loginPacket = new Packets.LoginPacket(email, password);
     console.log("Login Packet String: " + loginPacket.toString());
 
     ws.send(loginPacket.toString());
@@ -163,13 +165,13 @@ const Sign_in = ({ navigation }) => {
         keyboardType="email-address"
       /> */}
 
-      <View style={styles.username}>
-        <Text>Username</Text>
+      <View style={styles.email}>
+        <Text>Email</Text>
         <TextInput
           style={styles.input}
-          value={username}
-          placeholder="username"
-          onChangeText={setUsername}
+          value={email}
+          placeholder="email"
+          onChangeText={setEmail}
         />
       </View>
       <View style={styles.password}>
