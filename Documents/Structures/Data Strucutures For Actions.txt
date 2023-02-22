@@ -1,0 +1,79 @@
+Order
+	order_id (ObjectId)
+	merchant_id (ObjectId)
+	supplier_id (ObjectId)
+	status (string enum)
+	items (array of Object)
+	starting_address (string)
+	ending_address (string)
+	total_cost (double)
+	purchase_date (date)
+	estimated_delivery_date (date)
+	minimum_delivery_price (double)
+	maximum_delivery_price (double)
+
+	if 'status' is 'confirmed':
+		confirmed_date (date)
+
+	if 'status' is 'accepted':
+		accepted_date (date)
+		driver_id (ObjectID)
+
+	if 'status' is 'completed':
+		completed_date (date)
+
+{order_id: '1940192401', merchant_id: '28491488941', ..., maximum_delivery_price: 1200}
+
+maximum_delivery_price must be at least 8% higher than minimum_delivery_price
+
+Desktop Client Perspective
+	Merchant places an order, asked minimum price for shipping
+	Then, system computers maximum price from the required minimum offset of 8% and asks user if this is good
+	Have a note which says that bad delivery prices may result in products not being delivered ever.
+
+User
+	user_id (ObjectID)
+	type (string enum)
+	email (string)
+	password (string)
+	profile_picture (string)
+
+	if 'type' is 'driver':
+		first_name (string)
+		last_name (string)
+
+	if 'type' is 'merchant' OR 'type' is 'supplier':
+		name (string)
+		address (string)
+	
+// TODO: Creation Date? Other properties
+
+Item
+	item_id (ObjectId)
+	supplier_id (ObjectId)
+	name (string)
+	description (string)
+	quantity (int)
+	price (double)
+	weight (double)
+	posted_date (date)
+// TODO: Might want to have a status to mark items which are removed / available or not.
+
+Status
+	pending
+		Merchant has placed an order, has not been confirmed by supplier
+	cancelled
+		Cancelled by merchant
+	confirmed
+		Confirmed by supplier, ready to be accepted by driver
+	denied
+		Denied by supplier
+	accepted
+		Accepted by driver, in transit for delivery
+	rejected
+		Rejected by driver (after they have accepted it, before they've started the delivery, maybe 1 hour cooldown)
+	in_transit
+		Driver has picked up load, is delivering it
+// TODO: System not built to handle any other status / condition
+	completed
+		Delivered

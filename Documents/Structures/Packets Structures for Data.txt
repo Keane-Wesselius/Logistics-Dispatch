@@ -1,0 +1,16 @@
+ListOrders (will validate on the backend what type of account the user is, should only return orders visible to the user)
+
+Get UserData (will return User database data for that speicifc user)
+
+Choose One:
+	UpdateStatus (will update the status of an order from order_id, need to validate if the user can update that status of that order. For instance, drivers would update the status of an order to 'accepted')
+		Simpler, requires more code to check context of actions
+
+	TakeJob, RejectOrder, Cancel an Order, Purchase an Item For Sale, etc (will update the status of an order from order_id to 'accepted'. Need to validate if job isn't taken, etc.)
+		Would be better, but more verbose / requires more packet definitions
+
+AddItem (check if user is Supplier and that passed data is valid, modify database)
+ListItems (will validate on the backend what type of account the user is, should only return orders visible to the user)
+
+RemoveItem (check if user is Supplier and that passed data is valid, modify database)
+	Could simplify further by having a 'status' field in database Item, would use UpdateStatus instead

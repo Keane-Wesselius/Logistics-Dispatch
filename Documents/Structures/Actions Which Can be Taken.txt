@@ -1,0 +1,87 @@
+Mobile
+	Driver (only role for mobile)
+		Get All Available Orders
+			(Essentially, get all orders and filter by those with a non-taken status)
+			Future: Add option to filter by distance on serverside
+
+		Get profile data
+			First / Last Name
+			Picture (PNG, binary array)
+		
+		Get Completed Orders
+			Backend Takes Driver ID for current connection, queries database, returns entire database JSON to client.
+			(Can calculate earning from this returned data)
+		
+		Take Order
+			Order ID (object ID)
+			Success / Failure Packet
+
+		Update Status of Order (completion, progress updates)
+			Order ID (object ID)
+			Updated Status (string)
+
+		Signup (finished)
+		Login (finished)
+
+Suppliers put up items for sale
+Merchants create orders by purchasing items from suppliers
+Drivers fulfill orders by delivering them
+
+Desktop
+	Supplier (sells product to be sold by merchants)
+		Add Item for Sale
+			Item ID (object ID)
+			Name of Item (string)
+			Description (string)
+			Quantity (int)
+			Price (double, need to be careful, two decimal places, tax?)
+			Weight (double, lbs)
+			Posted Date (date)
+			Supplier ID (object ID)
+				Location (string)
+					Assuming supplier has one primary location, maybe future work would be to include having multiple locations per supplier
+
+		List Items (associated with Supplier ID)
+		List Orders (associated with Supplier ID)
+
+		Remove Item
+			Order ID (object ID)
+			(needs to be linked to supplier)
+
+		Accept / Deny Order (be able to view order and all parameters associated with order)
+			Order ID (object ID)
+				All Information Related to Item
+			Merchant ID
+
+	Merchant (buying products from supplier)
+		Retrieve List of Items for Sale
+			Item ID (object ID)
+			Name of Item (string)
+			Description (string)
+			Quantity (int)
+			Price (double, need to be careful, two decimal places, tax?)
+			Weight (double, lbs)
+		
+		Purchase an Item For Sale (will create an order)
+			Item ID (object ID)
+			Quantity (double)
+				Price will be computed on the backend, need to make sure that the price being shown on the clientside is the same as the serverside.
+			Supplier ID (object ID)
+			Purchase Date (date)
+			Delivery Date (date)
+			Merchant ID
+				Location (string, delivery location for the purchase)
+
+		List Orders (associated with merchant ID)
+			Order ID
+
+		Cancel an Order
+			// As soon as the order moves out of placed or pending, the order cannot be canceled. Gray out cancel option when this occurs on clientside
+			Order ID (object ID)
+
+// Future Work: Allow editing profile data
+
+PendingOrderListGetPacket
+CompletedOrderListGetPacket
+OrderListGetPacket
+	Status Filter: (pending, all)

@@ -11,8 +11,8 @@ ws.on("error", console.error);
 
 ws.on("open", function open() {
   setInterval(() => {
-    const loginPacket = new Packets.LoginPacket("Test1", "password1");
-    console.log("Login Packet String: " + loginPacket.toString());
+    // const loginPacket = new Packets.LoginPacket("Test1", "password1");
+    // console.log("Login Packet String: " + loginPacket.toString());
 
     ws.send(loginPacket.toString());
 

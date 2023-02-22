@@ -12,7 +12,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
-let doDatabase = true;
+let doDatabase = false;
 
 // TODO: These should be 'const', but need to be 'let' to support toggling database support on and off. This should be removed in production.
 // !!! DO NOT MANUALLY SET THE MONGODB API KEY, SET IT IN A FILE CALLED 'secrets.config' !!!
@@ -21,9 +21,10 @@ let uri = null;
 
 let dbClient = null;
 
-if (doDatabase) {
+// TODO: Link WebSocket connections to user_ids for database use.
 
-	const { MongoClient } = require("mongodb");
+if (doDatabase) {
+	const { MongoClient, ObjectId } = require("mongodb");
 	uri = "";
 	dbClient = new MongoClient(uri);
 
@@ -34,15 +35,14 @@ if (doDatabase) {
 		} catch (e) {
 			console.error(e);
 		}
-		// finally {
-		//   await client.close();
-		// }
+	}
+	// finally {
+	//   await client.close();
+	// }
 	if (uri != null) {
 		console.error("Manual MongoDB uri detected, shutting program down.");
 		process.exit();
 	}
-
-	const { MongoClient, ObjectId } = require("mongodb");
 
 	let fs = require('fs');
 	let secretsFilePath = "secrets.config";
@@ -113,6 +113,7 @@ wss.on("connection", function connection(ws) {
 		if (packetType == null) {
 			// TODO: Check that console.log is immune to unsanitized data, as invalid data might be some sort of attack. Might want to temporarily block them for a period of time.
 			console.log("Received invalid packet: " + data);
+			console.log("Len: " + data.length);
 			return;
 		}
 
@@ -133,8 +134,8 @@ wss.on("connection", function connection(ws) {
 
 					if (userData != null) {
 						userEmailWasValid = true;
-						
-						bcrypt.compare(loginPacket.password, userData.password, function(err, result) {
+
+						bcrypt.compare(loginPacket.password, userData.password, function (err, result) {
 							if (result == true) {
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
 								authenticatedClients.push(ws);
@@ -254,17 +255,16 @@ async function createNewUser(newUser) {
 		result = "Tried to create a new user but they already exist";
 	}
 	//This means the user does not exist and we are creating a new user
-    else
-    {
-        const hashedUser = ({
+	else {
+		const hashedUser = ({
 			name: newUser.name,
-            email: newUser.email,
-            password: hashedPassword,
+			email: newUser.email,
+			password: hashedPassword,
 			type: newUser.acctype
-        });
-        const result = await client.db("test").collection("users").insertOne(hashedUser);
-        console.log("New user created");
-    }
+		});
+		const result = await client.db("test").collection("users").insertOne(hashedUser);
+		console.log("New user created");
+	}
 	return result;
 }
 
@@ -284,32 +284,28 @@ async function getAllJobs() {
 	return results;
 }
 
-
+// TODO: Implement Mutex or something to prevent backend database validation from being effecting by a race-condition.
 
 //This function takes in an _id and the number of items the merchant is trying to order
 //Checks the database for the existance of the item then makes sure there is enough of the item to order
 //Then updates the database to reflect that items have been sold
-async function updateItemQuantity(itemId, quantity)
-{
-    const result = await dbclient.db("Examples").collection("items").findOne({ "_id": ObjectId(itemId)});
+async function updateItemQuantity(itemId, quantity) {
+	const result = await dbclient.db("Examples").collection("items").findOne({ "_id": ObjectId(itemId) });
 
-    if (result)
-    {
-        console.log("found result");
-        if (result.quantity >= quantity)
-        {
-            console.log("items available");
-            updated = result;
-            updated.quantity = result.quantity - quantity;
-            await dbclient.db("Examples").collection("items").updateOne({ "_id": ObjectId(itemId)},{ $set: updated});
-        }
+	if (result) {
+		console.log("found result");
+		if (result.quantity >= quantity) {
+			console.log("items available");
+			updated = result;
+			updated.quantity = result.quantity - quantity;
+			await dbclient.db("Examples").collection("items").updateOne({ "_id": ObjectId(itemId) }, { $set: updated });
+		}
 
-    }
+	}
 
-    else
-    {
-        console.log("Unable to find item");
-    }
+	else {
+		console.log("Unable to find item");
+	}
 }
 
 
@@ -323,74 +319,64 @@ async function updateItemQuantity(itemId, quantity)
 // supplierId: ObjectId()
 //////////////////////////////////
 //Function will insert a new item into the database, used for the supplier to add items to the database
-async function insertNewItem(itemInfo)
-{
-    const result = await dbclient.db("Examples").collection("items").insertOne(itemInfo);
+async function insertNewItem(itemInfo) {
+	const result = await dbclient.db("Examples").collection("items").insertOne(itemInfo);
 
-    if (result)
-    {
-        
-        //console.log(result);
-        console.log("item inserted");
-    }
+	if (result) {
 
-    else{
-        console.log("item not inserted");
-    }
+		//console.log(result);
+		console.log("item inserted");
+	}
+
+	else {
+		console.log("item not inserted");
+	}
 }
 
 
 
-async function findPlacedOrdersByMerchantId(merchantId)
-{
-    const cursor = dbclient.db("Examples").collection("placedOrders").find( {"merchantId": ObjectId(merchantId)} )
+async function findPlacedOrdersByMerchantId(merchantId) {
+	const cursor = dbclient.db("Examples").collection("placedOrders").find({ "merchantId": ObjectId(merchantId) })
 
-    const results = await cursor.toArray();
+	const results = await cursor.toArray();
 
-    if (results.length > 0)
-    {
-        results.forEach((result) =>
-        {
-            //Gets the entire document
-            console.log(result);
-            for(i = 0; i < result.items.length; i++ )
-            {
-                //placed orders contain array of all the items ordered, array contains item name and quantity
-                console.log(result.items[i]);
-                console.log(result.items[i].quantity);
-            }
-            
-            
-        })
+	if (results.length > 0) {
+		results.forEach((result) => {
+			//Gets the entire document
+			console.log(result);
+			for (i = 0; i < result.items.length; i++) {
+				//placed orders contain array of all the items ordered, array contains item name and quantity
+				console.log(result.items[i]);
+				console.log(result.items[i].quantity);
+			}
 
-        
-    }
+
+		})
+
+
+	}
 }
 
 
 
-async function findPlacedOrdersBySupplierId(supplierId)
-{
-    const cursor = dbclient.db("Examples").collection("placedOrders").find( {"supplierId": ObjectId(supplierId)} )
+async function findPlacedOrdersBySupplierId(supplierId) {
+	const cursor = dbclient.db("Examples").collection("placedOrders").find({ "supplierId": ObjectId(supplierId) })
 
-    const results = await cursor.toArray();
+	const results = await cursor.toArray();
 
-    if (results.length > 0)
-    {
-        results.forEach((result) =>
-        {
-            //Gets the entire document
-            console.log(result);
-            for(i = 0; i < result.items.length; i++ )
-            {
-                //placed orders contain array of all the items ordered, array contains item name and quantity
-                console.log(result.items[i]);
-                console.log(result.items[i].quantity);
-            }
-            
-            
-        })
+	if (results.length > 0) {
+		results.forEach((result) => {
+			//Gets the entire document
+			console.log(result);
+			for (i = 0; i < result.items.length; i++) {
+				//placed orders contain array of all the items ordered, array contains item name and quantity
+				console.log(result.items[i]);
+				console.log(result.items[i].quantity);
+			}
 
-        
-    }
+
+		})
+
+
+	}
 }
