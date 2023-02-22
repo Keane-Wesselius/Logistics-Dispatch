@@ -12,10 +12,13 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
-const doDatabase = true;
+let doDatabase = true;
 
 // TODO: These should be 'const', but need to be 'let' to support toggling database support on and off. This should be removed in production.
+// !!! DO NOT MANUALLY SET THE MONGODB API KEY, SET IT IN A FILE CALLED 'secrets.config' !!!
 let uri = null;
+// !!! DO NOT MANUALLY SET THE MONGODB API KEY, SET IT IN A FILE CALLED 'secrets.config' !!!
+
 let dbClient = null;
 
 if (doDatabase) {
@@ -34,9 +37,60 @@ if (doDatabase) {
 		// finally {
 		//   await client.close();
 		// }
+	if (uri != null) {
+		console.error("Manual MongoDB uri detected, shutting program down.");
+		process.exit();
 	}
-	startDatabase();
 
+	const { MongoClient, ObjectId } = require("mongodb");
+
+	let fs = require('fs');
+	let secretsFilePath = "secrets.config";
+	let fatalError = true;
+
+	if (fs.existsSync(secretsFilePath)) {
+		try {
+			const content = fs.readFileSync(process.cwd() + "/" + secretsFilePath).toString();
+
+			for (let line of content.split('\n')) {
+				// The line for the config should be in the format 'MONGO_API_KEY=mongodb+srv://...'
+				// TODO: Remove hardcoded strings here and throughout the project.
+				if (line.startsWith("MONGO_API_KEY=")) {
+					uri = line.split("MONGO_API_KEY=", 2)[1];
+					console.log(uri);
+				}
+			}
+
+			if (uri != null) {
+				console.log("Successfully parsed MongoDB API key from '" + secretsFilePath + "'");
+			} else {
+				console.log("Couldn't read valid MongoDB uri from '" + secretsFilePath + "'");
+			}
+
+			fatalError = false;
+		} catch (ignored) {
+		}
+	}
+
+	if (!fatalError) {
+		dbClient = new MongoClient(uri);
+
+		// Creates a connection to the database
+		async function startDatabase() {
+			try {
+				await dbClient.connect();
+			} catch (e) {
+				console.error(e);
+			}
+			// finally {
+			//   await client.close();
+			// }
+		}
+		startDatabase();
+	} else {
+		console.error("Could not read 'secrets.config' in the current working directory. Disabling database integration.");
+		doDatabase = false;
+	}
 }
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
@@ -86,14 +140,11 @@ wss.on("connection", function connection(ws) {
 								authenticatedClients.push(ws);
 								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
 								ws.send(authenticationSuccessPacket.toString());
-		
+
 								// {"type": "authentication_success"}
-		
 								userPasswordWasValid = true;
 							}
 						});
-						
-						
 					}
 
 					let userErrorMessage = null;
@@ -131,14 +182,14 @@ wss.on("connection", function connection(ws) {
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ACTIVE_JOBS) {
 			// TODO: Currently no mechanism to see what jobs the user should be able to see, so we are currently passing everything from the database, which is probably bad.
-			getAllJobs(dbClient).then((results) => {
+			getAllJobs().then((results) => {
 			}).catch(() => {
 			})
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
 			if (accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
-				createNewUser(dbClient, accountPacket).then((result) => {
+				createNewUser(accountPacket).then((result) => {
 
 					if (result != null) {
 						const accountCreateFailedPacket = new Packets.AccountCreateFailedPacket(result);
@@ -172,7 +223,8 @@ wss.on("connection", function connection(ws) {
 	});
 });
 
-// TODO: Should this take a dbClient like the other functions?
+
+
 async function getUserData(userEmail) {
 	let result = null;
 	if (userEmail != null) {
@@ -185,21 +237,22 @@ async function getUserData(userEmail) {
 	return result;
 }
 
+
+
 //Database call to create a new user
 //newUser is a JSON that contains at the bare minimum an email and a password field
-async function createNewUser(client, newUser){
+async function createNewUser(newUser) {
 
 	const hashedPassword = await bcrypt.hash(newUser.password, saltRounds)
 	//Checks to see if the username and password already exists in the database 
-    const emailExists = await client.db("test").collection("users").findOne({ email: newUser.email});
+	const emailExists = await dbclient.db("test").collection("users").findOne({ email: newUser.email });
 
 	let result = null;
-    //This case refers to when the user already exists
-    if (emailExists)
-    {
-        console.log("Tried to create new user but they already exist");
+	//This case refers to when the user already exists
+	if (emailExists) {
+		console.log("Tried to create new user but they already exist");
 		result = "Tried to create a new user but they already exist";
-    }
+	}
 	//This means the user does not exist and we are creating a new user
     else
     {
@@ -214,11 +267,14 @@ async function createNewUser(client, newUser){
     }
 	return result;
 }
+
+
+
 //This function will find all the jobs available for the drivers to accept
 //Note we can sort the jobs coming from the database 
 //In this case results is an array of the jobs in JSON form
-async function getAllJobs(client) {
-	const cursor = client.db("test").collection("jobs").find();
+async function getAllJobs() {
+	const cursor = dbclient.db("test").collection("jobs").find();
 	const results = await cursor.toArray();
 
 	results.forEach((result, i) => {
@@ -226,4 +282,115 @@ async function getAllJobs(client) {
 	});
 
 	return results;
+}
+
+
+
+//This function takes in an _id and the number of items the merchant is trying to order
+//Checks the database for the existance of the item then makes sure there is enough of the item to order
+//Then updates the database to reflect that items have been sold
+async function updateItemQuantity(itemId, quantity)
+{
+    const result = await dbclient.db("Examples").collection("items").findOne({ "_id": ObjectId(itemId)});
+
+    if (result)
+    {
+        console.log("found result");
+        if (result.quantity >= quantity)
+        {
+            console.log("items available");
+            updated = result;
+            updated.quantity = result.quantity - quantity;
+            await dbclient.db("Examples").collection("items").updateOne({ "_id": ObjectId(itemId)},{ $set: updated});
+        }
+
+    }
+
+    else
+    {
+        console.log("Unable to find item");
+    }
+}
+
+
+
+// itemInfo is a JSON //////////////////
+// _id will be generated by database
+// name: string
+// description: string
+// quantity: int
+// price: double
+// supplierId: ObjectId()
+//////////////////////////////////
+//Function will insert a new item into the database, used for the supplier to add items to the database
+async function insertNewItem(itemInfo)
+{
+    const result = await dbclient.db("Examples").collection("items").insertOne(itemInfo);
+
+    if (result)
+    {
+        
+        //console.log(result);
+        console.log("item inserted");
+    }
+
+    else{
+        console.log("item not inserted");
+    }
+}
+
+
+
+async function findPlacedOrdersByMerchantId(merchantId)
+{
+    const cursor = dbclient.db("Examples").collection("placedOrders").find( {"merchantId": ObjectId(merchantId)} )
+
+    const results = await cursor.toArray();
+
+    if (results.length > 0)
+    {
+        results.forEach((result) =>
+        {
+            //Gets the entire document
+            console.log(result);
+            for(i = 0; i < result.items.length; i++ )
+            {
+                //placed orders contain array of all the items ordered, array contains item name and quantity
+                console.log(result.items[i]);
+                console.log(result.items[i].quantity);
+            }
+            
+            
+        })
+
+        
+    }
+}
+
+
+
+async function findPlacedOrdersBySupplierId(supplierId)
+{
+    const cursor = dbclient.db("Examples").collection("placedOrders").find( {"supplierId": ObjectId(supplierId)} )
+
+    const results = await cursor.toArray();
+
+    if (results.length > 0)
+    {
+        results.forEach((result) =>
+        {
+            //Gets the entire document
+            console.log(result);
+            for(i = 0; i < result.items.length; i++ )
+            {
+                //placed orders contain array of all the items ordered, array contains item name and quantity
+                console.log(result.items[i]);
+                console.log(result.items[i].quantity);
+            }
+            
+            
+        })
+
+        
+    }
 }

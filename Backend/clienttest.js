@@ -16,15 +16,14 @@ ws.on("open", function open() {
 
     ws.send(loginPacket.toString());
 
-    const checkIfUserExists = new Packets.DoesUserExistPacket(
-      "test@cwu.edu",
-      "password1"
-    );
-    console.log(
-      "checkIfUserExists Packet String: " + checkIfUserExists.toString()
-    );
-
-    ws.send(checkIfUserExists.toString());
+    // const checkIfUserExists = new Packets.DoesUserExistPacket(
+    //   "test@cwu.edu",
+    //   "password1"
+    // );
+    // console.log(
+    //   "checkIfUserExists Packet String: " + checkIfUserExists.toString()
+    // );
+    // ws.send(checkIfUserExists.toString());
   }, 1000);
 });
 

@@ -1,0 +1,15 @@
+.welcome-div {
+    z-index: 10;
+  }
+
+  .welcome-h1 {
+    color: hsl(218, 81%, 95%);
+  }
+
+  .welcome-h12 {
+    color: hsl(218, 81%, 75%);
+  }
+
+  .welcome-p {
+  color: hsl(218, 81%, 85%);
+  }
