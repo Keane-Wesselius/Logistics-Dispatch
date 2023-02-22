@@ -5,6 +5,7 @@ import { StyleSheet, Image, TouchableOpacity, Text } from "react-native";
 import Tabs from "../navigation/Tabs";
 import { Tab } from "react-native-elements";
 const Packets = require("./packets");
+const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\b/;
 //import {Button} from 'native-base';
 //import axios from 'axios';
 /*  
@@ -141,10 +142,17 @@ const Sign_in = ({ navigation }) => {
 
   const handleLogin = () => {
     //We create a packet to send to the backend using the username and password entered on the screen
+    if (emailPattern.test(username))
+    {
     const loginPacket = new Packets.LoginPacket(username, password);
     console.log("Login Packet String: " + loginPacket.toString());
-
     ws.send(loginPacket.toString());
+    }
+    else
+    {
+       alert("Invalid email");
+    }
+    
 
   };
 
