@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.packets = {}));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
 })(this, (function (exports) { 'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
@@ -23,7 +23,8 @@
 	// Contains function names, essentially Packet types.
 	const PacketTypes = {
 		LOGIN: "login",
-		GET_ACTIVE_JOBS: "get_active_jobs",
+		GET_LINKED_ORDERS: "get_linked_orders",
+		SET_LINKED_ORDERS: "set_linked_orders",
 		AUTHENTICATION_FAILED: "authentication_failed",
 		AUTHENTICATION_SUCCESS: "authentication_success",
 		ACCOUNT_CREATE_FAILED: "account_create_failed",
@@ -84,6 +85,22 @@
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
 			return new Packet(tryGet(jsonObject, Constants.type));
+		}
+	}
+
+	class JSONPacket extends Packet {
+		constructor(type, jsonString = null) {
+			super(type);
+			this.jsonString = jsonString;
+		}
+
+		// Overrides the base toString() method, which is desirable for our application.
+		toString() {
+			return this.jsonString;
+		}
+
+		static fromJSONString(jsonString) {
+			return new JSONPacket(jsonString);
 		}
 	}
 
@@ -170,17 +187,24 @@
 	}
 
 	// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
-	class GetActiveJobsPacket extends Packet {
-		constructor(area) {
-			super(PacketTypes.GET_ACTIVE_JOBS);
-
-			// TODO: Sanitize
-			this.area = area;
+	class GetLinkedOrders extends Packet {
+		constructor() {
+			super(PacketTypes.GET_LINKED_ORDERS);
 		}
 
 		static fromJSONString(jsonString) {
-			const jsonObject = parseJSON(jsonString);
-			return new GetActiveJobsPacket(tryGet(jsonObject, Constants.AREA));
+			parseJSON(jsonString);
+			return new GetLinkedOrders();
+		}
+	}
+
+	class SetLinkedOrders extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_LINKED_ORDERS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetLinkedOrders(jsonString);
 		}
 	}
 
@@ -192,9 +216,10 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
-	exports.GetActiveJobsPacket = GetActiveJobsPacket;
+	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 

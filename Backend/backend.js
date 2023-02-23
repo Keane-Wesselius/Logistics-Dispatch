@@ -9,11 +9,14 @@ const wss = new WebSocket.WebSocketServer({ port: 5005 });
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
 let doDatabase = true;
-let database = null;
+// let database = null;
+// Can be uncommented to allow type-checking and autocomplete via VSCode. Having this be TypeScript would mitigate the need for this.
+let database = new Database.DatabaseHandler();
+
+database.completeOrder('a');
 
 if (doDatabase) {
 	database = new Database.DatabaseHandler();
-	database.completeOrder('a');
 }
 
 console.log("Server started on " + new Date().toString());
@@ -110,7 +113,7 @@ wss.on("connection", function connection(ws) {
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ACTIVE_JOBS) {
 			// TODO: Currently no mechanism to see what jobs the user should be able to see, so we are currently passing everything from the database, which is probably bad.
-			getAllJobs().then((results) => {
+			database.getAllJobs().then((results) => {
 			}).catch(() => {
 			})
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {

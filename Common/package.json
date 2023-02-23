@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "packets.js",
 	"scripts": {
-		"build": "rollup _packets_source.js --file packets.js --format umd --name \"Packets\" && shx cp \"packets.js\" \"../Mobile/screens/packets.js\""
+		"build": "rollup _packets_source.js --file packets.js --format umd --name \"Packets\" && shx cp \"packets.js\" \"../Mobile/screens/packets.js\" && shx cp \"packets.js\" \"../Desktop/load-up/src/backend/packets.js\""
 	},
 	"author": "",
 	"license": "ISC",
