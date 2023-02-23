@@ -26,13 +26,23 @@ Order
 
 maximum_delivery_price must be at least 8% higher than minimum_delivery_price
 
+
+
+
 Desktop Client Perspective
 	Merchant places an order, asked minimum price for shipping
 	Then, system computers maximum price from the required minimum offset of 8% and asks user if this is good
 	Have a note which says that bad delivery prices may result in products not being delivered ever.
 
+
+
+
+
+
+
 User
 	user_id (ObjectID)
+
 	type (string enum)
 	email (string)
 	password (string)
@@ -48,6 +58,12 @@ User
 	
 // TODO: Creation Date? Other properties
 
+
+
+
+
+
+
 Item
 	item_id (ObjectId)
 	supplier_id (ObjectId)
@@ -58,6 +74,11 @@ Item
 	weight (double)
 	posted_date (date)
 // TODO: Might want to have a status to mark items which are removed / available or not.
+
+
+
+
+
 
 Status
 	pending
