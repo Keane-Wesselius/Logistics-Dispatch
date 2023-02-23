@@ -1,0 +1,17 @@
+Progress Updates
+10:04 - 10:36
+Keane worked with Michael to outline how data should work coming to and from the database. Functions haven't been tested.
+Michael worked with Keane, Joshua, Galmo, outlined users actions, what data needs to be sent, etc. (ListOrders, Get UserData, UpdateStatus)
+Galmo waiting for data to be sent from backend to replace placeholders.
+Josh replaced username with email, Azure cannot be done without downgrading WebSockets, plans to finish database functions. (AddItem, ListItems, RemoveItem)
+Conner - Restructured schedules, needs to restructure how data is being sent to backend
+Shiva - Fixed Android map error, implemented sliding to confirming orders, mobile frontend work, plans to implement functionality to open in Google Maps for navigation.
+Chris - Worked on additional screens.
+
+Packet System Discussion, Data Structures
+10:36 - 10:39
+Information on what the clients will receive can be found in "Logistics-Dispatch\Documents\Structures\Data Structures For Actions.txt"
+
+Email to Taban
+10:39 - 10:48
+Keane sending email asking what day will work best (Monday, February 27th through Wednesday, February 1st) with either early Monday morning or Tuesday/Wednesday afternoon (3PM) working.
