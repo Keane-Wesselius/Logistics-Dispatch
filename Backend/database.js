@@ -1,5 +1,6 @@
-const { ObjectId } = require('mongodb');
+const { ObjectId, MongoClient } = require('mongodb');
 const bcrypt = require("bcrypt");
+let fs = require('fs');
 
 //saltRounds refers to bcrypt, the higher the saltRounds the more secure the password
 //by default bcrypt recommends 10 saltRounds using a 2gz processor that will give us roughly 10 hashs/second
@@ -16,7 +17,6 @@ const saltRounds = 10;
 
 class DatabaseHandler {
 	constructor() {
-		const { MongoClient } = require("mongodb");
 		this.dbClient = null;
 		this.uri = null;
 
@@ -25,7 +25,6 @@ class DatabaseHandler {
 			process.exit();
 		}
 
-		let fs = require('fs');
 		// secrets.config should contain a line which is exactly this without quotes: "MONGO_API_KEY=mongodb+srv://xxxxxxxxxxxxxxxxxxx:xxxxxxxxxxxxxxxxxx@cluster0.xxxxxxx.mongodb.net/?retryWrites=true&w=majority"
 		let secretsFilePath = "secrets.config";
 		let fatalError = true;
@@ -198,19 +197,18 @@ class DatabaseHandler {
 	// 	maximumDeliveryPrice (double)
 	async placeOrder(orderDetails) {
 
-        orderDetails.status = "pending";
+		orderDetails.status = "pending";
 
 
-        orderDetails.pendingDate = getDate();
-        orderDetails.pendingTime = getTime();
+		orderDetails.pendingDate = getDate();
+		orderDetails.pendingTime = getTime();
 
-        let total = 0;
-        for (let i = 0; i < orderDetails.items.length; i++)
-        {
-            total += orderDetails.items[i].price * orderDetails.items[i].quantity;
-        }
-        orderDetails.totalCost = roundMoney(total);
-        
+		let total = 0;
+		for (let i = 0; i < orderDetails.items.length; i++) {
+			total += orderDetails.items[i].price * orderDetails.items[i].quantity;
+		}
+		orderDetails.totalCost = roundMoney(total);
+
 		const result = await this.dbClient.db("main").collection("orders").insertOne(orderDetails);
 
 		if (result) {
@@ -243,8 +241,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -265,8 +262,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -287,15 +283,13 @@ class DatabaseHandler {
 
 			let updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
 
-			if (updatedResult.modifiedCount > 0)
-				{
-					console.log("Item quantity updated");
-				}
-				else
-				{
-					console.log("Item quantity not updated");
-				}
-            
+			if (updatedResult.modifiedCount > 0) {
+				console.log("Item quantity updated");
+			}
+			else {
+				console.log("Item quantity not updated");
+			}
+
 		}
 
 		else {
@@ -322,7 +316,7 @@ class DatabaseHandler {
 			console.log("Returning confirmed orders");
 			return results;
 		}
-		else{
+		else {
 			console.log("No confirmed orders");
 		}
 
@@ -343,7 +337,7 @@ class DatabaseHandler {
 			console.log("Returning confirmed orders");
 			return results;
 		}
-		else{
+		else {
 			console.log("No confirmed orders");
 		}
 	}
@@ -366,8 +360,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 
@@ -393,12 +386,10 @@ class DatabaseHandler {
 
 
 				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
-				if (updatedResult.modifiedCount > 0)
-				{
+				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
 				}
-				else
-				{
+				else {
 					console.log("Item quantity not updated");
 				}
 			}
@@ -429,8 +420,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -450,8 +440,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -471,8 +460,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 
@@ -488,26 +476,23 @@ class DatabaseHandler {
 
 		if (result) {
 
-            if (result.status == "accepted")
-            {
-                updated = result;
-                updated.status = "completed";
+			if (result.status == "accepted") {
+				updated = result;
+				updated.status = "completed";
 
 
-                updated.completed_date = getDate();
-                updated.completed_time = getTime();
+				updated.completed_date = getDate();
+				updated.completed_time = getTime();
 
-                const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
+				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
 
-				if (updatedResult.modifiedCount > 0)
-				{
+				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
 				}
-				else
-				{
+				else {
 					console.log("Item quantity not updated");
 				}
-            }
+			}
 
 
 		}
@@ -539,8 +524,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -560,8 +544,7 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
@@ -582,24 +565,20 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No orders found");
 		}
 	}
 
-	async cancelOrder(orderID)
-    {
-        const result = await this.dbClient.db("main").collection("orders").deleteOne( { "_id": ObjectId(orderID), status: "pending"});
-        if (result.deletedCount > 0)
-        {
-            console.log("Order was succesfully canceled");
-        }
-        else
-        {
-            console.log("Order was unable to be canceled");
-        }
-    }
+	async cancelOrder(orderID) {
+		const result = await this.dbClient.db("main").collection("orders").deleteOne({ "_id": ObjectId(orderID), status: "pending" });
+		if (result.deletedCount > 0) {
+			console.log("Order was succesfully canceled");
+		}
+		else {
+			console.log("Order was unable to be canceled");
+		}
+	}
 
 
 
@@ -641,12 +620,10 @@ class DatabaseHandler {
 				updated.quantity = result.quantity - quantity;
 				const updatedResult = await this.dbClient.db("main").collection("items").updateOne({ "_id": ObjectId(itemId) }, { $set: updated });
 
-				if (updatedResult.modifiedCount > 0)
-				{
+				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
 				}
-				else
-				{
+				else {
 					console.log("Item quantity not updated");
 				}
 			}
@@ -674,7 +651,7 @@ class DatabaseHandler {
 	async insertNewItem(itemInfo) {
 		const result = await this.dbClient.db("main").collection("items").insertOne(itemInfo);
 
-		
+
 	}
 
 	async getItemsBySupplier(supplierID) {
@@ -693,39 +670,32 @@ class DatabaseHandler {
 
 			return results;
 		}
-		else
-		{
+		else {
 			console.log("No items found");
 		}
 	}
 
-	async updateItem(itemInfo)
-    {
-        let result = await this.dbClient.db("main").collection("items").updateOne( { "_id": itemInfo._id}, { $set: itemInfo} );
+	async updateItem(itemInfo) {
+		let result = await this.dbClient.db("main").collection("items").updateOne({ "_id": itemInfo._id }, { $set: itemInfo });
 
-        if (result.modifiedCount > 0)
-        {
-            console.log("Item was updated");
-        }
-        else
-        {
-            console.log("Item was not updated");
-        }
-    }
+		if (result.modifiedCount > 0) {
+			console.log("Item was updated");
+		}
+		else {
+			console.log("Item was not updated");
+		}
+	}
 
-    async removeItem(itemID)
-    {
-        const result = await this.dbClient.db("main").collection("items").deleteOne( { "_id": ObjectId(itemID)} );
-        if (result.deletedCount > 0)
-        {
-            console.log("Item was succesfully removed");
-        }
-        else
-        {
-            console.log("Item was unable to be removed");
-        }
+	async removeItem(itemID) {
+		const result = await this.dbClient.db("main").collection("items").deleteOne({ "_id": ObjectId(itemID) });
+		if (result.deletedCount > 0) {
+			console.log("Item was succesfully removed");
+		}
+		else {
+			console.log("Item was unable to be removed");
+		}
 
-    }
+	}
 }
 
 //used to round floats to 2 decimal places correctly without errors
@@ -735,16 +705,14 @@ function roundMoney(num, decimalPlaces = 2) {
 	return Math.round(n) / p;
 }
 
-function getDate()
-{
-    let d = new Date();
-    return  d.getFullYear() + "-" + ('0' + (d.getMonth() + 1)).slice(-2) + "-" +  ('0' + d.getDate()).slice(-2);
+function getDate() {
+	let d = new Date();
+	return d.getFullYear() + "-" + ('0' + (d.getMonth() + 1)).slice(-2) + "-" + ('0' + d.getDate()).slice(-2);
 }
 
-function getTime()
-{
-    let d = new Date();
-    return ('0' + d.getHours()).slice(-2) + ":" + ('0' + d.getMinutes()).slice(-2) + ":" + ('0' + d.getSeconds()).slice(-2);
+function getTime() {
+	let d = new Date();
+	return ('0' + d.getHours()).slice(-2) + ":" + ('0' + d.getMinutes()).slice(-2) + ":" + ('0' + d.getSeconds()).slice(-2);
 }
 
 module.exports.DatabaseHandler = DatabaseHandler;

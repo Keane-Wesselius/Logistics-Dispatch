@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+# Ignore .js files, as they are artifacts of building .ts TypeScript files.
+*.js
+
+# macOS
+.DS_Store

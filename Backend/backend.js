@@ -19,6 +19,26 @@ if (doDatabase) {
 	database = new Database.DatabaseHandler();
 }
 
+const AccountTypes = {
+	DRIVER: "driver",
+	MERCHANT: "merchant",
+	SUPPLIER: "supplier",
+}
+
+class UserData {
+	constructor(userDataJSON) {
+		this.accountType = userDataJSON.acctype;
+		this.email = userDataJSON.email;
+
+		if (this.accountType == AccountTypes.DRIVER) {
+			this.firstName = userDataJSON.firstName;
+			this.lastName = userDataJSON.lastName;
+		} else {
+			this.name = userDataJSON.name;
+		}
+	}
+}
+
 console.log("Server started on " + new Date().toString());
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
@@ -46,7 +66,8 @@ wss.on("connection", function connection(ws) {
 			return;
 		}
 
-		const isClientAuthenticated = websocketToClientData.has(ws);
+		const clientUserData = websocketToClientData.get(ws);
+		const isClientAuthenticated = isClientAuthenticated != null;
 
 		// TODO: What happens if the user sends two login packets at once?
 		if (packetType == Packets.PacketTypes.LOGIN) {
@@ -67,7 +88,7 @@ wss.on("connection", function connection(ws) {
 
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
 								// Add the current WebSocket connection, mapping the active connection to their userData from the database.
-								websocketToClientData.set(ws, userData);
+								websocketToClientData.set(ws, new UserData(result));
 
 								// Packet Structure: {"type": "authentication_success"}
 								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
@@ -90,11 +111,10 @@ wss.on("connection", function connection(ws) {
 				console.log("Got invalid login");
 				ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN).toString());
 			}
-		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ACTIVE_JOBS) {
-			// TODO: Currently no mechanism to see what jobs the user should be able to see, so we are currently passing everything from the database, which is probably bad.
-			database.getAllJobs().then((results) => {
-			}).catch(() => {
-			})
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ORDERS) {
+			if (clientUserData.acctype == AccountTypes.DRIVER) {
+				// TODO: Return linked orders for that driver from a method in database.js
+			}
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
@@ -109,6 +129,8 @@ wss.on("connection", function connection(ws) {
 					}
 				});
 			}
+		} else {
+			console.log("Received invalid or unhandled packet from client: " + data.toString());
 		}
 	});
 });
