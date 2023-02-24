@@ -1,8 +1,8 @@
-const WebSocket = require("ws");
-const Packets = require("../Common/packets.js");
-const Database = require("./database.js");
-const Strings = require("./strings.js");
-const bcrypt = require("bcrypt");
+import { WebSocket } from "ws";
+import * as Packets from "../Common/packets.js";
+import { DatabaseHandler } from "./database.js";
+import * as Strings from "./strings.js";
+import * as bcrypt from "bcrypt";
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
@@ -10,27 +10,41 @@ const bcrypt = require("bcrypt");
 const wss = new WebSocket.WebSocketServer({ port: 5005, maxPayload: 10 * 1000 * 1000 });
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
-let doDatabase = true;
+const doDatabase = true;
 // let database = null;
-// Can be uncommented to allow type-checking and autocomplete via VSCode. Having this be TypeScript would mitigate the need for this.
-let database = new Database.DatabaseHandler();
+let database : DatabaseHandler | null = null;
 
 if (doDatabase) {
-	database = new Database.DatabaseHandler();
+	database = new DatabaseHandler();
 }
 
-const AccountTypes = {
-	DRIVER: "driver",
-	MERCHANT: "merchant",
-	SUPPLIER: "supplier",
+enum AccountType {
+	DRIVER,
+	MERCHANT,
+	SUPPLIER,
+}
+
+interface DatabaseUserData {
+	acctype : string;
+	email : string;
+	firstName : string | null;
+	lastName : string | null;
+	name : string | null;
+	profilePicture : string | null;
 }
 
 class UserData {
-	constructor(userDataJSON) {
-		this.accountType = userDataJSON.acctype;
+	accountType : AccountType;
+	email : string;
+	firstName : string | null;
+	lastName : string | null;
+	name : string | null;
+
+	constructor(userDataJSON : DatabaseUserData) {
+		this.accountType = AccountType[userDataJSON.acctype.toUpperCase()];
 		this.email = userDataJSON.email;
 
-		if (this.accountType == AccountTypes.DRIVER) {
+		if (this.accountType == AccountType.DRIVER) {
 			this.firstName = userDataJSON.firstName;
 			this.lastName = userDataJSON.lastName;
 		} else {
@@ -39,11 +53,17 @@ class UserData {
 	}
 }
 
+function sendIfNotNull(webSocket : WebSocket, data : string | object | null) {
+	if (data != null) {
+		webSocket.send(data.toString());
+	}
+}
+
 console.log("Server started on " + new Date().toString());
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
 // TODO: Link WebSocket connections to user_ids for database use.
-const websocketToClientData = new Map();
+const websocketToClientData = new Map<WebSocket, UserData>();
 
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
@@ -58,16 +78,16 @@ wss.on("connection", function connection(ws) {
 		// TODO: This parsing required getting the JSON JavaScript object to check the type parameter. At the very least, this will check if the JSON is valid, but that is already being done when parsing fromJsonString(). Slightly inefficient, so maybe having a way to construct a Packet from a JSON JavaScript object might want to be looked into / parsing the packet type using string manipulation (would be much, much faster).
 
 		// Attempt to parse the packet type from the data.
-		const packetType = Packets.getPacketType(data);
+		const packetType : string = Packets.getPacketType(data);
 		if (packetType == null) {
 			// TODO: Check that console.log is immune to unsanitized data, as invalid data might be some sort of attack. Might want to temporarily block them for a period of time.
 			console.log("Received invalid packet: " + data);
-			console.log("Len: " + data.length);
+			console.log("Len: " + data.toString().length);
 			return;
 		}
 
 		const clientUserData = websocketToClientData.get(ws);
-		const isClientAuthenticated = isClientAuthenticated != null;
+		const isClientAuthenticated = clientUserData != null;
 
 		// TODO: What happens if the user sends two login packets at once?
 		if (packetType == Packets.PacketTypes.LOGIN) {
@@ -78,41 +98,39 @@ wss.on("connection", function connection(ws) {
 				// TODO: Using loose verbiage of 'username' and 'email', should standardize which one it is / be explicit that it can accept both
 				// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
 				// TODO: All of these functions are accessing the test database and we will have to update them as soon as we get the real data base entries with correct schemas
+				// database.getUserData(loginPacket.email).then(userData : DatabaseUserData => {
 				database.getUserData(loginPacket.email).then(userData => {
 					if (userData != null) {
 						// bcrypt.compare is actually asynchronous, with a function callback (the '(err, result)' part of the function call), so it doesn't block execution, allowing the script to flow past it into error checking before we've confirmed the password was valid. Therefore, we need to do any error broadcasting INSIDE the bcrypt function for password errors, rather than being able to do all error messages at the end. Another example of some of the strange behavior and potential logical bugs in writing async JavaScript code.
 						// TODO: Should check error?
 						bcrypt.compare(loginPacket.password, userData.password, function (err, result) {
 							if (result) {
-								userPasswordWasValid = true;
-
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
 								// Add the current WebSocket connection, mapping the active connection to their userData from the database.
-								websocketToClientData.set(ws, new UserData(result));
+								// websocketToClientData.set(ws, new UserData(userData));
 
 								// Packet Structure: {"type": "authentication_success"}
-								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
-								ws.send(authenticationSuccessPacket.toString());
+								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket());
 							} else {
 								console.log("Got invalid password: " + loginPacket.email + " " + loginPacket.password);
-								ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_PASSWORD).toString());
+								sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_PASSWORD));
 							}
 						});
 					} else {
 						console.log("Got invalid login: " + loginPacket.email + " " + loginPacket.password);
-						ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN).toString());
+						sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
 					}
 				}).catch(error => {
 					console.log("Got invalid login: " + loginPacket.email + " " + loginPacket.password);
-					ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL).toString());
+					sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL));
 				});
 			} else {
 				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to clientside input verification, but if it does, we'll catch it.
 				console.log("Got invalid login");
-				ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN).toString());
+				sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ORDERS) {
-			if (clientUserData.acctype == AccountTypes.DRIVER) {
+			if (clientUserData.accountType == AccountType.DRIVER) {
 				// TODO: Return linked orders for that driver from a method in database.js
 			}
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
@@ -121,11 +139,11 @@ wss.on("connection", function connection(ws) {
 			if (database != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
 				database.createNewUser(accountPacket).then((result) => {
 					if (result != null) {
-						const accountCreateFailedPacket = new Packets.AccountCreateFailedPacket(result);
-						ws.send(accountCreateFailedPacket.toString());
+						// TODO: AccountCreateFailedPacket needs a error message string as a parameter. Result in this case is nothing, as DatabaseHandler.createNewUser() doesn't have a return statement.
+						sendIfNotNull(ws, new Packets.AccountCreateFailedPacket(result).toString());
 					} else {
 						const accountCreateSuccessPacket = new Packets.AccountCreateSuccessPacket();
-						ws.send(accountCreateSuccessPacket.toString());
+						sendIfNotNull(ws, accountCreateSuccessPacket.toString());
 					}
 				});
 			}

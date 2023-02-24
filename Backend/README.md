@@ -3,8 +3,7 @@ This folder contains the code which is required for the Backend to function, whi
 
 To execute the backend server, execute the following commands:
 ```
-npm install
-node backend.js
+npm run start
 ```
 
 Then, either the Mobile or Desktop clients can connect to the server.

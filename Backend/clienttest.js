@@ -1,7 +1,7 @@
 const Packets = require("../Common/packets");
 const WebSocket = require("ws");
 const ws = new WebSocket((address = "ws://127.0.0.1:5005"));
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 ws.on("error", console.error);

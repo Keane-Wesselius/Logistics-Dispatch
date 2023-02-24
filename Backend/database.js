@@ -107,7 +107,6 @@ class DatabaseHandler {
 			// TODO: Add support for getting user data via either email or username
 			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
 			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
-			// const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
 			const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
 
 			if (result) {
