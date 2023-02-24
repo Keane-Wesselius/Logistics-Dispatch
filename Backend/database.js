@@ -1,4 +1,4 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const bcrypt = require("bcrypt");
 
 //saltRounds refers to bcrypt, the higher the saltRounds the more secure the password
@@ -21,7 +21,7 @@ class DatabaseHandler {
 		this.uri = null;
 
 		if (this.uri != null) {
-			console.error("Manual MongoDB uri detected, shutting program down.");
+			console.error("Manual MongoDB uri detected, shutting program down. See 'secrets.example.config' for an example of how this should be input into the program.");
 			process.exit();
 		}
 
@@ -74,24 +74,6 @@ class DatabaseHandler {
 		}
 	}
 
-	async getUserData(userEmail) {
-		if (userEmail != null) {
-			// TODO: Add support for getting user data via either email or username
-			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
-			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
-			const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
-
-			if (result) {
-				console.log("User found");
-				return result;
-			}
-
-			else {
-				console.log("User not found");
-			}
-		}
-	}
-
 	async main() {
 		/**
 		 * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
@@ -126,12 +108,12 @@ class DatabaseHandler {
 	//Database functions related to users
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	async getUserData(userEmail) {
-
 		if (userEmail != null) {
 			// TODO: Add support for getting user data via either email or username
 			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
 			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
-			const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
+			// const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
+			const result = await this.dbClient.db("test").collection("users").findOne({ email: userEmail });
 
 			if (result) {
 				console.log("User found");
@@ -142,7 +124,6 @@ class DatabaseHandler {
 				console.log("User not found");
 			}
 		}
-
 	}
 
 
@@ -245,7 +226,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -263,7 +244,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -311,7 +292,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -328,7 +309,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -341,14 +322,14 @@ class DatabaseHandler {
 
 
 	//To find orders that drivers can accept
-	async getAllConfirmedOrdersForDriver(dbClient) {
+	async getAllConfirmedOrdersForDriver() {
 		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "confirmed" });
 
 		const results = await cursor.toArray();
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -402,7 +383,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -419,7 +400,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -436,7 +417,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -466,7 +447,6 @@ class DatabaseHandler {
 			updated.completed_date = date;
 			updated.completed_time = time;
 
-			let didUpdate = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderId) }, { $set: updated });
 
 
 
@@ -492,7 +472,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -509,7 +489,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -526,7 +506,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////
@@ -618,7 +598,7 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result, i) => {
+			results.forEach((result) => {
 				console.log(result);
 			});
 			/////

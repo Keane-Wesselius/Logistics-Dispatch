@@ -10,6 +10,8 @@ export const Constants = {
 	AREA: "area",
 	TYPE: "type",
 	ERROR_MESSAGE: "error_message",
+	ORDER_ID: "order_id",
+	STATUS: "status",
 };
 
 // TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -17,13 +19,42 @@ export const Constants = {
 // Contains function names, essentially Packet types.
 export const PacketTypes = {
 	LOGIN: "login",
+	AUTHENTICATION_SUCCESS: "authentication_success",
+	AUTHENTICATION_FAILED: "authentication_failed",
+
+	CREATE_ACCOUNT: "create_account",
+	ACCOUNT_CREATE_SUCCESS: "account_create_success",
+	ACCOUNT_CREATE_FAILED: "account_create_failed",
+
 	GET_LINKED_ORDERS: "get_linked_orders",
 	SET_LINKED_ORDERS: "set_linked_orders",
-	AUTHENTICATION_FAILED: "authentication_failed",
-	AUTHENTICATION_SUCCESS: "authentication_success",
-	ACCOUNT_CREATE_FAILED: "account_create_failed",
-	ACCOUNT_CREATE_SUCCESS: "account_create_success",
-	CREATE_ACCOUNT: "create_account",
+
+	GET_USER_DATA: "get_user_data",
+	SET_USER_DATA: "set_user_data",
+
+	UPDATE_STATUS: "update_status",
+	UPDATE_STATUS_SUCCESS: "update_status_success",
+	UPDATE_STATUS_FAILED: "update_status_failed",
+};
+
+export const Status = {
+	// Merchant has placed an order, has not been confirmed by supplier.
+	PENDING: "pending",
+	// Cancelled by merchant
+	CANCELLED: "cancelled",
+	// Confirmed by supplier, ready to be accepted by driver.
+	CONFIRMED: "confirmed",
+	// Denied by supplier.
+	DENIED: "denied",
+	// Accepted by driver, in transit for delivery.
+	ACCEPTED: "accepted",
+	// Rejected by driver (after they have accepted it, before they've started the delivery, maybe 1 hour grace period).
+	REJECTED: "rejected",
+	// Driver has picked up load, is delivering it.
+	IN_TRANSIT: "in_transit",
+	// TODO: System not built to handle any other status / condition by this point.
+	// Successfully delivered and finished.
+	COMPLETED: "completed",
 };
 
 // Helper Functions
@@ -82,6 +113,7 @@ class Packet {
 	}
 }
 
+// JSONPacket classes don't hold any JavaScript data and just help to ensure jsonStrings are passed with the correct 'type' parameter.
 class JSONPacket extends Packet {
 	constructor(type, jsonString = null) {
 		super(type);
@@ -90,7 +122,15 @@ class JSONPacket extends Packet {
 
 	// Overrides the base toString() method, which is desirable for our application.
 	toString() {
-		return this.jsonString;
+		const jsonObject = parseJSON(jsonString);
+		jsonObject.type = this.type;
+
+		try {
+			return JSON.stringify(jsonObject);
+		} catch (ignored) {
+		}
+
+		return null;
 	}
 
 	static fromJSONString(jsonString) {
@@ -187,7 +227,6 @@ export class GetLinkedOrders extends Packet {
 	}
 
 	static fromJSONString(jsonString) {
-		const jsonObject = parseJSON(jsonString);
 		return new GetLinkedOrders();
 	}
 }
@@ -199,6 +238,42 @@ export class SetLinkedOrders extends JSONPacket {
 
 	static fromJSONString(jsonString) {
 		return new SetLinkedOrders(jsonString);
+	}
+}
+
+export class GetUserData extends Packet {
+	constructor() {
+		super(PacketTypes.GET_USER_DATA);
+	}
+
+	static fromJSONString(jsonString) {
+		return new GetUserData();
+	}
+}
+
+export class SetUserData extends JSONPacket {
+	constructor(jsonString) {
+		super(PacketTypes.SET_USER_DATA, jsonString);
+	}
+
+	static fromJSONString(jsonString) {
+		return new SetUserData(jsonString);
+	}
+}
+
+export class UpdateStatus extends Packet {
+	constructor(orderID, status) {
+		super(PacketTypes.UPDATE_STATUS);
+
+		// TODO: Sanitize
+		this.orderID = orderID;
+		// TODO: Check if 'status' is a valid enum value.
+		this.status = status;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS));
 	}
 }
 

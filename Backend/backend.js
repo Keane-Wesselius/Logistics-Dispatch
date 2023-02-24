@@ -1,6 +1,7 @@
 const WebSocket = require("ws");
 const Packets = require("../Common/packets.js");
 const Database = require("./database.js");
+const Strings = require("./strings.js");
 const bcrypt = require("bcrypt");
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
@@ -13,8 +14,6 @@ let doDatabase = true;
 // Can be uncommented to allow type-checking and autocomplete via VSCode. Having this be TypeScript would mitigate the need for this.
 let database = new Database.DatabaseHandler();
 
-database.completeOrder('a');
-
 if (doDatabase) {
 	database = new Database.DatabaseHandler();
 }
@@ -23,7 +22,7 @@ console.log("Server started on " + new Date().toString());
 
 // Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
 // TODO: Link WebSocket connections to user_ids for database use.
-const authenticatedClients = [];
+const websocketToClientData = new Map();
 
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
@@ -46,7 +45,7 @@ wss.on("connection", function connection(ws) {
 			return;
 		}
 
-		const isClientAuthenticated = authenticatedClients.includes(ws);
+		const isClientAuthenticated = websocketToClientData.has(ws);
 
 		// TODO: What happens if the user sends two login packets at once?
 		if (packetType == Packets.PacketTypes.LOGIN) {
@@ -58,58 +57,37 @@ wss.on("connection", function connection(ws) {
 				// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
 				// TODO: All of these functions are accessing the test database and we will have to update them as soon as we get the real data base entries with correct schemas
 				database.getUserData(loginPacket.email).then(userData => {
-					let userEmailWasValid = false;
-					let userPasswordWasValid = false;
-
 					if (userData != null) {
-						userEmailWasValid = true;
-
+						// bcrypt.compare is actually asynchronous, with a function callback (the '(err, result)' part of the function call), so it doesn't block execution, allowing the script to flow past it into error checking before we've confirmed the password was valid. Therefore, we need to do any error broadcasting INSIDE the bcrypt function for password errors, rather than being able to do all error messages at the end. Another example of some of the strange behavior and potential logical bugs in writing async JavaScript code.
 						// TODO: Should check error?
 						bcrypt.compare(loginPacket.password, userData.password, function (err, result) {
 							if (result) {
+								userPasswordWasValid = true;
+
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
-								authenticatedClients.push(ws);
+								// Add the current WebSocket connection, mapping the active connection to their userData from the database.
+								websocketToClientData.set(ws, userData);
+
+								// Packet Structure: {"type": "authentication_success"}
 								const authenticationSuccessPacket = new Packets.AuthenticationSuccessPacket();
 								ws.send(authenticationSuccessPacket.toString());
-
-								// {"type": "authentication_success"}
-								userPasswordWasValid = true;
+							} else {
+								console.log("Got invalid password: " + loginPacket.email + " " + loginPacket.password);
+								ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_PASSWORD).toString());
 							}
 						});
-					}
-
-					let userErrorMessage = null;
-					if (!userEmailWasValid) {
-						console.log("option 1");
-						// TODO: Move into global, translatable user strings file.
-						userErrorMessage = "User name is invalid.";
-					} else if (!userPasswordWasValid) {
-						console.log("option 2");
-						// TODO: Move into global, translatable user strings file.
-						userErrorMessage = "User password is invalid.";
-					}
-
-					if (userErrorMessage != null) {
-						// TODO: Probably shouldn't log username / password to console.
-						console.log("Got invalid username / password: " + loginPacket.email + " " + loginPacket.password);
-						const authenticationFailedPacket = new Packets.AuthenticationFailedPacket(userErrorMessage);
-
-						// Example of checking PacketTypes.
-						// if(Packets.getPacketType(authenticationFailedPacket) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
-						// }
-
-						// {"type": "authentication_failed", "error_message": "Invalid username / password"}
-						ws.send(authenticationFailedPacket.toString());
+					} else {
+						console.log("Got invalid login: " + loginPacket.email + " " + loginPacket.password);
+						ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN).toString());
 					}
 				}).catch(error => {
-					// TODO: Check if error is stating database is down, return a fatal error in that case.
+					console.log("Got invalid login: " + loginPacket.email + " " + loginPacket.password);
+					ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL).toString());
 				});
 			} else {
 				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to clientside input verification, but if it does, we'll catch it.
 				console.log("Got invalid login");
-				userErrorMessage = "Invalid login.";
-				const authenticationFailedPacket = new Packets.AuthenticationFailedPacket(userErrorMessage);
-				ws.send(authenticationFailedPacket.toString());
+				ws.send(new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN).toString());
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ACTIVE_JOBS) {
 			// TODO: Currently no mechanism to see what jobs the user should be able to see, so we are currently passing everything from the database, which is probably bad.
@@ -121,7 +99,6 @@ wss.on("connection", function connection(ws) {
 
 			if (database != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
 				database.createNewUser(accountPacket).then((result) => {
-
 					if (result != null) {
 						const accountCreateFailedPacket = new Packets.AccountCreateFailedPacket(result);
 						ws.send(accountCreateFailedPacket.toString());
