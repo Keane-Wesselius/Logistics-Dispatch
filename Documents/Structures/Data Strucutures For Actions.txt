@@ -1,30 +1,31 @@
 Order
-	order_id (ObjectId)
-	merchant_id (ObjectId)
-	supplier_id (ObjectId)
+	
+	Made by the database //order_id// actually called _id (ObjectId)
+	merchantId (ObjectId)
+	supplierId (ObjectId)
 	status (string enum)
 	items (array of Object)
-	starting_address (string)
-	ending_address (string)
-	total_cost (double)
-	purchase_date (date)
-	estimated_delivery_date (date)
-	minimum_delivery_price (double)
-	maximum_delivery_price (double)
+	startingAddress (string)
+	endingAddress (string)
+	totalCost (double)
+	purchaseDate (date)
+	estimatedDeliveryDate (date)
+	minimumDeliveryPrice (double)
+	maximumDeliveryPrice (double)
 
 	if 'status' is 'confirmed':
-		confirmed_date (date)
+		confirmedDate (date)
 
 	if 'status' is 'accepted':
-		accepted_date (date)
-		driver_id (ObjectID)
+		acceptedDate (date)
+		driverId (ObjectID)
 
 	if 'status' is 'completed':
-		completed_date (date)
+		completedDate (date)
 
 {order_id: '1940192401', merchant_id: '28491488941', ..., maximum_delivery_price: 1200}
 
-maximum_delivery_price must be at least 8% higher than minimum_delivery_price
+maximumDeliveryPrice must be at least 8% higher than minimum_delivery_price
 
 
 
@@ -41,16 +42,16 @@ Desktop Client Perspective
 
 
 User
-	user_id (ObjectID)
+	created by database //user_id// called _id (ObjectID)
 
 	type (string enum)
 	email (string)
 	password (string)
-	profile_picture (string)
+	profilePicture (string)
 
 	if 'type' is 'driver':
-		first_name (string)
-		last_name (string)
+		firstName (string)
+		lastName (string)
 
 	if 'type' is 'merchant' OR 'type' is 'supplier':
 		name (string)
@@ -65,14 +66,14 @@ User
 
 
 Item
-	item_id (ObjectId)
-	supplier_id (ObjectId)
+	created by database //item_id// is called _id (ObjectId)
+	supplierId (ObjectId)
 	name (string)
 	description (string)
 	quantity (int)
 	price (double)
 	weight (double)
-	posted_date (date)
+	postedDate (date)
 // TODO: Might want to have a status to mark items which are removed / available or not.
 
 

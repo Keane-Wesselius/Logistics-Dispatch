@@ -101,10 +101,6 @@ class DatabaseHandler {
 
 
 
-
-
-
-
 	//Database functions related to users
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	async getUserData(userEmail) {
@@ -113,7 +109,7 @@ class DatabaseHandler {
 			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
 			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
 			// const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
-			const result = await this.dbClient.db("test").collection("users").findOne({ email: userEmail });
+			const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
 
 			if (result) {
 				console.log("User found");
@@ -186,20 +182,35 @@ class DatabaseHandler {
 
 
 
-	//  assumes order is a json that contains
+	//  order is a json that contains
+	// NOT NEEDED values will be computed here, if you add them before calling this function they will be overwritten
 	// 
-	// 	merchant_id (ObjectId)
-	// 	supplier_id (ObjectId)
-	// 	status (string enum)
+	// 	merchantId (ObjectId)
+	// 	supplierId (ObjectId)
+	// 	status (string enum) - NOT NEEDED
 	// 	items (array of Object)
-	// 	starting_address (string)
-	// 	ending_address (string)
-	// 	total_cost (double)
-	// 	purchase_date (date)
-	// 	estimated_delivery_date (date)
-	// 	minimum_delivery_price (double)
-	// 	maximum_delivery_price (double)
+	// 	startingAddress (string)
+	// 	endingAddress (string)
+	// 	totalCost (double) - NOT NEEDED
+	// 	purchaseDate (date) - NOT NEEDED
+	// 	estimatedDeliveryDate (date)
+	// 	minimumDeliveryPrice (double)
+	// 	maximumDeliveryPrice (double)
 	async placeOrder(orderDetails) {
+
+        orderDetails.status = "pending";
+
+
+        orderDetails.pendingDate = getDate();
+        orderDetails.pendingTime = getTime();
+
+        let total = 0;
+        for (let i = 0; i < orderDetails.items.length; i++)
+        {
+            total += orderDetails.items[i].price * orderDetails.items[i].quantity;
+        }
+        orderDetails.totalCost = roundMoney(total);
+        
 		const result = await this.dbClient.db("main").collection("orders").insertOne(orderDetails);
 
 		if (result) {
@@ -216,40 +227,47 @@ class DatabaseHandler {
 
 
 
-
 	//To get all orders that a specific supplier can accept
 	//Must pass into the supplierId
 	async getAllPendingOrdersBySupplierId(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "pending", supplierId: ObjectId(supplierID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "pending", supplierId: ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
 
 	//Find and return all the pending orders related to a specific merchant
 	async getAllPendingOrdersByMerchantId(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "pending", merchantId: ObjectId(merchantID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "pending", merchantId: ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
@@ -260,23 +278,28 @@ class DatabaseHandler {
 	async confirmOrder(orderID) {
 		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
 
-		if (result) {
+		if (result.status == "pending") {
 			updated = result;
-			updated.type = "confirmed";
+			updated.status = "confirmed";
 
-			var today = new Date();
-			var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-			var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+			updated.confirmed_date = getDate();
+			updated.confirmed_time = getTime();
 
-			updated.confirmed_date = date;
-			updated.confirmed_time = time;
+			let updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
 
-			await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderId) }, { $set: updated });
-
+			if (updatedResult.modifiedCount > 0)
+				{
+					console.log("Item quantity updated");
+				}
+				else
+				{
+					console.log("Item quantity not updated");
+				}
+            
 		}
 
 		else {
-			console.log("Failed to confirm order");
+			console.log("Can only confirm a pending order");
 		}
 	}
 
@@ -285,36 +308,43 @@ class DatabaseHandler {
 
 
 	async getAllConfirmedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "confirmed", supplierId: ObjectId(supplierID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed", supplierId: ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
-
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
+			console.log("Returning confirmed orders");
 			return results;
 		}
+		else{
+			console.log("No confirmed orders");
+		}
+
 	}
 
 	async getAllConfirmedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "confirmed", merchantId: ObjectId(merchantID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed", merchantId: ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
-
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
+			console.log("Returning confirmed orders");
 			return results;
+		}
+		else{
+			console.log("No confirmed orders");
 		}
 	}
 
@@ -323,18 +353,22 @@ class DatabaseHandler {
 
 	//To find orders that drivers can accept
 	async getAllConfirmedOrdersForDriver() {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "confirmed" });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed" });
 
 		const results = await cursor.toArray();
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 
 	}
@@ -348,20 +382,25 @@ class DatabaseHandler {
 		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
 
 		if (result) {
-			if (result.type == "confirmed") {
+			if (result.status == "confirmed") {
 				updated = result;
-				updated.type = "accepted";
+				updated.status = "accepted";
 				updated.driverId = ObjectId(driverID);
 
-				var today = new Date();
-				var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-				var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 
-				updated.accepted_date = date;
-				updated.accepted_time = time;
+				updated.accepted_date = getDate();
+				updated.accepted_time = getTime();
 
 
-				await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderId) }, { $set: updated });
+				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
+				if (updatedResult.modifiedCount > 0)
+				{
+					console.log("Item quantity updated");
+				}
+				else
+				{
+					console.log("Item quantity not updated");
+				}
 			}
 
 
@@ -376,53 +415,65 @@ class DatabaseHandler {
 
 
 	async getAllAcceptedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "accepted", supplierId: ObjectId(supplierID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", supplierId: ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
 	async getAllAcceptedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "accepted", merchantId: ObjectId(merchantID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", merchantId: ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
 	//To find orders that drivers have accepted
 	async getAllAcceptedOrdersByDriver(driverID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "accepted", driverId: ObjectId(driverID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", driverId: ObjectId(driverID) });
 
 		const results = await cursor.toArray();
 
 		if (results.length > 0) {
-			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
-			/////
+			// //////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			// /////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 
 	}
@@ -433,21 +484,30 @@ class DatabaseHandler {
 
 	async completeOrder(orderID) {
 		// let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
-		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": orderID });
+		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
 
 		if (result) {
 
-			updated = result;
-			updated.type = "completed";
-
-			var today = new Date();
-			var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-			var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-
-			updated.completed_date = date;
-			updated.completed_time = time;
+            if (result.status == "accepted")
+            {
+                updated = result;
+                updated.status = "completed";
 
 
+                updated.completed_date = getDate();
+                updated.completed_time = getTime();
+
+                const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": ObjectId(orderID) }, { $set: updated });
+
+				if (updatedResult.modifiedCount > 0)
+				{
+					console.log("Item quantity updated");
+				}
+				else
+				{
+					console.log("Item quantity not updated");
+				}
+            }
 
 
 		}
@@ -465,55 +525,82 @@ class DatabaseHandler {
 
 
 	async getAllCompletedOrdersByDriver(driverID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "completed", driverId: ObjectId(driverID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", driverId: ObjectId(driverID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
 	async getAllCompletedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "completed", merchantId: ObjectId(merchantID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", merchantId: ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
 
 			return results;
+		}
+		else
+		{
+			console.log("No orders found");
 		}
 	}
 
 	async getAllCompletedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ type: "completed", supplierId: ObjectId(supplierID) });
+		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", supplierId: ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
+
 
 			return results;
 		}
+		else
+		{
+			console.log("No orders found");
+		}
 	}
+
+	async cancelOrder(orderID)
+    {
+        const result = await this.dbClient.db("main").collection("orders").deleteOne( { "_id": ObjectId(orderID), status: "pending"});
+        if (result.deletedCount > 0)
+        {
+            console.log("Order was succesfully canceled");
+        }
+        else
+        {
+            console.log("Order was unable to be canceled");
+        }
+    }
+
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -552,7 +639,16 @@ class DatabaseHandler {
 				console.log("items available");
 				updated = result;
 				updated.quantity = result.quantity - quantity;
-				await this.dbClient.db("Examples").collection("items").updateOne({ "_id": ObjectId(itemId) }, { $set: updated });
+				const updatedResult = await this.dbClient.db("main").collection("items").updateOne({ "_id": ObjectId(itemId) }, { $set: updated });
+
+				if (updatedResult.modifiedCount > 0)
+				{
+					console.log("Item quantity updated");
+				}
+				else
+				{
+					console.log("Item quantity not updated");
+				}
 			}
 
 		}
@@ -578,15 +674,7 @@ class DatabaseHandler {
 	async insertNewItem(itemInfo) {
 		const result = await this.dbClient.db("main").collection("items").insertOne(itemInfo);
 
-		if (result) {
-
-			//console.log(result);
-			console.log("item inserted");
-		}
-
-		else {
-			console.log("item not inserted");
-		}
+		
 	}
 
 	async getItemsBySupplier(supplierID) {
@@ -598,13 +686,65 @@ class DatabaseHandler {
 
 		if (results.length > 0) {
 			//////
-			results.forEach((result) => {
-				console.log(result);
-			});
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
 			/////
 
 			return results;
 		}
+		else
+		{
+			console.log("No items found");
+		}
 	}
+
+	async updateItem(itemInfo)
+    {
+        let result = await this.dbClient.db("main").collection("items").updateOne( { "_id": itemInfo._id}, { $set: itemInfo} );
+
+        if (result.modifiedCount > 0)
+        {
+            console.log("Item was updated");
+        }
+        else
+        {
+            console.log("Item was not updated");
+        }
+    }
+
+    async removeItem(itemID)
+    {
+        const result = await this.dbClient.db("main").collection("items").deleteOne( { "_id": ObjectId(itemID)} );
+        if (result.deletedCount > 0)
+        {
+            console.log("Item was succesfully removed");
+        }
+        else
+        {
+            console.log("Item was unable to be removed");
+        }
+
+    }
 }
+
+//used to round floats to 2 decimal places correctly without errors
+function roundMoney(num, decimalPlaces = 2) {
+	var p = Math.pow(10, decimalPlaces);
+	var n = (num * p) * (1 + Number.EPSILON);
+	return Math.round(n) / p;
+}
+
+function getDate()
+{
+    let d = new Date();
+    return  d.getFullYear() + "-" + ('0' + (d.getMonth() + 1)).slice(-2) + "-" +  ('0' + d.getDate()).slice(-2);
+}
+
+function getTime()
+{
+    let d = new Date();
+    return ('0' + d.getHours()).slice(-2) + ":" + ('0' + d.getMinutes()).slice(-2) + ":" + ('0' + d.getSeconds()).slice(-2);
+}
+
 module.exports.DatabaseHandler = DatabaseHandler;
