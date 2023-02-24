@@ -6,7 +6,8 @@ const bcrypt = require("bcrypt");
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
-const wss = new WebSocket.WebSocketServer({ port: 5005 });
+// Create a WebSocketServer on port 5005 and with a maximum payload of 10 megabytes (10 bytes * 1000 kilobytes * 1000 megabytes). More options can be found here: https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
+const wss = new WebSocket.WebSocketServer({ port: 5005, maxPayload: 10 * 1000 * 1000 });
 
 // Controls whether the system will try to interface with the database, disable for easier debugging / unrelated implementations.
 let doDatabase = true;

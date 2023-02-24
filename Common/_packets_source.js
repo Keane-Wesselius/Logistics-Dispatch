@@ -9,8 +9,8 @@ export const Constants = {
 	ACCTYPE: "acctype",
 	AREA: "area",
 	TYPE: "type",
-	ERROR_MESSAGE: "error_message",
-	ORDER_ID: "order_id",
+	ERROR_MESSAGE: "errorMessage",
+	ORDER_ID: "orderId",
 	STATUS: "status",
 };
 
@@ -19,22 +19,22 @@ export const Constants = {
 // Contains function names, essentially Packet types.
 export const PacketTypes = {
 	LOGIN: "login",
-	AUTHENTICATION_SUCCESS: "authentication_success",
-	AUTHENTICATION_FAILED: "authentication_failed",
+	AUTHENTICATION_SUCCESS: "authenticationSuccess",
+	AUTHENTICATION_FAILED: "authenticationFailed",
 
-	CREATE_ACCOUNT: "create_account",
-	ACCOUNT_CREATE_SUCCESS: "account_create_success",
-	ACCOUNT_CREATE_FAILED: "account_create_failed",
+	CREATE_ACCOUNT: "createAccount",
+	ACCOUNT_CREATE_SUCCESS: "accountCreateSuccess",
+	ACCOUNT_CREATE_FAILED: "accountCreateFailed",
 
-	GET_LINKED_ORDERS: "get_linked_orders",
-	SET_LINKED_ORDERS: "set_linked_orders",
+	GET_LINKED_ORDERS: "getLinkedOrders",
+	SET_LINKED_ORDERS: "setLinkedOrders",
 
-	GET_USER_DATA: "get_user_data",
-	SET_USER_DATA: "set_user_data",
+	GET_USER_DATA: "getUserData",
+	SET_USER_DATA: "setUserData",
 
-	UPDATE_STATUS: "update_status",
-	UPDATE_STATUS_SUCCESS: "update_status_success",
-	UPDATE_STATUS_FAILED: "update_status_failed",
+	UPDATE_STATUS: "updateStatus",
+	UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
+	UPDATE_STATUS_FAILED: "updateStatusFailed",
 };
 
 export const Status = {
@@ -51,7 +51,7 @@ export const Status = {
 	// Rejected by driver (after they have accepted it, before they've started the delivery, maybe 1 hour grace period).
 	REJECTED: "rejected",
 	// Driver has picked up load, is delivering it.
-	IN_TRANSIT: "in_transit",
+	IN_TRANSIT: "inTransit",
 	// TODO: System not built to handle any other status / condition by this point.
 	// Successfully delivered and finished.
 	COMPLETED: "completed",
@@ -74,8 +74,8 @@ export function parseJSON(jsonString) {
 		// TODO: Ensure toString() is secure.
 		jsonString = jsonString.toString();
 
-		// 1000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
-		if (jsonString != null && jsonString.length <= 1000) {
+		// 5000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
+		if (jsonString != null && jsonString.length <= 5000) {
 			return JSON.parse(jsonString);
 		}
 	} catch (ignored) {
