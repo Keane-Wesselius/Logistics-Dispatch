@@ -6,40 +6,27 @@ const saltRounds = 10;
 
 ws.on("error", console.error);
 
-// console.log(PacketDefinitions.Packet.toString());
-// const testAuthenticatioNPacket = new PacketDefinitions.AuthenticationPacket("test");
-// console.log(testAuthenticatioNPacket);
-// console.log(PacketDefinitions.Constants.AUTHENTICATION);
-
-async function generateHashedPassword(password) {
-	const hashedPassword = await bcrypt.hash(password, saltRounds);
-	return hashedPassword;
-}
-
-// generateHashedPassword("1").then(hashedPassword => {
-// 	console.log(hashedPassword);
-// 	process.exit();
-// });
-
 ws.on("open", function open() {
-	// Don't actually want to do this, as the password for the LoginPacket MUST be plaintext for bcrypt to work.
-	// generateHashedPassword("1").then(hashedPassword => {
-	// 	const loginPacket = new Packets.LoginPacket("1@44.com", hashedPassword);
+	// const createAccountPacket = new Packets.CreateAccountPacket("test1", "1@45.com", "1", "driver");
+	// ws.send(createAccountPacket.toString());
+
+	// setTimeout(() => {
+	// 	const loginPacket = new Packets.LoginPacket("1@45.com", "1");
 	// 	ws.send(loginPacket.toString());
-	// });
+	// }, 5000);
 
-	const createAccountPacket = new Packets.CreateAccountPacket("test1", "1@45.com", "1", "driver");
-	ws.send(createAccountPacket.toString());
+	// setTimeout(() => {
+	// 	const getLinkedOrdersPacket = new Packets.GetLinkedOrders();
+	// 	ws.send(getLinkedOrdersPacket.toString());
+	// }, 10000);
 
-	setTimeout(() => {
-		const loginPacket = new Packets.LoginPacket("1@45.com", "1");
-		ws.send(loginPacket.toString());
-	}, 5000);
+	const loginPacket = new Packets.LoginPacket("1@45.com", "1");
+	ws.send(loginPacket.toString());
 
 	setTimeout(() => {
 		const getLinkedOrdersPacket = new Packets.GetLinkedOrders();
 		ws.send(getLinkedOrdersPacket.toString());
-	}, 10000);
+	}, 1000);
 });
 
 ws.on("message", function message(data) {

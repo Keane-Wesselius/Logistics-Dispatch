@@ -124,14 +124,15 @@ class JSONPacket extends Packet {
 	toString() {
 		const jsonObject = parseJSON(this.jsonString);
 		if (jsonObject != null) {
-			jsonObject.type = this.type;
+			// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+			const finalJSONObject = { type: this.type, data: jsonObject };
 
 			try {
-				return JSON.stringify(jsonObject);
+				return JSON.stringify(finalJSONObject);
 			} catch (ignored) {
 			}
 		} else {
-			console.log("Got Invalid jsonObject from string: " + this.jsonString.toString());
+			console.log("Got Invalid jsonObject from string: " + this.jsonString);
 		}
 
 		return null;

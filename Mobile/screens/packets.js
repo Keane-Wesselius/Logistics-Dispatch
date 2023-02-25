@@ -130,14 +130,18 @@
 		toString() {
 			const jsonObject = parseJSON(this.jsonString);
 			if (jsonObject != null) {
-				jsonObject.type = this.type;
+				const finalJSONObject = {type: this.type, data: jsonObject};
+				
+				// jsonObject.type = this.type;
+				// jsonObject.data = this.jsonString;
+				// console.log("jsonObject.type: " + jsonObject.type);
 
 				try {
-					return JSON.stringify(jsonObject);
+					return JSON.stringify(finalJSONObject);
 				} catch (ignored) {
 				}
 			} else {
-				console.log("Got Invalid jsonObject from string: " + this.jsonString.toString());
+				console.log("Got Invalid jsonObject from string: " + this.jsonString);
 			}
 
 			return null;

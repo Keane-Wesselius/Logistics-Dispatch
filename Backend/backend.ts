@@ -139,27 +139,15 @@ wss.on("connection", function connection(ws) {
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ORDERS) {
 			if (clientUserData.accountType == AccountType.DRIVER) {
 				database?.getAllOrdersByDriver(clientUserData.id).then((orders) => {
-					console.log("Got orders '" + orders.toString() + "' from database");
-					console.log("JSON String Version: " + JSON.stringify(orders));
-					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
-					console.log(setLinkedOrdersPacket.toString());
-					sendIfNotNull(ws, setLinkedOrdersPacket);
+					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
 			} else if (clientUserData.accountType == AccountType.MERCHANT) {
 				database?.getAllOrdersByMerchant(clientUserData.id).then((orders) => {
-					console.log("Got orders '" + orders.toString() + "' from database");
-					console.log("JSON String Version: " + JSON.stringify(orders));
-					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
-					console.log(setLinkedOrdersPacket.toString());
-					sendIfNotNull(ws, setLinkedOrdersPacket);
+					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
 			} else if (clientUserData.accountType == AccountType.SUPPLIER) {
 				database?.getAllOrdersBySupplier(clientUserData.id).then((orders) => {
-					console.log("Got orders '" + orders.toString() + "' from database");
-					console.log("JSON String Version: " + JSON.stringify(orders));
-					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
-					console.log(setLinkedOrdersPacket.toString());
-					sendIfNotNull(ws, setLinkedOrdersPacket);
+					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
 			} else {
 				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
