@@ -115,19 +115,23 @@ class Packet {
 
 // JSONPacket classes don't hold any JavaScript data and just help to ensure jsonStrings are passed with the correct 'type' parameter.
 class JSONPacket extends Packet {
-	constructor(type, jsonString = null) {
+	constructor(type, jsonString) {
 		super(type);
 		this.jsonString = jsonString;
 	}
 
 	// Overrides the base toString() method, which is desirable for our application.
 	toString() {
-		const jsonObject = parseJSON(jsonString);
-		jsonObject.type = this.type;
+		const jsonObject = parseJSON(this.jsonString);
+		if (jsonObject != null) {
+			jsonObject.type = this.type;
 
-		try {
-			return JSON.stringify(jsonObject);
-		} catch (ignored) {
+			try {
+				return JSON.stringify(jsonObject);
+			} catch (ignored) {
+			}
+		} else {
+			console.log("Got Invalid jsonObject from string: " + this.jsonString.toString());
 		}
 
 		return null;
@@ -165,7 +169,7 @@ export class CreateAccountPacket extends Packet {
 
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
-		return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.TYPE));
+		return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE));
 	}
 }
 

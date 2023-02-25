@@ -3,6 +3,7 @@ import * as Packets from "../Common/packets.js";
 import { DatabaseHandler } from "./database.js";
 import * as Strings from "./strings.js";
 import * as bcrypt from "bcrypt";
+import { ObjectId } from "mongodb";
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
@@ -25,6 +26,7 @@ enum AccountType {
 }
 
 interface DatabaseUserData {
+	_id : ObjectId;
 	acctype : string;
 	email : string;
 	firstName : string | null;
@@ -34,6 +36,7 @@ interface DatabaseUserData {
 }
 
 class UserData {
+	id : string;
 	accountType : AccountType;
 	email : string;
 	firstName : string | null;
@@ -41,6 +44,7 @@ class UserData {
 	name : string | null;
 
 	constructor(userDataJSON : DatabaseUserData) {
+		this.id = userDataJSON._id.toString();
 		this.accountType = AccountType[userDataJSON.acctype.toUpperCase()];
 		this.email = userDataJSON.email;
 
@@ -107,7 +111,10 @@ wss.on("connection", function connection(ws) {
 							if (result) {
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
 								// Add the current WebSocket connection, mapping the active connection to their userData from the database.
-								// websocketToClientData.set(ws, new UserData(userData));
+
+								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+								// @ts-ignore
+								websocketToClientData.set(ws, new UserData(userData));
 
 								// Packet Structure: {"type": "authentication_success"}
 								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket());
@@ -131,19 +138,42 @@ wss.on("connection", function connection(ws) {
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ORDERS) {
 			if (clientUserData.accountType == AccountType.DRIVER) {
-				// TODO: Return linked orders for that driver from a method in database.js
+				database?.getAllOrdersByDriver(clientUserData.id).then((orders) => {
+					console.log("Got orders '" + orders.toString() + "' from database");
+					console.log("JSON String Version: " + JSON.stringify(orders));
+					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
+					console.log(setLinkedOrdersPacket.toString());
+					sendIfNotNull(ws, setLinkedOrdersPacket);
+				});
+			} else if (clientUserData.accountType == AccountType.MERCHANT) {
+				database?.getAllOrdersByMerchant(clientUserData.id).then((orders) => {
+					console.log("Got orders '" + orders.toString() + "' from database");
+					console.log("JSON String Version: " + JSON.stringify(orders));
+					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
+					console.log(setLinkedOrdersPacket.toString());
+					sendIfNotNull(ws, setLinkedOrdersPacket);
+				});
+			} else if (clientUserData.accountType == AccountType.SUPPLIER) {
+				database?.getAllOrdersBySupplier(clientUserData.id).then((orders) => {
+					console.log("Got orders '" + orders.toString() + "' from database");
+					console.log("JSON String Version: " + JSON.stringify(orders));
+					const setLinkedOrdersPacket = new Packets.SetLinkedOrders(JSON.stringify(orders));
+					console.log(setLinkedOrdersPacket.toString());
+					sendIfNotNull(ws, setLinkedOrdersPacket);
+				});
+			} else {
+				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
 			}
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
 			if (database != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
-				database.createNewUser(accountPacket).then((result) => {
-					if (result != null) {
-						// TODO: AccountCreateFailedPacket needs a error message string as a parameter. Result in this case is nothing, as DatabaseHandler.createNewUser() doesn't have a return statement.
-						sendIfNotNull(ws, new Packets.AccountCreateFailedPacket(result).toString());
+				database.createNewUser(accountPacket).then((createdAccount) => {
+					if (createdAccount) {
+						sendIfNotNull(ws, new Packets.AccountCreateSuccessPacket().toString());
 					} else {
-						const accountCreateSuccessPacket = new Packets.AccountCreateSuccessPacket();
-						sendIfNotNull(ws, accountCreateSuccessPacket.toString());
+						// TODO: The error is assumed here, but we should really say exactly what went wrong (existing username, email, etc).
+						sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
 					}
 				});
 			}

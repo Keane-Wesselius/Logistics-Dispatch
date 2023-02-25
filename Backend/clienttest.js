@@ -28,8 +28,18 @@ ws.on("open", function open() {
 	// 	ws.send(loginPacket.toString());
 	// });
 
-	const loginPacket = new Packets.LoginPacket("1@44.com", "1");
-	ws.send(loginPacket.toString());
+	const createAccountPacket = new Packets.CreateAccountPacket("test1", "1@45.com", "1", "driver");
+	ws.send(createAccountPacket.toString());
+
+	setTimeout(() => {
+		const loginPacket = new Packets.LoginPacket("1@45.com", "1");
+		ws.send(loginPacket.toString());
+	}, 5000);
+
+	setTimeout(() => {
+		const getLinkedOrdersPacket = new Packets.GetLinkedOrders();
+		ws.send(getLinkedOrdersPacket.toString());
+	}, 10000);
 });
 
 ws.on("message", function message(data) {
