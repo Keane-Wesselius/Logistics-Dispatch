@@ -6,6 +6,7 @@ import Tabs from "../navigation/Tabs";
 import { Tab } from "react-native-elements";
 const Packets = require("./packets");
 const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\b/;
+
 //import {Button} from 'native-base';
 //import axios from 'axios';
 /*  
@@ -110,8 +111,7 @@ const styles = StyleSheet.create({
 const Sign_in = ({ navigation }) => {
   let ws = new WebSocket("ws://");
   //onopen happens when the websocket connects
-  ws.onopen = () => {
-  };
+  ws.onopen = () => {};
   ws.onclose = () => console.log("ws closed");
 
   //When we get an answer back this is called
@@ -123,15 +123,19 @@ const Sign_in = ({ navigation }) => {
     const packet = response.data;
     console.log(packet);
 
-    if(Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_SUCCESS) {
+    if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.AUTHENTICATION_SUCCESS
+    ) {
       const emailSplit = email.split("@");
       const username = emailSplit[0];
       navigation.replace("Home", { username });
-		}
-    else if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
+    } else if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.AUTHENTICATION_FAILED
+    ) {
       alert("wrong username or password");
     }
-      
   };
 
   ws.onerror = (e) => {
@@ -144,18 +148,14 @@ const Sign_in = ({ navigation }) => {
 
   const handleLogin = () => {
     //We create a packet to send to the backend using the username and password entered on the screen
-    if (emailPattern.test(email))
-    {
-    const loginPacket = new Packets.LoginPacket(email, password);
-    console.log("Login Packet String: " + loginPacket.toString());
-    ws.send(loginPacket.toString());
+    if (emailPattern.test(email)) {
+      const loginPacket = new Packets.LoginPacket(email, password);
+      console.log("Login Packet String: " + loginPacket.toString());
+      ws.send(loginPacket.toString());
+      navigation.replace("Home", { username });
+    } else {
+      alert("Invalid email");
     }
-    else
-    {
-       alert("Invalid email");
-    }
-    
-
   };
 
   const handleSignup = () => {
