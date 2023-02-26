@@ -7,8 +7,8 @@ const saltRounds = 10;
 ws.on("error", console.error);
 
 ws.on("open", function open() {
-	// const createAccountPacket = new Packets.CreateAccountPacket("test1", "1@45.com", "1", "driver");
-	// ws.send(createAccountPacket.toString());
+	const createAccountPacket = new Packets.CreateAccountPacket("test1", "1@47.com", "1", "driver");
+	ws.send(createAccountPacket.toString());
 
 	// setTimeout(() => {
 	// 	const loginPacket = new Packets.LoginPacket("1@45.com", "1");
@@ -20,13 +20,13 @@ ws.on("open", function open() {
 	// 	ws.send(getLinkedOrdersPacket.toString());
 	// }, 10000);
 
-	const loginPacket = new Packets.LoginPacket("1@45.com", "1");
-	ws.send(loginPacket.toString());
+	// const loginPacket = new Packets.LoginPacket("1@45.com", "1");
+	// ws.send(loginPacket.toString());
 
-	setTimeout(() => {
-		const getLinkedOrdersPacket = new Packets.GetLinkedOrders();
-		ws.send(getLinkedOrdersPacket.toString());
-	}, 1000);
+	// setTimeout(() => {
+	// 	const getLinkedOrdersPacket = new Packets.GetLinkedOrders();
+	// 	ws.send(getLinkedOrdersPacket.toString());
+	// }, 1000);
 });
 
 ws.on("message", function message(data) {

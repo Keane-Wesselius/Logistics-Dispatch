@@ -11,12 +11,12 @@ const Packets = require ("./packets");
 
 const Signup = ({ navigation }) => {
   //Replace websocket IP with the IP of the machine running Backend.js
-  let ws = new WebSocket("ws://10.0.0.183:5005/");
+//   let ws = new WebSocket("ws://10.0.0.183:5005/");
 
-  ws.onopen = () => {};
-  ws.onclose = () => console.log("ws closed: Signup page");
+//   ws.onopen = () => {};
+//   ws.onclose = () => console.log("ws closed: Signup page");
 
-  ws.onmessage = (response) => {
+  global.ws.onmessage = (response) => {
     const packet = response.data;
     console.log(packet);
 
@@ -28,7 +28,7 @@ const Signup = ({ navigation }) => {
     }
   };
 
-  ws.onerror = (e) => {
+  global.ws.onerror = (e) => {
     console.error("WebSocket error: ", e.message);
   };
 
@@ -43,7 +43,7 @@ const Signup = ({ navigation }) => {
       const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
       console.log("Account create string: " + accountPacket.toString());
 
-      ws.send(accountPacket.toString());
+      global.ws.send(accountPacket.toString());
     } else {
       alert("Error: passwords do not match");
     }

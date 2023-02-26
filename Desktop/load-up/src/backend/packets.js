@@ -18,10 +18,6 @@
 		ERROR_MESSAGE: "errorMessage",
 		ORDER_ID: "orderId",
 		STATUS: "status",
-		DESCRIPTION: "description",
-		QUANTITY: "quantity",
-		PRICE: "price",
-		WEIGHT: "weight",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -46,7 +42,8 @@
 		UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 		UPDATE_STATUS_FAILED: "updateStatusFailed",
 
-		ADD_ITEM: "addItem",
+		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+		SET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 	};
 
 	const Status = {
@@ -136,11 +133,8 @@
 		toString() {
 			const jsonObject = parseJSON(this.jsonString);
 			if (jsonObject != null) {
-				const finalJSONObject = {type: this.type, data: jsonObject};
-				
-				// jsonObject.type = this.type;
-				// jsonObject.data = this.jsonString;
-				// console.log("jsonObject.type: " + jsonObject.type);
+				// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+				const finalJSONObject = { type: this.type, data: jsonObject };
 
 				try {
 					return JSON.stringify(finalJSONObject);
@@ -240,23 +234,6 @@
 		}
 	}
 
-	class addItemPacket extends Packet {
-		constructor(name, description, quantity, price, weight) {
-			super(PacketTypes.ADD_ITEM);
-
-			this.name = name;
-			this.description = description;
-			this.quantity = quantity;
-			this.price = price;
-			this.weight = weight;
-		}
-
-		static fromJSONString(jsonString) {
-			const jsonObject = parseJSON(jsonString);
-			return new addItemPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.DESCRIPTION), tryGet(jsonObject, Constants.QUANTITY), tryGet(jsonObject, Constants.PRICE), tryGet(jsonObject, Constants.WEIGHT));
-		}
-	}
-
 	// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
 	class GetLinkedOrders extends Packet {
 		constructor() {
@@ -298,6 +275,26 @@
 		}
 	}
 
+	class GetAllConfirmedOrders extends Packet {
+		constructor() {
+			super(PacketTypes.GET_ALL_CONFIRMED_ORDERS);
+		}
+
+		static fromJSONString(jsonString) {
+			return new GetUserData();
+		}
+	}
+
+	class SetAllConfirmedOrders extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_ALL_CONFIRMED_ORDERS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetAllConfirmedOrders(jsonString);
+		}
+	}
+
 	class UpdateStatus extends Packet {
 		constructor(orderID, status) {
 			super(PacketTypes.UPDATE_STATUS);
@@ -322,11 +319,12 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
 	exports.LoginPacket = LoginPacket;
-	exports.addItemPacket = addItemPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;
 	exports.Status = Status;

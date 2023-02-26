@@ -18,6 +18,9 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const Landing = () => {
   const navigation = useNavigation();
+
+	global.navigation = navigation;
+
   const videoRef = useRef(null);
   const Stack = createStackNavigator();
   const handlePress = () => {

@@ -41,6 +41,9 @@
 		UPDATE_STATUS: "updateStatus",
 		UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 		UPDATE_STATUS_FAILED: "updateStatusFailed",
+
+		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+		SET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 	};
 
 	const Status = {
@@ -130,11 +133,8 @@
 		toString() {
 			const jsonObject = parseJSON(this.jsonString);
 			if (jsonObject != null) {
-				const finalJSONObject = {type: this.type, data: jsonObject};
-				
-				// jsonObject.type = this.type;
-				// jsonObject.data = this.jsonString;
-				// console.log("jsonObject.type: " + jsonObject.type);
+				// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+				const finalJSONObject = { type: this.type, data: jsonObject };
 
 				try {
 					return JSON.stringify(finalJSONObject);
@@ -275,6 +275,26 @@
 		}
 	}
 
+	class GetAllConfirmedOrders extends Packet {
+		constructor() {
+			super(PacketTypes.GET_ALL_CONFIRMED_ORDERS);
+		}
+
+		static fromJSONString(jsonString) {
+			return new GetUserData();
+		}
+	}
+
+	class SetAllConfirmedOrders extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_ALL_CONFIRMED_ORDERS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetAllConfirmedOrders(jsonString);
+		}
+	}
+
 	class UpdateStatus extends Packet {
 		constructor(orderID, status) {
 			super(PacketTypes.UPDATE_STATUS);
@@ -299,10 +319,12 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;
 	exports.Status = Status;

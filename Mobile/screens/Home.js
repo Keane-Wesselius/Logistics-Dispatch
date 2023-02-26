@@ -36,6 +36,8 @@ const Home = (navigation, route) => {
     navigation.navigate("TodaysEarnings");
   };
 
+  console.log("global.ws" + global.ws);
+
   //for body
   // function renderBody(){
   //     return(

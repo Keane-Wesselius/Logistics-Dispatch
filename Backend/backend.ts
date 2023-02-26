@@ -45,7 +45,9 @@ class UserData {
 
 	constructor(userDataJSON : DatabaseUserData) {
 		this.id = userDataJSON._id.toString();
-		this.accountType = AccountType[userDataJSON.acctype.toUpperCase()];
+		if (userDataJSON.acctype != null) {
+			this.accountType = AccountType[userDataJSON.acctype.toUpperCase()];
+		}
 		this.email = userDataJSON.email;
 
 		if (this.accountType == AccountType.DRIVER) {
@@ -152,6 +154,25 @@ wss.on("connection", function connection(ws) {
 			} else {
 				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
 			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_CONFIRMED_ORDERS) {
+			if (clientUserData.accountType == AccountType.DRIVER) {
+				database?.getAllConfirmedOrdersForDriver().then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
+				});
+			}
+
+			// TODO: Actually implement
+			// } else if (clientUserData.accountType == AccountType.MERCHANT) {
+			// 	database?.getAllOrdersByMerchant(clientUserData.id).then((orders) => {
+			// 		sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
+			// 	});
+			// } else if (clientUserData.accountType == AccountType.SUPPLIER) {
+			// 	database?.getAllOrdersBySupplier(clientUserData.id).then((orders) => {
+			// 		sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
+			// 	});
+			// } else {
+			// 	console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
+			// }
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 

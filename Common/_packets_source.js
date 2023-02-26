@@ -35,6 +35,9 @@ export const PacketTypes = {
 	UPDATE_STATUS: "updateStatus",
 	UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 	UPDATE_STATUS_FAILED: "updateStatusFailed",
+
+	GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+	SET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 };
 
 export const Status = {
@@ -263,6 +266,26 @@ export class SetUserData extends JSONPacket {
 
 	static fromJSONString(jsonString) {
 		return new SetUserData(jsonString);
+	}
+}
+
+export class GetAllConfirmedOrders extends Packet {
+	constructor() {
+		super(PacketTypes.GET_ALL_CONFIRMED_ORDERS);
+	}
+
+	static fromJSONString(jsonString) {
+		return new GetUserData();
+	}
+}
+
+export class SetAllConfirmedOrders extends JSONPacket {
+	constructor(jsonString) {
+		super(PacketTypes.SET_ALL_CONFIRMED_ORDERS, jsonString);
+	}
+
+	static fromJSONString(jsonString) {
+		return new SetAllConfirmedOrders(jsonString);
 	}
 }
 

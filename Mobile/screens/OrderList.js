@@ -6,9 +6,26 @@ import orders_json from '../components/orders.json';
 import { useNavigation } from '@react-navigation/native'
 //import Map from './Map';
 import PagerView from 'react-native-pager-view';
+import Packets, { GetLinkedOrders } from "./packets";
 
 const OrderList = ({navigation, props}) => {
- 
+	let orders_json = [];
+
+	global.ws.onmessage = (response) => {
+		const packet = response.data;
+		console.log(packet);
+
+		if (Packets.getPacketType(packet) === Packets.PacketTypes.GET_ALL_CONFIRMED_ORDERS) {
+			console.log("GOT CONFIRMED ORDERS");
+			// const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
+			// orders_json = setLinkedOrdersPacket;
+			console.log("packet: " + packet);
+		}
+	};
+
+	const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
+	global.ws.send(getAllConfirmedOrdersPacket.toString());
+
   //const navigation = useNavigation();
  // navigation.navigate('Map', {
   //  deliveryAddress: 'shiva'
