@@ -33,12 +33,13 @@ function Register() {
 
   const handleCreate = (e) => {
     e.preventDefault();
-    const accountPacket = new Packets.CreateAccountPacket(email, password, accType);
+    const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
     console.log("Account create string: " + accountPacket.toString());
 
     ws.send(accountPacket.toString());
   };
 
+  const [name, setName] = useState("");
   const [accType, setAccType] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +63,7 @@ function Register() {
                   <h1 class="mb-3 h3">Register</h1>
                   <div class="col-md-12 mb-4">
                     <div class="form-outline">
-                      <input type="text" name="name" id="form3Example2" class="form-control" required/>
+                      <input type="text" name="name" id="form3Example2" class="form-control" required onChange={e => setName(e.target.value)}/>
                       <label class="form-label" for="form3Example2" required>Full Name</label>
                     </div>
                   </div>

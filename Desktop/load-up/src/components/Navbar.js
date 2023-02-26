@@ -45,9 +45,9 @@ function Navbar() {
                                 </Link>
                             </li>
                             <li className='nav-item'>
-                                <a href='https://github.com/Keane-Wesselius/Logistics-Dispatch/tree/main/Common' target="_blank" rel="noopener noreferrer" className='nav-links'>
-                                    GitHub
-                                </a>
+                            <Link to='/add_items' className='nav-links' onclick={closeMobileMenu}>
+                                    Add Items
+                                </Link>
                             </li>
                     </ul>
                 </nav>
