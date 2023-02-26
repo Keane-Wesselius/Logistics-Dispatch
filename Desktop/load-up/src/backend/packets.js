@@ -18,6 +18,10 @@
 		ERROR_MESSAGE: "errorMessage",
 		ORDER_ID: "orderId",
 		STATUS: "status",
+		DESCRIPTION: "description",
+		QUANTITY: "quantity",
+		PRICE: "price",
+		WEIGHT: "weight",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -41,6 +45,8 @@
 		UPDATE_STATUS: "updateStatus",
 		UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 		UPDATE_STATUS_FAILED: "updateStatusFailed",
+
+		ADD_ITEM: "addItem",
 	};
 
 	const Status = {
@@ -234,6 +240,23 @@
 		}
 	}
 
+	class addItemPacket extends Packet {
+		constructor(name, description, quantity, price, weight) {
+			super(PacketTypes.ADD_ITEM);
+
+			this.name = name;
+			this.description = description;
+			this.quantity = quantity;
+			this.price = price;
+			this.weight = weight;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new addItemPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.DESCRIPTION), tryGet(jsonObject, Constants.QUANTITY), tryGet(jsonObject, Constants.PRICE), tryGet(jsonObject, Constants.WEIGHT));
+		}
+	}
+
 	// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
 	class GetLinkedOrders extends Packet {
 		constructor() {
@@ -302,6 +325,7 @@
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
 	exports.LoginPacket = LoginPacket;
+	exports.addItemPacket = addItemPacket;
 	exports.PacketTypes = PacketTypes;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;

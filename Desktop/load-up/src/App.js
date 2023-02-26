@@ -7,7 +7,6 @@ import Register from './views/Register';
 import Scheduling from './views/Scheduling';
 import Dashboard from './views/Dashboard';
 import Items from './views/add_items';
-
 import './App.css';
 
 function App() {
