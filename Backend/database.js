@@ -116,6 +116,7 @@ class DatabaseHandler {
 
 			else {
 				console.log("User not found");
+				return null;
 			}
 		}
 	}
@@ -139,15 +140,15 @@ class DatabaseHandler {
 			let hashedUser = ({
 				email: newUser.email,
 				password: hashedPassword,
-				acctype: newUser.acctype,
+				accType: newUser.accType,
 				profilePicture: newUser.profilePicture
 			});
 
-			if (newUser.type == "driver") {
+			if (newUser.accType == "driver") {
 				hashedUser.firstName = newUser.firstName;
 				hashedUser.lastName = newUser.lastName;
 			}
-			else if (newUser.type == "merchant" || newUser.type == "supplier") {
+			else if (newUser.accType == "merchant" || newUser.accType == "supplier") {
 				hashedUser.name = newUser.name;
 				hashedUser.address = newUser.address;
 			}
@@ -159,6 +160,7 @@ class DatabaseHandler {
 			}
 			else {
 				console.log("Error creating user");
+				return false;
 			}
 		}
 
@@ -214,9 +216,11 @@ class DatabaseHandler {
 
 		if (result) {
 			console.log("Order placed succesfully");
+			return true;
 		}
 		else {
 			console.log("Order place failed");
+			return false;
 		}
 	}
 
@@ -239,11 +243,11 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			/////
-
 			return results;
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -265,6 +269,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -286,15 +291,18 @@ class DatabaseHandler {
 
 			if (updatedResult.modifiedCount > 0) {
 				console.log("Item quantity updated");
+				return true;
 			}
 			else {
 				console.log("Item quantity not updated");
+				return false;
 			}
 
 		}
 
 		else {
 			console.log("Can only confirm a pending order");
+			return false;
 		}
 	}
 
@@ -319,6 +327,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No confirmed orders");
+			return null;
 		}
 
 	}
@@ -340,6 +349,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No confirmed orders");
+			return null;
 		}
 	}
 
@@ -358,11 +368,11 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			// /////
-
 			return results;
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 
 	}
@@ -389,9 +399,11 @@ class DatabaseHandler {
 				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
+					return true;
 				}
 				else {
 					console.log("Item quantity not updated");
+					return false;
 				}
 			}
 
@@ -400,6 +412,7 @@ class DatabaseHandler {
 
 		else {
 			console.log("Failed to accept order");
+			return false;
 		}
 	}
 
@@ -418,11 +431,11 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			// /////
-
 			return results;
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -443,6 +456,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -463,6 +477,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 
 	}
@@ -489,9 +504,11 @@ class DatabaseHandler {
 
 				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
+					return true;
 				}
 				else {
 					console.log("Item quantity not updated");
+					return false;
 				}
 			}
 
@@ -500,6 +517,7 @@ class DatabaseHandler {
 
 		else {
 			console.log("Failed to complete order");
+			return false;
 		}
 	}
 
@@ -527,6 +545,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -547,6 +566,7 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
@@ -562,40 +582,74 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			/////
-
-
 			return results;
 		}
 		else {
 			console.log("No orders found");
+			return null;
 		}
 	}
 
 	async getAllOrdersBySupplier(supplierID) {
 		const cursor = await this.dbClient.db("main").collection("orders").find({ supplierId: new ObjectId(supplierID) });
 		const results = await cursor.toArray();
-		return results;
+		if (results.length > 0) {
+			//////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			/////
+			return results;
+		}
+		else {
+			console.log("No orders found");
+			return null;
+		}
 	}
 
 	async getAllOrdersByMerchant(merchantID) {
 		const cursor = await this.dbClient.db("main").collection("orders").find({ merchantId: new ObjectId(merchantID) });
 		const results = await cursor.toArray();
-		return results;
+		if (results.length > 0) {
+			//////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			/////
+			return results;
+		}
+		else {
+			console.log("No orders found");
+			return null;
+		}
 	}
 
 	async getAllOrdersByDriver(driverID) {
 		const cursor = await this.dbClient.db("main").collection("orders").find({ driverId: new ObjectId(driverID) });
 		const results = await cursor.toArray();
-		return results;
+		if (results.length > 0) {
+			//////
+			// results.forEach((result) => {
+			// 	console.log(result);
+			// });
+			/////
+			return results;
+		}
+		else {
+			console.log("No orders found");
+			return null;
+		}
 	}
 
 	async cancelOrder(orderID) {
 		const result = await this.dbClient.db("main").collection("orders").deleteOne({ "_id": new ObjectId(orderID), status: "pending" });
 		if (result.deletedCount > 0) {
 			console.log("Order was succesfully canceled");
+			return true;
 		}
 		else {
 			console.log("Order was unable to be canceled");
+			return false;
 		}
 	}
 
