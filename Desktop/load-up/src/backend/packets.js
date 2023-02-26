@@ -223,14 +223,16 @@
 
 	// TODO: Probably should send back more of the user information rather than an empty packet.
 	class AuthenticationSuccessPacket extends Packet {
-		constructor() {
+		constructor(accountType) {
 			super(PacketTypes.AUTHENTICATION_SUCCESS);
+
+			this.acctype = accountType;
 		}
 
 		static fromJSONString(jsonString) {
 			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
-			parseJSON(jsonString);
-			return new AuthenticationSuccessPacket();
+			const jsonObject = parseJSON(jsonString);
+			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE));
 		}
 	}
 

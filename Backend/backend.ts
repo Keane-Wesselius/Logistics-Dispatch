@@ -20,9 +20,9 @@ if (doDatabase) {
 }
 
 enum AccountType {
-	DRIVER,
-	MERCHANT,
-	SUPPLIER,
+	DRIVER = "driver",
+	MERCHANT = "merchant",
+	SUPPLIER = "supplier",
 }
 
 interface DatabaseUserData {
@@ -56,6 +56,18 @@ class UserData {
 		} else {
 			this.name = userDataJSON.name;
 		}
+	}
+
+	isDriver() {
+		return this.accountType == AccountType.DRIVER;
+	}
+
+	isMerchant() {
+		return this.accountType == AccountType.MERCHANT;
+	}
+
+	isSupplier() {
+		return this.accountType == AccountType.SUPPLIER;
 	}
 }
 
@@ -116,10 +128,11 @@ wss.on("connection", function connection(ws) {
 
 								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 								// @ts-ignore
-								websocketToClientData.set(ws, new UserData(userData));
+								const loginUserData = new UserData(userData);
+								websocketToClientData.set(ws, loginUserData);
 
-								// Packet Structure: {"type": "authentication_success"}
-								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket());
+								// Packet Structure Example: {"type": "authentication_success", "acctype": "driver"}
+								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket(loginUserData.accountType));
 							} else {
 								console.log("Got invalid password: " + loginPacket.email + " " + loginPacket.password);
 								sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_PASSWORD));
@@ -139,15 +152,15 @@ wss.on("connection", function connection(ws) {
 				sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ORDERS) {
-			if (clientUserData.accountType == AccountType.DRIVER) {
+			if (clientUserData.isDriver()) {
 				database?.getAllOrdersByDriver(clientUserData.id).then((orders) => {
 					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
-			} else if (clientUserData.accountType == AccountType.MERCHANT) {
+			} else if (clientUserData.isMerchant()) {
 				database?.getAllOrdersByMerchant(clientUserData.id).then((orders) => {
 					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
-			} else if (clientUserData.accountType == AccountType.SUPPLIER) {
+			} else if (clientUserData.isSupplier()) {
 				database?.getAllOrdersBySupplier(clientUserData.id).then((orders) => {
 					sendIfNotNull(ws, new Packets.SetLinkedOrders(JSON.stringify(orders)));
 				});
@@ -155,24 +168,21 @@ wss.on("connection", function connection(ws) {
 				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_CONFIRMED_ORDERS) {
-			if (clientUserData.accountType == AccountType.DRIVER) {
+			if (clientUserData.isDriver()) {
 				database?.getAllConfirmedOrdersForDriver().then((orders) => {
 					sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
 				});
+			} else if (clientUserData.isMerchant()) {
+				database?.getAllConfirmedOrdersByMerchant(clientUserData.id).then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
+				});
+			} else if (clientUserData.isSupplier()) {
+				database?.getAllConfirmedOrdersBySupplier(clientUserData.id).then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
+				});
+			} else {
+				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
 			}
-
-			// TODO: Actually implement
-			// } else if (clientUserData.accountType == AccountType.MERCHANT) {
-			// 	database?.getAllOrdersByMerchant(clientUserData.id).then((orders) => {
-			// 		sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
-			// 	});
-			// } else if (clientUserData.accountType == AccountType.SUPPLIER) {
-			// 	database?.getAllOrdersBySupplier(clientUserData.id).then((orders) => {
-			// 		sendIfNotNull(ws, new Packets.SetAllConfirmedOrders(JSON.stringify(orders)));
-			// 	});
-			// } else {
-			// 	console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
-			// }
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
