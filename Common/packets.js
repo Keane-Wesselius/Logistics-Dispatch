@@ -1,8 +1,9 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
-})(this, (function (exports) { 'use strict';
+		typeof define === 'function' && define.amd ? define(['exports'], factory) :
+			(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
+})(this, (function (exports) {
+	'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
@@ -18,6 +19,7 @@
 		ERROR_MESSAGE: "errorMessage",
 		ORDER_ID: "orderId",
 		STATUS: "status",
+		TOKEN: "token",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -102,8 +104,9 @@
 	// Packet classes have two primary functions: converting from JSON into a valid, secure JavaScript object and converting back into JSON to be sent over WebSockets.
 	// When parsed from JSON, the returned JavaScript object should be validated to ensure no unsanitized data is allowed into the system. By the point the variable is set in the object, the data MUST be able to be assumed to be fully sanitized and safe.
 	class Packet {
-		constructor(type) {
+		constructor(type, token = null) {
 			this.type = type;
+			this.token = token;
 		}
 
 		// Overrides the base toString() method, which is desirable for our application.
@@ -118,7 +121,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new Packet(tryGet(jsonObject, Constants.type));
+			return new Packet(tryGet(jsonObject, Constants.TYPE), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -131,17 +134,17 @@
 
 		// Overrides the base toString() method, which is desirable for our application.
 		toString() {
-			const jsonObject = parseJSON(this.jsonString);
-			if (jsonObject != null) {
-				// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
-				const finalJSONObject = { type: this.type, data: jsonObject };
+			// In the case of a null return from the database (which is the standard return value), set the data parameter of the return packet to an empty list for ease of use.
+			let jsonObject = parseJSON(this.jsonString);
+			if (jsonObject == null) {
+				jsonObject = [];
+			}
 
-				try {
-					return JSON.stringify(finalJSONObject);
-				} catch (ignored) {
-				}
-			} else {
-				console.log("Got Invalid jsonObject from string: " + this.jsonString);
+			// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+			const finalJSONObject = { type: this.type, data: jsonObject };
+			try {
+				return JSON.stringify(finalJSONObject);
+			} catch (ignored) {
 			}
 
 			return null;
@@ -223,27 +226,29 @@
 
 	// TODO: Probably should send back more of the user information rather than an empty packet.
 	class AuthenticationSuccessPacket extends Packet {
-		constructor(accountType) {
+		constructor(accountType, token = null) {
 			super(PacketTypes.AUTHENTICATION_SUCCESS);
 
 			this.acctype = accountType;
+			this.token = token;
 		}
 
 		static fromJSONString(jsonString) {
 			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
 			const jsonObject = parseJSON(jsonString);
-			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE));
+			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
 	// TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
 	class GetLinkedOrders extends Packet {
-		constructor() {
-			super(PacketTypes.GET_LINKED_ORDERS);
+		constructor(token = null) {
+			super(PacketTypes.GET_LINKED_ORDERS, token);
 		}
 
 		static fromJSONString(jsonString) {
-			return new GetLinkedOrders();
+			const jsonObject = parseJSON(jsonString);
+			return new GetLinkedOrders(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -258,12 +263,13 @@
 	}
 
 	class GetUserData extends Packet {
-		constructor() {
-			super(PacketTypes.GET_USER_DATA);
+		constructor(token = null) {
+			super(PacketTypes.GET_USER_DATA, token);
 		}
 
 		static fromJSONString(jsonString) {
-			return new GetUserData();
+			const jsonObject = parseJSON(jsonString);
+			return new GetUserData(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -278,12 +284,13 @@
 	}
 
 	class GetAllConfirmedOrders extends Packet {
-		constructor() {
-			super(PacketTypes.GET_ALL_CONFIRMED_ORDERS);
+		constructor(token = null) {
+			super(PacketTypes.GET_ALL_CONFIRMED_ORDERS, token);
 		}
 
 		static fromJSONString(jsonString) {
-			return new GetUserData();
+			const jsonObject = parseJSON(jsonString);
+			return new GetAllConfirmedOrders(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -298,8 +305,8 @@
 	}
 
 	class UpdateStatus extends Packet {
-		constructor(orderID, status) {
-			super(PacketTypes.UPDATE_STATUS);
+		constructor(orderID, status, token = null) {
+			super(PacketTypes.UPDATE_STATUS, token);
 
 			// TODO: Sanitize
 			this.orderID = orderID;
@@ -309,7 +316,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS));
+			return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -333,5 +340,6 @@
 	exports.UpdateStatus = UpdateStatus;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
+	exports.tryGet = tryGet;
 
 }));

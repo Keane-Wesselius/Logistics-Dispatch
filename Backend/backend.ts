@@ -29,6 +29,7 @@ interface DatabaseUserData {
 	_id : ObjectId;
 	acctype : string;
 	email : string;
+	password : string;
 	firstName : string | null;
 	lastName : string | null;
 	name : string | null;
@@ -79,24 +80,99 @@ function sendIfNotNull(webSocket : WebSocket, data : string | object | null) {
 
 console.log("Server started on " + new Date().toString());
 
-// Contains all clients which have successfully logged in. Perhaps not the most safe connection, especially is WebSocket connections could be spoofed, but other metrics such as IP Address / MAC Address are even worse at verifying that the connection is who they are. See the token idea below for additional security.
-// TODO: Link WebSocket connections to user_ids for database use.
-const websocketToClientData = new Map<WebSocket, UserData>();
+class ActiveConnection {
+	ws : WebSocket;
+	token : string | null;
+	userData : UserData | null;
+	constructor(ws : WebSocket, userData : UserData | null = null, token : string | null = null) {
+		this.ws = ws;
+		this.token = token;
+		this.userData = userData;
+	}
+}
+
+// Contains all active WebSocket connection, their associated authentication token, and their database user data if they have one.
+// TODO: Should periodically drop inactive connections.
+const activeConnections = new Set<ActiveConnection>();
+
+function getActiveConnectionByWebSocketOrToken(webSocket : WebSocket, token : string | null = null) {
+	console.log("IN GET ACTIVE CONNECTIONS");
+	console.log("ACTIVE CONNECTIONS: " + activeConnections.size);
+	for (const activeConnection of activeConnections) {
+		console.log(JSON.stringify(activeConnection));
+
+		if (activeConnection.ws == webSocket) {
+			console.log("Got ActiveConnection by WebSocket: " + activeConnection.ws);
+			return activeConnection;
+		} else if (token != null && activeConnection.token === token) {
+			console.log("Got ActiveConnection by token: " + activeConnection.token);
+			return activeConnection;
+		}
+	}
+
+	return null;
+}
+
+function removeActiveConnectionByWebSocketOrToken(webSocket : WebSocket, token : string | null = null) {
+	let linkedActiveConnection : ActiveConnection | null = null;
+	for (const activeConnection of activeConnections) {
+		if (activeConnection.ws == webSocket) {
+			linkedActiveConnection = activeConnection;
+			break;
+		} else if (token != null && activeConnection.token === token) {
+			linkedActiveConnection = activeConnection;
+		}
+	}
+
+	if (linkedActiveConnection != null) {
+		activeConnections.delete(linkedActiveConnection);
+	}
+}
+
+function addActiveConnection(webSocket : WebSocket, userData : UserData | null = null, token : string | null = null) {
+	const newActiveConnection = new ActiveConnection(webSocket, userData, token);
+
+	// TODO: Check if user already exists and return false if it failed.
+	activeConnections.add(newActiveConnection);
+
+	return newActiveConnection;
+}
+
+// Taken From 2/26/2023 2:31 PM: https://stackoverflow.com/a/16106759
+function generateRandomAlphaNumericString(length : number) {
+	let text = "";
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+	for (let i = 0; i < Math.ceil(length); i++) {
+		text += charset.charAt(Math.floor(Math.random() * charset.length));
+	}
+
+	return text;
+}
+
+const tokenLength = 32;
+// TODO: Switch to a real token-based authentication system.
+function generateToken() {
+	return generateRandomAlphaNumericString(tokenLength);
+}
 
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
 	// If an error occurs in this connection. print to the console the error.
 	ws.on("error", console.error);
+	ws.on("close", () => {
+		// TODO: Cannot due this, as for clients which use the token authentication system, they obviously need to drop the WebSocket connection, either due to having to switch pages or screens or whatnot. We SHOULD implement a system which removes and garbage-collects the various unused connections after a period of time.
+		// removeActiveConnectionByWebSocketOrToken(ws);
+	});
 
 	// Handles receiving a message from the current connection, with the data is in a buffer.
 	ws.on("message", function message(data) {
 		console.log("Raw Received Data: " + data);
-		// TODO: Requiring some kind of token to be sent with each packet from a client to the server might be a good additional security measure, at the cost of more network traffic.
-
 		// TODO: This parsing required getting the JSON JavaScript object to check the type parameter. At the very least, this will check if the JSON is valid, but that is already being done when parsing fromJsonString(). Slightly inefficient, so maybe having a way to construct a Packet from a JSON JavaScript object might want to be looked into / parsing the packet type using string manipulation (would be much, much faster).
 
 		// Attempt to parse the packet type from the data.
-		const packetType : string = Packets.getPacketType(data);
+		const packetJSONObject : string = Packets.parseJSON(data);
+		const packetType : string | null = Packets.tryGet(packetJSONObject, Packets.Constants.TYPE);
 		if (packetType == null) {
 			// TODO: Check that console.log is immune to unsanitized data, as invalid data might be some sort of attack. Might want to temporarily block them for a period of time.
 			console.log("Received invalid packet: " + data);
@@ -104,8 +180,25 @@ wss.on("connection", function connection(ws) {
 			return;
 		}
 
-		const clientUserData = websocketToClientData.get(ws);
+		console.log("Got packet of type: " + packetType);
+		console.log("Packet token: " + Packets.tryGet(packetJSONObject, Packets.Constants.TOKEN));
+
+		let activeConnection = getActiveConnectionByWebSocketOrToken(ws, Packets.tryGet(packetJSONObject, Packets.Constants.TOKEN));
+		if (activeConnection != null) {
+			// TODO: This could be a security vulnerability if someone manages to spoof the token of a client, so checking other potential indicators such as IP address / geolocation of IP might help to ensure that simple spoofing attacks cannot be exploited.
+			if (activeConnection.ws != ws) {
+				activeConnection.ws = ws;
+			}
+		} else if (packetType != Packets.PacketTypes.LOGIN && packetType != Packets.PacketTypes.CREATE_ACCOUNT) {
+			console.error("Failed to get active connection from WebSocket for packet which requires active connection. Closing connection.");
+			ws.close();
+			return;
+		}
+
+		const clientUserData = activeConnection != null ? activeConnection.userData : null;
 		const isClientAuthenticated = clientUserData != null;
+
+		console.log("Is Client Authenticated: " + isClientAuthenticated);
 
 		// TODO: What happens if the user sends two login packets at once?
 		if (packetType == Packets.PacketTypes.LOGIN) {
@@ -113,26 +206,37 @@ wss.on("connection", function connection(ws) {
 			const loginPacket = Packets.LoginPacket.fromJSONString(data);
 
 			if (database != null && loginPacket.email != null && loginPacket.password != null) {
-				// TODO: Using loose verbiage of 'username' and 'email', should standardize which one it is / be explicit that it can accept both
 				// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
-				// TODO: All of these functions are accessing the test database and we will have to update them as soon as we get the real data base entries with correct schemas
-				// database.getUserData(loginPacket.email).then(userData : DatabaseUserData => {
-				database.getUserData(loginPacket.email).then(userData => {
-					if (userData != null) {
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				database.getUserData(loginPacket.email).then((userDataJSON : DatabaseUserData) => {
+					if (userDataJSON != null) {
 						// bcrypt.compare is actually asynchronous, with a function callback (the '(err, result)' part of the function call), so it doesn't block execution, allowing the script to flow past it into error checking before we've confirmed the password was valid. Therefore, we need to do any error broadcasting INSIDE the bcrypt function for password errors, rather than being able to do all error messages at the end. Another example of some of the strange behavior and potential logical bugs in writing async JavaScript code.
 						// TODO: Should check error?
-						bcrypt.compare(loginPacket.password, userData.password, function (err, result) {
+						bcrypt.compare(loginPacket.password, userDataJSON.password, function (err, result) {
 							if (result) {
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
+
+								if (activeConnection == null) {
+									activeConnection = addActiveConnection(ws);
+								}
+
 								// Add the current WebSocket connection, mapping the active connection to their userData from the database.
 
 								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 								// @ts-ignore
-								const loginUserData = new UserData(userData);
-								websocketToClientData.set(ws, loginUserData);
+								const loginUserData = new UserData(userDataJSON);
 
-								// Packet Structure Example: {"type": "authentication_success", "acctype": "driver"}
-								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket(loginUserData.accountType));
+								// Modify the activeConnection to include the database user data and their new token.
+								activeConnection.userData = loginUserData;
+								activeConnection.token = generateToken();
+
+								// Packet Structure Example: {"type": "authentication_success", "acctype": "driver", "token": "rhog4sm4ep3vsl35a37ff3n1giociu78"} or {"type": "authentication_success", "acctype": "driver", "token": null}
+
+								// Send to the user that their authentication was successfull, returning the account type they signed up with and their associated token. Token can be used to authenticate the user in the case that the websocket connection cannot be kept alive.
+								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+								// @ts-ignore
+								sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket(loginUserData.accountType, activeConnection.token));
 							} else {
 								console.log("Got invalid password: " + loginPacket.email + " " + loginPacket.password);
 								sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_PASSWORD));
@@ -147,7 +251,7 @@ wss.on("connection", function connection(ws) {
 					sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL));
 				});
 			} else {
-				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to clientside input verification, but if it does, we'll catch it.
+				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to client-side input verification, but if it does, we'll catch it.
 				console.log("Got invalid login");
 				sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
 			}
