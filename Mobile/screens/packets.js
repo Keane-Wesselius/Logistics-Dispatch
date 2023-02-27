@@ -45,9 +45,15 @@
 		GET_USER_DATA: "getUserData",
 		SET_USER_DATA: "setUserData",
 
-		UPDATE_STATUS: "updateStatus",
-		UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
-		UPDATE_STATUS_FAILED: "updateStatusFailed",
+		UPDATE_ORDER_STATUS: "updateStatus",
+		UPDATE_ORDER_STATUS_SUCCESS: "updateStatusSuccess",
+		UPDATE_ORDER_STATUS_FAILED: "updateStatusFailed",
+
+		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+		SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
+
+		GET_ALL_ORDERS: "getAllOrders",
+		SET_ALL_ORDERS: "setAllOrders",
 
 		ADD_ITEM: "addItem",
 		REMOVE_ITEM: "removeItem",
@@ -152,6 +158,7 @@
 		// Overrides the base toString() method, which is desirable for our application.
 		toString() {
 			let jsonObject = parseJSON(this.jsonString);
+			// In the case of a null return from the database (which is the standard return value), set the data parameter of the return packet to an empty list for ease of use.
 			if (jsonObject == null) {
 				jsonObject = [];
 			}
@@ -323,7 +330,7 @@
 
 	class UpdateStatus extends Packet {
 		constructor(orderID, status, token = null) {
-			super(PacketTypes.UPDATE_STATUS, token);
+			super(PacketTypes.UPDATE_ORDER_STATUS, token);
 
 			// TODO: Sanitize
 			this.orderID = orderID;
@@ -430,6 +437,27 @@
 		}
 	}
 
+	class GetAllOrders extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.GET_ALL_ORDERS, token);
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetAllOrders(tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class SetAllOrders extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_ALL_ORDERS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetAllOrders(jsonString);
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AddItem = AddItem;
@@ -438,6 +466,7 @@
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
+	exports.GetAllOrders = GetAllOrders;
 	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
@@ -448,6 +477,7 @@
 	exports.PacketTypes = PacketTypes;
 	exports.RemoveItem = RemoveItem;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
+	exports.SetAllOrders = SetAllOrders;
 	exports.SetLinkedItems = SetLinkedItems;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;
