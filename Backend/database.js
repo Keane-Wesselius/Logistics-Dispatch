@@ -140,7 +140,7 @@ class DatabaseHandler {
 			let hashedUser = ({
 				email: newUser.email,
 				password: hashedPassword,
-				accType: newUser.accType,
+				acctype: newUser.accType,
 				profilePicture: newUser.profilePicture
 			});
 
@@ -160,7 +160,6 @@ class DatabaseHandler {
 			}
 			else {
 				console.log("Error creating user");
-				return false;
 			}
 		}
 
@@ -220,8 +219,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("Order place failed");
-			return false;
 		}
+		return false;
 	}
 
 
@@ -243,6 +242,7 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			/////
+
 			return results;
 		}
 		else {
@@ -295,15 +295,14 @@ class DatabaseHandler {
 			}
 			else {
 				console.log("Item quantity not updated");
-				return false;
 			}
 
 		}
 
 		else {
 			console.log("Can only confirm a pending order");
-			return false;
 		}
+		return false;
 	}
 
 
@@ -327,8 +326,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No confirmed orders");
-			return null;
 		}
+		return null;
 
 	}
 
@@ -349,8 +348,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No confirmed orders");
-			return null;
 		}
+		return null;
 	}
 
 
@@ -368,13 +367,14 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			// /////
+
 			return results;
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
 
+		return null;
 	}
 
 
@@ -403,7 +403,6 @@ class DatabaseHandler {
 				}
 				else {
 					console.log("Item quantity not updated");
-					return false;
 				}
 			}
 
@@ -412,8 +411,9 @@ class DatabaseHandler {
 
 		else {
 			console.log("Failed to accept order");
-			return false;
 		}
+
+		return false;
 	}
 
 
@@ -431,12 +431,13 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			// /////
+
 			return results;
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
+		return null;
 	}
 
 	async getAllAcceptedOrdersByMerchant(merchantID) {
@@ -456,8 +457,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
+		return null;
 	}
 
 	//To find orders that drivers have accepted
@@ -477,9 +478,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
-
+		return null;
 	}
 
 
@@ -508,7 +508,6 @@ class DatabaseHandler {
 				}
 				else {
 					console.log("Item quantity not updated");
-					return false;
 				}
 			}
 
@@ -517,8 +516,8 @@ class DatabaseHandler {
 
 		else {
 			console.log("Failed to complete order");
-			return false;
 		}
+		return false;;
 	}
 
 
@@ -545,8 +544,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
+		return null;
 	}
 
 	async getAllCompletedOrdersByMerchant(merchantID) {
@@ -566,8 +565,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
+		return null;
 	}
 
 	async getAllCompletedOrdersBySupplier(supplierID) {
@@ -582,12 +581,14 @@ class DatabaseHandler {
 			// 	console.log(result);
 			// });
 			/////
+
+
 			return results;
 		}
 		else {
 			console.log("No orders found");
-			return null;
 		}
+		return null;
 	}
 
 	async getAllOrdersBySupplier(supplierID) {
@@ -649,8 +650,8 @@ class DatabaseHandler {
 		}
 		else {
 			console.log("Order was unable to be canceled");
-			return false;
 		}
+		return false;
 	}
 
 
@@ -722,9 +723,10 @@ class DatabaseHandler {
 	//////////////////////////////////
 	//Function will insert a new item into the database, used for the supplier to add items to the database
 	async insertNewItem(itemInfo) {
+		itemInfo.postedDate = getDate();
 		const result = await this.dbClient.db("main").collection("items").insertOne(itemInfo);
 
-
+		return true;
 	}
 
 	async getItemsBySupplier(supplierID) {
@@ -763,11 +765,12 @@ class DatabaseHandler {
 		const result = await this.dbClient.db("main").collection("items").deleteOne({ "_id": new ObjectId(itemID) });
 		if (result.deletedCount > 0) {
 			console.log("Item was succesfully removed");
+			return true;
 		}
 		else {
 			console.log("Item was unable to be removed");
+			return false;
 		}
-
 	}
 }
 

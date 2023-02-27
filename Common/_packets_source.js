@@ -1,5 +1,8 @@
 // Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
+import { constants } from "buffer";
+import { json } from "stream/consumers";
+
 // Contains constant names for JSON tags.
 export const Constants = {
 	NAME: "name",
@@ -11,6 +14,9 @@ export const Constants = {
 	TYPE: "type",
 	ERROR_MESSAGE: "errorMessage",
 	ORDER_ID: "orderId",
+	MERCHANT_ID: "merchantId",
+	SUPPLIER_ID: "supplierId",
+	DRIVER_ID: "driverId",
 	STATUS: "status",
 	TOKEN: "token",
 };
@@ -30,6 +36,9 @@ export const PacketTypes = {
 	GET_LINKED_ORDERS: "getLinkedOrders",
 	SET_LINKED_ORDERS: "setLinkedOrders",
 
+	GET_LINKED_ITEMS: "getLinkedItems",
+	SET_LINKED_ITEMS: "setLinkedItems",	
+
 	GET_USER_DATA: "getUserData",
 	SET_USER_DATA: "setUserData",
 
@@ -37,8 +46,11 @@ export const PacketTypes = {
 	UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 	UPDATE_STATUS_FAILED: "updateStatusFailed",
 
-	GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
-	SET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+	ADD_ITEM: "addItem",
+	REMOVE_ITEM: "removeItem",
+	UPDATE_ITEM: "updateItem",
+	UPDATE_ITEM_SUCCESS: "updateItemSuccess",
+	UPDATE_ITEM_FAILED: "updateItemFailed",
 };
 
 export const Status = {
@@ -59,6 +71,15 @@ export const Status = {
 	// TODO: System not built to handle any other status / condition by this point.
 	// Successfully delivered and finished.
 	COMPLETED: "completed",
+};
+
+export const ItemValues = {
+	ITEM_ID: "itemId",
+	ITEM_NAME: "itemName",
+	DESCRIPTION: "description",
+	QUANTITY: "quantity",
+	PRICE: "price",
+	WEIGHT: "weight"
 };
 
 // Helper Functions
@@ -314,3 +335,92 @@ export class UpdateStatus extends Packet {
 }
 
 // TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
+
+export class AddItem extends Packet {
+	constructor(itemName, description, quantity, price, weight) {
+		super(PacketTypes.ADD_ITEM);
+
+		this.itemName = itemName;
+		this.description = description;
+		this.quantity = quantity;
+		this.price = price;
+		this.weight = weight;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT));
+	}
+}
+
+export class RemoveItem extends Packet {
+	constructor(itemId) {
+		super(PacketTypes.REMOVE_ITEM);
+
+		this.itemId = itemId;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new RemoveItem(tryGet(jsonObject, ItemValues.ITEM_ID));
+	}
+}
+
+export class UpdateItem extends Packet {
+	constructor(itemId, itemName, description, quantity, price, weight) {
+		super(PacketTypes.UPDATE_ITEM);
+
+		this.itemId = itemId;
+		this.itemName = itemName;
+		this.description = description;
+		this.quantity = quantity;
+		this.price = price;
+		this.weight = weight;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT))
+	}
+}
+
+export class GetLinkedItems extends Packet {
+	constructor(supplierId) {
+		super(PacketTypes.GET_LINKED_ITEMS);
+
+		this.supplierId = supplierId;
+	}
+
+	static fromJSONString(jsonString) { 
+		const jsonObject = parseJSON(jsonString);
+		return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID));
+	}
+}
+
+export class SetLinkedItems extends Packet {
+	constructor(jsonString) {
+		super(PacketTypes.SET_LINKED_ITEMS, jsonString);
+	}
+
+	static fromJSONString(jsonString) {
+		return new SetLinkedOrders(jsonString);
+	}
+}
+
+export class ItemUpdateSuccess extends Packet {
+	constructor() {
+		super(PacketTypes.UPDATE_ITEM_SUCCESS);
+	}
+	static fromJSONString(jsonString) {
+		return new ItemUpdateSuccess();
+	}
+}
+
+export class ItemUpdateFailed extends Packet {
+	constructor() {
+		super(PacketTypes.UPDATE_ITEM_FAILED);
+	}
+	static fromJSONString(jsonString) {
+		return new ItemUpdateFailed();
+	}
+}

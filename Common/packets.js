@@ -1,9 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-		typeof define === 'function' && define.amd ? define(['exports'], factory) :
-			(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
-})(this, (function (exports) {
-	'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('buffer'), require('stream/consumers')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'buffer', 'stream/consumers'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
+})(this, (function (exports) { 'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
@@ -18,6 +17,9 @@
 		TYPE: "type",
 		ERROR_MESSAGE: "errorMessage",
 		ORDER_ID: "orderId",
+		MERCHANT_ID: "merchantId",
+		SUPPLIER_ID: "supplierId",
+		DRIVER_ID: "driverId",
 		STATUS: "status",
 		TOKEN: "token",
 	};
@@ -37,6 +39,9 @@
 		GET_LINKED_ORDERS: "getLinkedOrders",
 		SET_LINKED_ORDERS: "setLinkedOrders",
 
+		GET_LINKED_ITEMS: "getLinkedItems",
+		SET_LINKED_ITEMS: "setLinkedItems",	
+
 		GET_USER_DATA: "getUserData",
 		SET_USER_DATA: "setUserData",
 
@@ -44,8 +49,11 @@
 		UPDATE_STATUS_SUCCESS: "updateStatusSuccess",
 		UPDATE_STATUS_FAILED: "updateStatusFailed",
 
-		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
-		SET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
+		ADD_ITEM: "addItem",
+		REMOVE_ITEM: "removeItem",
+		UPDATE_ITEM: "updateItem",
+		UPDATE_ITEM_SUCCESS: "updateItemSuccess",
+		UPDATE_ITEM_FAILED: "updateItemFailed",
 	};
 
 	const Status = {
@@ -66,6 +74,15 @@
 		// TODO: System not built to handle any other status / condition by this point.
 		// Successfully delivered and finished.
 		COMPLETED: "completed",
+	};
+
+	const ItemValues = {
+		ITEM_ID: "itemId",
+		ITEM_NAME: "itemName",
+		DESCRIPTION: "description",
+		QUANTITY: "quantity",
+		PRICE: "price",
+		WEIGHT: "weight"
 	};
 
 	// Helper Functions
@@ -134,17 +151,17 @@
 
 		// Overrides the base toString() method, which is desirable for our application.
 		toString() {
-			// In the case of a null return from the database (which is the standard return value), set the data parameter of the return packet to an empty list for ease of use.
-			let jsonObject = parseJSON(this.jsonString);
-			if (jsonObject == null) {
-				jsonObject = [];
-			}
+			const jsonObject = parseJSON(this.jsonString);
+			if (jsonObject != null) {
+				// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+				const finalJSONObject = { type: this.type, data: jsonObject };
 
-			// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
-			const finalJSONObject = { type: this.type, data: jsonObject };
-			try {
-				return JSON.stringify(finalJSONObject);
-			} catch (ignored) {
+				try {
+					return JSON.stringify(finalJSONObject);
+				} catch (ignored) {
+				}
+			} else {
+				console.log("Got Invalid jsonObject from string: " + this.jsonString);
 			}
 
 			return null;
@@ -322,21 +339,118 @@
 
 	// TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
 
+	class AddItem extends Packet {
+		constructor(itemName, description, quantity, price, weight) {
+			super(PacketTypes.ADD_ITEM);
+
+			this.itemName = itemName;
+			this.description = description;
+			this.quantity = quantity;
+			this.price = price;
+			this.weight = weight;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT));
+		}
+	}
+
+	class RemoveItem extends Packet {
+		constructor(itemId) {
+			super(PacketTypes.REMOVE_ITEM);
+
+			this.itemId = itemId;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new RemoveItem(tryGet(jsonObject, ItemValues.ITEM_ID));
+		}
+	}
+
+	class UpdateItem extends Packet {
+		constructor(itemId, itemName, description, quantity, price, weight) {
+			super(PacketTypes.UPDATE_ITEM);
+
+			this.itemId = itemId;
+			this.itemName = itemName;
+			this.description = description;
+			this.quantity = quantity;
+			this.price = price;
+			this.weight = weight;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT))
+		}
+	}
+
+	class GetLinkedItems extends Packet {
+		constructor(supplierId) {
+			super(PacketTypes.GET_LINKED_ITEMS);
+
+			this.supplierId = supplierId;
+		}
+
+		static fromJSONString(jsonString) { 
+			const jsonObject = parseJSON(jsonString);
+			return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID));
+		}
+	}
+
+	class SetLinkedItems extends Packet {
+		constructor(jsonString) {
+			super(PacketTypes.SET_LINKED_ITEMS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetLinkedOrders(jsonString);
+		}
+	}
+
+	class ItemUpdateSuccess extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ITEM_SUCCESS);
+		}
+		static fromJSONString(jsonString) {
+			return new ItemUpdateSuccess();
+		}
+	}
+
+	class ItemUpdateFailed extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ITEM_FAILED);
+		}
+		static fromJSONString(jsonString) {
+			return new ItemUpdateFailed();
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
+	exports.AddItem = AddItem;
 	exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
+	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
+	exports.ItemUpdateFailed = ItemUpdateFailed;
+	exports.ItemUpdateSuccess = ItemUpdateSuccess;
+	exports.ItemValues = ItemValues;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.RemoveItem = RemoveItem;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
+	exports.SetLinkedItems = SetLinkedItems;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;
 	exports.Status = Status;
+	exports.UpdateItem = UpdateItem;
 	exports.UpdateStatus = UpdateStatus;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;

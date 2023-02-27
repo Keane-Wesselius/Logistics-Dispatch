@@ -72,6 +72,28 @@ class UserData {
 	}
 }
 
+class ItemData {
+	_id : ObjectId;
+	itemName: string;
+	description: string;
+	quantity: number;
+	supplierID: ObjectId;
+	price: number;
+	weight: number;
+	postedDate: Date;
+
+	constructor(itemId : ObjectId, itemData : Packets.AddItem, supplierID : string) {
+		this._id = itemId;
+		this.itemName = itemData.itemName;
+		this.description = itemData.description;
+		this.quantity = itemData.quantity;
+		this.supplierID = new ObjectId(supplierID);
+		this.price = itemData.price;
+		this.weight = itemData.weight;
+		this.postedDate = new Date();
+	}
+}
+
 function sendIfNotNull(webSocket : WebSocket, data : string | object | null) {
 	if (data != null) {
 		webSocket.send(data.toString());
@@ -80,7 +102,7 @@ function sendIfNotNull(webSocket : WebSocket, data : string | object | null) {
 
 console.log("Server started on " + new Date().toString());
 
-class ActiveConnection {
++class ActiveConnection {
 	ws : WebSocket;
 	token : string | null;
 	userData : UserData | null;
@@ -164,7 +186,6 @@ wss.on("connection", function connection(ws) {
 		// TODO: Cannot due this, as for clients which use the token authentication system, they obviously need to drop the WebSocket connection, either due to having to switch pages or screens or whatnot. We SHOULD implement a system which removes and garbage-collects the various unused connections after a period of time.
 		// removeActiveConnectionByWebSocketOrToken(ws);
 	});
-
 	// Handles receiving a message from the current connection, with the data is in a buffer.
 	ws.on("message", function message(data) {
 		console.log("Raw Received Data: " + data);
@@ -198,7 +219,7 @@ wss.on("connection", function connection(ws) {
 		const clientUserData = activeConnection != null ? activeConnection.userData : null;
 		const isClientAuthenticated = clientUserData != null;
 
-		console.log("Is Client Authenticated: " + isClientAuthenticated);
+		console.log("Is client authenticated: " + isClientAuthenticated);
 
 		// TODO: What happens if the user sends two login packets at once?
 		if (packetType == Packets.PacketTypes.LOGIN) {
@@ -207,16 +228,14 @@ wss.on("connection", function connection(ws) {
 
 			if (database != null && loginPacket.email != null && loginPacket.password != null) {
 				// TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				database.getUserData(loginPacket.email).then((userDataJSON : DatabaseUserData) => {
+				database.getUserData(loginPacket.email).then((userDataJSON: DatabaseUserData) => {
 					if (userDataJSON != null) {
 						// bcrypt.compare is actually asynchronous, with a function callback (the '(err, result)' part of the function call), so it doesn't block execution, allowing the script to flow past it into error checking before we've confirmed the password was valid. Therefore, we need to do any error broadcasting INSIDE the bcrypt function for password errors, rather than being able to do all error messages at the end. Another example of some of the strange behavior and potential logical bugs in writing async JavaScript code.
 						// TODO: Should check error?
 						bcrypt.compare(loginPacket.password, userDataJSON.password, function (err, result) {
 							if (result) {
 								console.log("Got valid login: " + loginPacket.email + " " + loginPacket.password);
-
+								
 								if (activeConnection == null) {
 									activeConnection = addActiveConnection(ws);
 								}
@@ -232,7 +251,6 @@ wss.on("connection", function connection(ws) {
 								activeConnection.token = generateToken();
 
 								// Packet Structure Example: {"type": "authentication_success", "acctype": "driver", "token": "rhog4sm4ep3vsl35a37ff3n1giociu78"} or {"type": "authentication_success", "acctype": "driver", "token": null}
-
 								// Send to the user that their authentication was successfull, returning the account type they signed up with and their associated token. Token can be used to authenticate the user in the case that the websocket connection cannot be kept alive.
 								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 								// @ts-ignore
@@ -251,7 +269,7 @@ wss.on("connection", function connection(ws) {
 					sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL));
 				});
 			} else {
-				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to client-side input verification, but if it does, we'll catch it.
+				// In this case, the JSON itself didn't contain a username or password. Hopefully, this will never happen due to clientside input verification, but if it does, we'll catch it.
 				console.log("Got invalid login");
 				sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
 			}
@@ -287,6 +305,56 @@ wss.on("connection", function connection(ws) {
 			} else {
 				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
 			}
+
+		//Retrieves items from the database based on chosen supplier
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ITEMS) {
+			if (clientUserData.isSupplier()) {
+				database?.getItemsBySupplier(clientUserData.id).then((items) => {
+					sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
+				});
+			} else if (clientUserData.isMerchant()) {
+				const getItemPacket = Packets.GetLinkedItems.fromJSONString(data);
+				database?.getItemsBySupplier(getItemPacket.supplierId).then((items) => {
+					sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
+				});
+			} else {
+				console.log("Got invalid account type for action GET_LINKED_ORDERS: " + clientUserData.accountType);
+			}
+		
+		//Adding new items into the database, suppliers only
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.ADD_ITEM) {
+			if(clientUserData.isSupplier()) {
+				const addItemPacket = Packets.AddItem.fromJSONString(data);
+
+				const item = new ItemData(null, addItemPacket, clientUserData.id);
+
+				database?.insertNewItem(item).then((addedSuccessfully) => {
+					if (addedSuccessfully) {
+						sendIfNotNull(ws, new Packets.ItemUpdateSuccess().toString());
+					} else {
+						sendIfNotNull(ws, new Packets.ItemUpdateFailed().toString());
+					}
+				});
+			} else {
+				console.log("Got invalid account type for action ADD_ITEM: " + clientUserData.accountType);
+			}
+		
+		//Removing items from the database, suppliers only
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.REMOVE_ITEM) {
+			if (clientUserData.isSupplier()) {
+				const removeItemPacket = Packets.RemoveItem.fromJSONString(data);
+				database?.removeItem(removeItemPacket.itemId).then((removedSuccessfully) => {
+					if (removedSuccessfully) {
+						sendIfNotNull(ws, new Packets.ItemUpdateSuccess().toString());
+					} else {
+						sendIfNotNull(ws, new Packets.ItemUpdateFailed().toString());
+					}
+				});
+			} else {
+				console.log("Got invalid account type for action REMOVE_ITEM: " + clientUserData.accountType);
+			}
+
+		//Creating accounts and adding them to the database
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
