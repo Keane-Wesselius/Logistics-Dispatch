@@ -1,0 +1,12 @@
+GetAllConfirmedOrders - Works, no visual element (mobile - Keane & Galmo, desktop - Conner)
+GetAllOrders - Not Implemented, has database functions (Michael), should return IN_TRANSIT for drivers
+UpdateStatus - Not Implemented (Michael)
+AddItem - Works, visual element
+RemoveItem - Not Tested, no visual element
+UpdateItem - Not Implemented (Josh)
+GetAllItems - Not Implemented, needs database function (Josh, Keane database)
+GetAllConfirmedOrders - Works, needs visual element
+GetLinkedItems - Not tested
+SetLinkedItems - Not tested
+
+UpdateUserData - Not Implemented, future work
