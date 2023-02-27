@@ -12,10 +12,28 @@ import Logout from "../components/Logout";
 import CompletedDelivery from "../components/completedDelivery";
 import { AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import orders_json from '../components/orders.json';
+import Orders from '../components/Orders';
 
 const Profile = ({ navigation, route }) => {
-  const username = route.params.username;
+
+ // const username = route.params.username;
   const [modalVisible, setModalVisible] = useState(false);
+  //counter to count number of completed deliveries
+  let counter = 0;
+  //getting completed orders
+  //getting removeorder passed from Map after complete order is pressed
+  const [removeOrder, setRemoveOrder] = useState(null);
+  
+  useEffect(() => {
+    if(route.params && route.params.removeOrder){
+      setRemoveOrder(route.params.removeOrder);
+     }
+     
+  }, [route.params]);
+  //console.log(removeOrder);
+
+  const filteredOrders = orders_json.filter((order) => order.buyerId == removeOrder);
 
   let defaultProf = require("../assets/profile.png");
 
@@ -72,7 +90,7 @@ const Profile = ({ navigation, route }) => {
             style={styles.showDelivery}
             onPress={() => setModalVisible(true)}
           >
-            <Text>Deliveries: 23</Text>
+            <Text>Deliveries: {counter}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -93,6 +111,24 @@ const Profile = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <CompletedDelivery />
+          {/*<Text style={styles.modalText}>completed Deliveries</Text>
+           {/**List of all orders with Order component 
+           <View style = {styles.items}>
+              {filteredOrders.map((order) => (
+              <Orders 
+              key={order.buyerId}
+              buyerId={order.buyerId}
+              shippingName={order.shippingName}
+              shippingAddress={order.shippingAddress}
+              shippingInfo={order.shippingInfo}
+              shippingDate={order.shippingDate} 
+              text = {'Order 1'}
+            
+              />
+            
+      ))}
+      </View>
+          <Button title="Close" onPress={() => setModalVisible(false)} /> */}
         </View>
       </Modal>
     </View>
@@ -151,6 +187,9 @@ const styles = StyleSheet.create({
   modal: {
     flex: 1,
     backgroundColor: "lightblue",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#D0EDF6"
   },
   modalText: {
     fontSize: 24,
@@ -176,7 +215,11 @@ const styles = StyleSheet.create({
   closeText: {
     color: "darkblue",
     paddingRight: 10,
-    fontSize: 35,
+    fontSize: 35,},
+    
+  items:{
+    margin: '5%',
+    width: '90%'
   },
 });
 

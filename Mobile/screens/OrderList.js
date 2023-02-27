@@ -2,14 +2,14 @@ import React, { useEffect, useState }from 'react';
 import Orders from '../components/Orders';
 import {View, ScrollView, StyleSheet,Text,TextInput,Button,  TouchableOpacity} from 'react-native';
 import { addDays, eachDayOfInterval, eachWeekOfInterval, format, subDays } from 'date-fns';
-import orders_json from '../components/orders.json';
+import orders_jsons from '../components/orders.json';
 import { useNavigation } from '@react-navigation/native';
 import { useIsFocused } from '@react-navigation/native';
 //import Map from './Map';
 import PagerView from 'react-native-pager-view';
 import Packets, { GetLinkedOrders } from "./packets";
 
-const OrderList = ({navigation, props}) => {
+const OrderList = ({navigation, props, route}) => {
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -50,6 +50,19 @@ const OrderList = ({navigation, props}) => {
  // navigation.navigate('Map', {
   //  deliveryAddress: 'shiva'
  // });
+  //getting removeorder passed from Map after complete order is pressed
+  const [removeOrder, setRemoveOrder] = useState(null);
+  
+  useEffect(() => {
+    if(route.params && route.params.removeOrder){
+      setRemoveOrder(route.params.removeOrder);
+     }
+     
+  }, [route.params]);
+  
+
+  const filteredOrders = orders_jsons.filter((order) => order.buyerId !== removeOrder);
+  
   //generating dates in between 1-15 days
   const dates = eachWeekOfInterval({
     start: subDays(new Date(), 1),
@@ -101,7 +114,7 @@ const OrderList = ({navigation, props}) => {
     </View>
       <View style = {styles.items}>
       {/**List of all orders with Order component */}
-      {orders_json.map((order) => (
+      {filteredOrders.map((order) => (
       <Orders 
       key={order.buyerId}
       buyerId={order.buyerId}
@@ -128,7 +141,7 @@ const OrderList = ({navigation, props}) => {
 export default OrderList
 const styles = StyleSheet.create({
     heading:{
-      marginTop:'8%',
+      marginTop:'15%',
       fontSize: 30,
       paddingHorizontal: '5%',
       fontWeight: 'bold'
@@ -152,6 +165,7 @@ const styles = StyleSheet.create({
     },
     sectionTitle:{
         fontSize: 24,
+        marginTop: '5%'
         //fontWeight: 'bold'
     },
     items:{
