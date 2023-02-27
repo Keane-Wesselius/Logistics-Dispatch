@@ -28,6 +28,7 @@ import Earnings from "../screens/Earnings";
 const Tab = createBottomTabNavigator();
 
 const Tabs = () => {
+  console.log("in tabs");
   const navigation = useNavigation();
   const route = useRoute();
   const username = route.params?.username;

@@ -7,6 +7,7 @@ import Map from '../screens/Map';
 
 
 const Orders = (props) => {
+    //console.log("orders somehow?");
     const navigation = useNavigation();
   const[currentIndex, setCurrentIndex] = useState(null);
   //const[shippingAddress, setShippingAddress] = useState('');
