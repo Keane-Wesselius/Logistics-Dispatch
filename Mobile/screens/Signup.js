@@ -40,6 +40,8 @@ const Signup = ({ navigation }) => {
 
   const handleSubmit = () => {
     if (password == confirmPassword) {
+      //THERE IS NO DATA FOR PROFILE PICTURE BEING SENT TO BACKEND
+      //SHOULD WE JUST STORE THE PROFILE PICTURE ON THE DEVICE?
       const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
       console.log("Account create string: " + accountPacket.toString());
       try{
