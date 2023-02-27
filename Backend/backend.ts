@@ -361,6 +361,32 @@ wss.on("connection", function connection(ws) {
 			}
 
 			//Creating accounts and adding them to the database
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.UPDATE_STATUS) {
+			// TODO: Kinda a security concern, as the ObjectID for orders could potentially be spoofed. Should check if the order they are editing can actually be seen by them.
+			const updateStatus = Packets.UpdateStatus.fromJSONString(data);
+
+			if (updateStatus.status == Packets.Status.ACCEPTED) {
+				database?.acceptOrder(updateStatus.orderID);
+			} else if (updateStatus.status == Packets.Status.CANCELLED) {
+				database?.cancelOrder(updateStatus.orderID);
+			} else if (updateStatus.status == Packets.Status.COMPLETED) {
+				database?.completeOrder(updateStatus.orderID);
+			} else if (updateStatus.status == Packets.Status.CONFIRMED) {
+				database?.confirmOrder(updateStatus.orderID);
+			} else if (updateStatus.status == Packets.Status.DENIED) {
+				// TODO: 
+				// database?.denyOrder(updateStatus.orderID);
+			} else if (updateStatus.status == Packets.Status.IN_TRANSIT) {
+				// database?.(updateStatus.orderID);
+				// TODO: Apply transit
+			} else if (updateStatus.status == Packets.Status.PENDING) {
+				// TODO: Something
+			} else if (updateStatus.status == Packets.Status.REJECTED) {
+				// database?.(updateStatus.orderID);
+				// TODO
+			}
+
+			//Creating accounts and adding them to the database
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 

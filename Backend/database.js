@@ -284,6 +284,7 @@ class DatabaseHandler {
 			updated = result;
 			updated.status = "confirmed";
 
+			// TODO: Camelcase
 			updated.confirmed_date = getDate();
 			updated.confirmed_time = getTime();
 
