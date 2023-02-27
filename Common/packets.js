@@ -1,6 +1,6 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('buffer'), require('stream/consumers')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'buffer', 'stream/consumers'], factory) :
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
 })(this, (function (exports) { 'use strict';
 
@@ -40,7 +40,7 @@
 		SET_LINKED_ORDERS: "setLinkedOrders",
 
 		GET_LINKED_ITEMS: "getLinkedItems",
-		SET_LINKED_ITEMS: "setLinkedItems",	
+		SET_LINKED_ITEMS: "setLinkedItems",
 
 		GET_USER_DATA: "getUserData",
 		SET_USER_DATA: "setUserData",
@@ -151,17 +151,17 @@
 
 		// Overrides the base toString() method, which is desirable for our application.
 		toString() {
-			const jsonObject = parseJSON(this.jsonString);
-			if (jsonObject != null) {
-				// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
-				const finalJSONObject = { type: this.type, data: jsonObject };
+			let jsonObject = parseJSON(this.jsonString);
+			if (jsonObject == null) {
+				jsonObject = [];
+			}
 
-				try {
-					return JSON.stringify(finalJSONObject);
-				} catch (ignored) {
-				}
-			} else {
-				console.log("Got Invalid jsonObject from string: " + this.jsonString);
+			// Construct a new JSONObject with the type of this JSONPacket and a single field 'data' which contains the original JSONObject passed to the JSONPacket.
+			const finalJSONObject = { type: this.type, data: jsonObject };
+
+			try {
+				return JSON.stringify(finalJSONObject);
+			} catch (ignored) {
 			}
 
 			return null;
@@ -340,8 +340,8 @@
 	// TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
 
 	class AddItem extends Packet {
-		constructor(itemName, description, quantity, price, weight) {
-			super(PacketTypes.ADD_ITEM);
+		constructor(itemName, description, quantity, price, weight, token = null) {
+			super(PacketTypes.ADD_ITEM, token);
 
 			this.itemName = itemName;
 			this.description = description;
@@ -352,26 +352,26 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT));
+			return new AddItem(itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
 	class RemoveItem extends Packet {
-		constructor(itemId) {
-			super(PacketTypes.REMOVE_ITEM);
+		constructor(itemId, token = null) {
+			super(PacketTypes.REMOVE_ITEM, token);
 
 			this.itemId = itemId;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new RemoveItem(tryGet(jsonObject, ItemValues.ITEM_ID));
+			return new RemoveItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
 	class UpdateItem extends Packet {
-		constructor(itemId, itemName, description, quantity, price, weight) {
-			super(PacketTypes.UPDATE_ITEM);
+		constructor(itemId, itemName, description, quantity, price, weight, token = null) {
+			super(PacketTypes.UPDATE_ITEM, token);
 
 			this.itemId = itemId;
 			this.itemName = itemName;
@@ -383,24 +383,24 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT))
+			return new UpdateItem(itemId = tryGet(jsonObject, ItemValues.ITEM_ID), itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
 	class GetLinkedItems extends Packet {
-		constructor(supplierId) {
-			super(PacketTypes.GET_LINKED_ITEMS);
+		constructor(supplierId, token = null) {
+			super(PacketTypes.GET_LINKED_ITEMS, token);
 
 			this.supplierId = supplierId;
 		}
 
-		static fromJSONString(jsonString) { 
+		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID));
+			return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
-	class SetLinkedItems extends Packet {
+	class SetLinkedItems extends JSONPacket {
 		constructor(jsonString) {
 			super(PacketTypes.SET_LINKED_ITEMS, jsonString);
 		}
@@ -414,6 +414,7 @@
 		constructor() {
 			super(PacketTypes.UPDATE_ITEM_SUCCESS);
 		}
+
 		static fromJSONString(jsonString) {
 			return new ItemUpdateSuccess();
 		}
@@ -423,6 +424,7 @@
 		constructor() {
 			super(PacketTypes.UPDATE_ITEM_FAILED);
 		}
+
 		static fromJSONString(jsonString) {
 			return new ItemUpdateFailed();
 		}
