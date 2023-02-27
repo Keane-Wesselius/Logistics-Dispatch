@@ -140,7 +140,7 @@ class DatabaseHandler {
 			let hashedUser = ({
 				email: newUser.email,
 				password: hashedPassword,
-				acctype: newUser.accType,
+				acctype: newUser.acctype,
 				profilePicture: newUser.profilePicture
 			});
 
@@ -148,7 +148,7 @@ class DatabaseHandler {
 				hashedUser.firstName = newUser.firstName;
 				hashedUser.lastName = newUser.lastName;
 			}
-			else if (newUser.accType == "merchant" || newUser.accType == "supplier") {
+			else if (newUser.acctype == "merchant" || newUser.acctype == "supplier") {
 				hashedUser.name = newUser.name;
 				hashedUser.address = newUser.address;
 			}

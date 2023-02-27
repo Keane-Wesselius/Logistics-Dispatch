@@ -28,7 +28,7 @@ const ASPECT_RATIO = width/height;
  * { route, navigation },
  */
 const Map = ({ route}) => {
-
+  //console.log("Map i guess?");
   //getting delivery addresss from orderlist on press
  const [deliveryAddress, setDeliveryAddress] = useState(null);
   useEffect(() => {

@@ -27,7 +27,7 @@ function initializeWebSocket(navigate) {
 
 				const authenticationSuccessPacket = Packets.AuthenticationSuccessPacket.fromJSONString(packet);
 				localStorage.setItem('token', authenticationSuccessPacket.token);
-
+				console.log("Login token: " + localStorage.getItem('token'));
 				// TODO: Doesn't work, see TODO on 'shouldNavigate'
 				// navigate("/home");
 				shouldNavigate = true;

@@ -32,7 +32,7 @@ const Signup = ({ navigation }) => {
     console.error("WebSocket error: ", e.message);
   };
 
-  const accType = "Driver";
+  const accType = "driver";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,8 +42,12 @@ const Signup = ({ navigation }) => {
     if (password == confirmPassword) {
       const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
       console.log("Account create string: " + accountPacket.toString());
-
+      try{
       global.ws.send(accountPacket.toString());
+      }
+      catch(error){
+          alert("Connection error, check that you are connected to the internet");
+      }
     } else {
       alert("Error: passwords do not match");
     }

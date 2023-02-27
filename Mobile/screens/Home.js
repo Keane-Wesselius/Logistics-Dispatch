@@ -22,6 +22,7 @@ import { FlatList } from "react-native-gesture-handler";
 import Orders from "../components/Orders";
 
 const Home = (navigation, route) => {
+ 
   //   const navigation = useNavigation();
   //fake orders
   const orderData = [
