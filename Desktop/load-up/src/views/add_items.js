@@ -4,7 +4,7 @@ import './add_items.css';
 
 const Packets = require("../backend/packets");
 
-function Scheduling() {
+function addItems() {
 
     let ws = new WebSocket("ws://localhost:5005/");
 
@@ -63,7 +63,8 @@ function Scheduling() {
         event.preventDefault(); // Prevent form from submitting and refreshing the page
 
         // Send add item packet to backend
-        const itemPacket = new Packets.addItemPacket(name, description, quantity, price, weight);
+
+        const itemPacket = new Packets.AddItem(name, description, quantity, price, weight, localStorage.getItem('token'));
         console.log("Item add string: " + itemPacket.toString());
         ws.send(itemPacket.toString());
 
@@ -139,4 +140,4 @@ function Scheduling() {
   
 }
 
-export default Scheduling;
+export default addItems;
