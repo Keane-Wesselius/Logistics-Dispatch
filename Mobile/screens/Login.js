@@ -143,7 +143,7 @@ const Sign_in = ({ navigation, route }) => {
   // };
 
 	// TODO: If WebSocket IP is incorrect or malformed IN ANY WAY, it will fully crash the app without any exception being thrown due to Java Exceptions not being catachable in JavaScript. This has been a known issue since 2015: https://github.com/facebook/react-native/issues/3346
-	let ws = new WebSocket("ws://192.168.1.174:5005");
+	let ws = new WebSocket("ws://192.168.1.225:5005");
 	global.ws = ws;
 
   //onopen happens when the websocket connects

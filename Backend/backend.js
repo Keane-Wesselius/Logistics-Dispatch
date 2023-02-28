@@ -334,17 +334,17 @@ wss.on("connection", function connection(ws) {
         else if (isClientAuthenticated &&
             packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
             if (clientUserData.isDriver()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByDriver().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByDriver(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
             else if (clientUserData.isMerchant()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByMerchant().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByMerchant(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
             else if (clientUserData.isSupplier()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersBySupplier().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersBySupplier(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
@@ -442,6 +442,27 @@ wss.on("connection", function connection(ws) {
                 // database?.(updateStatus.orderID);
                 // TODO
             }
+        }
+        else if (packetType == Packets.PacketTypes.UPDATE_ITEM) {
+            if (clientUserData === null || clientUserData === void 0 ? void 0 : clientUserData.isSupplier()) {
+                var updateItemPacket = Packets.UpdateItem.fromJSONString(data);
+                var item = new ItemData(updateItemPacket.itemId, updateItemPacket, clientUserData.id);
+                database === null || database === void 0 ? void 0 : database.updateItem(item).then(function (updatedSuccessfully) {
+                    if (updatedSuccessfully) {
+                        sendIfNotNull(ws, new Packets.ItemUpdateSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.ItemUpdateFailed().toString());
+                    }
+                });
+            }
+            //Creating accounts and adding them to the database
+        }
+        else if (isClientAuthenticated &&
+            packetType == Packets.PacketTypes.GET_USER_DATA) {
+            database === null || database === void 0 ? void 0 : database.getUserData(clientUserData.email).then(function (object) {
+                sendIfNotNull(ws, new Packets.SetUserData(JSON.stringify(object)));
+            });
             //Creating accounts and adding them to the database
         }
         else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
