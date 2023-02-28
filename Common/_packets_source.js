@@ -46,6 +46,9 @@ export const PacketTypes = {
 	GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 	SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
 
+	GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+	SET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+
 	GET_ALL_ORDERS: "getAllOrders",
 	SET_ALL_ORDERS: "setAllOrders",
 
@@ -319,6 +322,27 @@ export class SetAllConfirmedOrders extends JSONPacket {
 
 	static fromJSONString(jsonString) {
 		return new SetAllConfirmedOrders(jsonString);
+	}
+}
+
+export class GetAllCompletedOrders extends JSONPacket {
+	constructor(token = null) {
+		super(PacketTypes.GET_ALL_COMPLETED_ORDERS, token);
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+	}
+}
+
+export class SetAllCompletedOrders extends JSONPacket {
+	constructor(jsonString) {
+		super(PacketTypes.SET_ALL_COMPLETED_ORDERS, jsonString);
+	}
+
+	static fromJSONString(jsonString) {
+		return new SetAllCompletedOrders(jsonString);
 	}
 }
 

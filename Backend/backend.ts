@@ -4,6 +4,7 @@ import { DatabaseHandler } from "./database.js";
 import * as Strings from "./strings.js";
 import * as bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
+import { secondsInHour } from "date-fns/constants";
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
@@ -311,6 +312,23 @@ wss.on("connection", function connection(ws) {
 				});
 			} else {
 				console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
+			}
+
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
+			if(clientUserData.isDriver()) {
+				database?.getAllCompletedOrdersByDriver().then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+				});
+			} else if (clientUserData.isMerchant()) {
+				database?.getAllCompletedOrdersByMerchant().then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+				});
+			} else if (clientUserData.isSupplier()) {
+				database?.getAllCompletedOrdersBySupplier().then((orders) => {
+					sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+				});
+			} else {
+				console.log("Got invalid account type for user data: " + clientUserData.accountType);
 			}
 
 			//Retrieves items from the database based on chosen supplier
