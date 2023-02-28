@@ -387,6 +387,9 @@ wss.on("connection", function connection(ws) {
 			}
 
 			//Creating accounts and adding them to the database
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
+			sendIfNotNull(ws, new Packets.SetUserData(database?.getUserData(clientUserData.email)));
+			//Creating accounts and adding them to the database
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
