@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
+import { useNavbarUpdate } from '../NavbarContext';
 import Welcome from '../components/Welcome'
 import './LoginRegister.css'; 
 
@@ -8,23 +9,35 @@ const Packets = require("../backend/packets");
 function Register() {
   let ws = new WebSocket("ws://localhost:5005/");
   const navigate = useNavigate();
+  const updateNavbar = useNavbarUpdate();
 
   // websocket open and close
   ws.onopen = () => console.log("ws opened: register");
   ws.onclose = () => console.log("ws closed: register");
 
   // when websocket gets resposne back
-  ws.onmessage = (res) => {
-    const packet = res.data;
-    console.log(packet);
-
-    if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
-      alert("Account created successfully")
-      navigate("/home");
-    } else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
-      alert("Error creating account");
-    }
-  };
+  useEffect(() => {
+    ws.onmessage = (res) => {
+      const packet = res.data;
+      console.log(packet);
+  
+      if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
+        alert("Account created successfully");
+        
+        if (accType === "merchant") {
+          navigate("/merchant_home");
+        }
+        else {
+          navigate("/supplier_home");
+        }
+  
+        updateNavbar(accType);
+      }
+      else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
+        alert("Error creating account");
+      }
+    };
+  });
 
   // websocket error
   ws.onerror = (e) => {
@@ -85,8 +98,8 @@ function Register() {
                   <label class="form-label" for="form3Example5">Account Type</label>
                   <select className="account-type" name="type" id="form3Example5" required onChange={e => setAccType(e.target.value)}>
                     <option hidden-value="" disabled selected hidden>Select One</option>
-                    <option value="Merchant">Merchant</option>
-                    <option value="Supplier">Supplier</option>
+                    <option value="merchant">Merchant</option>
+                    <option value="supplier">Supplier</option>
                   </select>
                 </div>
 

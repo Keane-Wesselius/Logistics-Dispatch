@@ -1,8 +1,8 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
-})(this, (function (exports) { 'use strict';
+// (function (global, factory) {
+// 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+// 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+// 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
+// })(this, (function (exports) { 'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
@@ -338,7 +338,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+			return new GetAllCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
 		}
 	}
 
@@ -414,7 +414,13 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateItem(itemId = tryGet(jsonObject, ItemValues.ITEM_ID), itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID),
+								  tryGet(jsonObject, ItemValues.ITEM_NAME),
+								  tryGet(jsonObject, ItemValues.DESCRIPTION),
+								  tryGet(jsonObject, ItemValues.QUANTITY),
+								  tryGet(jsonObject, ItemValues.PRICE),
+								  tryGet(jsonObject, ItemValues.WEIGHT),
+								  tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -511,5 +517,4 @@
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;
-
-}));
+//}));

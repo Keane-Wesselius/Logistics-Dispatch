@@ -1,57 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
+import { useNavbarUpdate } from '../NavbarContext';
 import Welcome from '../components/Welcome'
 import './LoginRegister.css';
 
 const Packets = require("../backend/packets");
 
-let ws = null;
-// TODO: This is a dumb band-aid fix to bypass the problem that navigate CANNOT be called from the WebSocket connection outside of Login(). The actual error thrown is "You should call navigate() in a React.useEffect(), not when your component is first rendered."
-let shouldNavigate = false;
-function initializeWebSocket(navigate) {
-	// TODO: Check WebSocket status, also attempting to initialize if we couldn't connect (might want a cooldown, as any time a page update occurs, this will be called).
-	if (ws == null) {
-		ws = new WebSocket("ws://localhost:5005/");
+function Login() {
+	let ws = new WebSocket("ws://localhost:5005/");
+	const navigate = useNavigate();
+	const updateNavbar = useNavbarUpdate();
 
-		// websocket open and close
-		ws.onopen = () => console.log("ws opened: login");
-		ws.onclose = () => console.log("ws closed: login");
+	// websocket open and close
+	ws.onopen = () => console.log("ws opened: login");
+	ws.onclose = () => console.log("ws closed: login");
 
-		// when websocket gets resposne back
+	// when websocket gets resposne back
+	useEffect(() => {
 		ws.onmessage = (res) => {
 			const packet = res.data;
 			console.log(packet);
-
+	
 			if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_SUCCESS) {
 				alert("Login successful");
-
+	
 				const authenticationSuccessPacket = Packets.AuthenticationSuccessPacket.fromJSONString(packet);
 				localStorage.setItem('token', authenticationSuccessPacket.token);
 				console.log("Login token: " + localStorage.getItem('token'));
-				// TODO: Doesn't work, see TODO on 'shouldNavigate'
-				// navigate("/home");
-				shouldNavigate = true;
+	
+					if (authenticationSuccessPacket.acctype === "merchant") {
+						navigate("/merchant_home");
+					}
+					else {
+						navigate("/supplier_home");
+					}
+	
+					updateNavbar(authenticationSuccessPacket.acctype);
 			}
 			else if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
 				alert("Wrong username or password");
 			}
 		};
+	});
 
-		// websocket error
-		ws.onerror = (e) => {
-			console.error("WebSocket error:", e.message);
-		};
-	}
-}
-
-function Login() {
-	const navigate = useNavigate();
-	initializeWebSocket(navigate);
-
-	// TODO: Someone who knows what they are doing should really fix this fix, see above TODO comments.
-	if (shouldNavigate) {
-		navigate("/home");
-	}
+	// websocket error
+	ws.onerror = (e) => {
+		console.error("WebSocket error:", e.message);
+	};
 
 	// handles login
 	const handleLogin = (e) => {
@@ -66,6 +61,8 @@ function Login() {
 	// state of username and password
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
+
+	updateNavbar("");
 
 	return (
 		<section class="background-radial-gradient overflow-hidden">
