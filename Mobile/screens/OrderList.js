@@ -10,8 +10,9 @@ import PagerView from 'react-native-pager-view';
 import Packets, { GetLinkedOrders } from "./packets";
 
 const OrderList = ({navigation, props, route}) => {
-  const isFocused = useIsFocused();
 
+  const isFocused = useIsFocused();
+  let allOrders = [];
   useEffect(() => {
     if (isFocused) {
       console.log('orderList about to send packet');
@@ -30,10 +31,10 @@ const OrderList = ({navigation, props, route}) => {
   }, [isFocused]);
 
 	let orders_json = [];
-  let allOrders;
+  
 	global.ws.onmessage = (response) => {
 		const packet = response.data;
-		console.log(packet);
+		//console.log(packet);
     //console.log("shiva");
 		if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_CONFIRMED_ORDERS) {
 			console.log("GOT CONFIRMED ORDERS");
@@ -45,11 +46,11 @@ const OrderList = ({navigation, props, route}) => {
       const json_obj = JSON.parse(packet);
       //console.log(json_obj);
       allOrders = json_obj.data;
-      //rconsole.log(allOrders)
+      //console.log(allOrders)
 		}
 	};
 
-	
+	console.log("All ordres: "+ allOrders)
 
   //const navigation = useNavigation();
  // navigation.navigate('Map', {
@@ -119,17 +120,20 @@ const OrderList = ({navigation, props, route}) => {
     </View>
       <View style = {styles.items}>
       {/**List of all orders with Order component */}
-      {orders_json.map((order) => (
+      {allOrders.map((order) => (
       <Orders 
       key={order.buyerId}
-      buyerId={order.buyerId}
-      shippingName={order.shippingName}
+      buyerId= {order.buyerId}
+      //driverId = {order.driverId}
+      //endingAddress = {order.endingAddress}
+      //shippingName={order.shippingName}
       shippingAddress={order.shippingAddress}
-      shippingInfo={order.shippingInfo}
-      shippingDate={order.shippingDate} 
-      text = {'Order 1'}
+      //shippingInfo={order.shippingInfo}
+      //shippingDate={order.shippingDate} 
+      //text = {'Order 1'}
      
       />
+    
      
       ))}
     </View>
