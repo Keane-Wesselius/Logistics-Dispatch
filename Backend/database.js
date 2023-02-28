@@ -144,7 +144,7 @@ class DatabaseHandler {
 				profilePicture: newUser.profilePicture
 			});
 
-			if (newUser.accType == "driver") {
+			if (newUser.acctype == "driver") {
 				hashedUser.firstName = newUser.firstName;
 				hashedUser.lastName = newUser.lastName;
 			}
