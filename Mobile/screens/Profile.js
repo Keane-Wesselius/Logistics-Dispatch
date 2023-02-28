@@ -15,7 +15,8 @@ import * as ImagePicker from "expo-image-picker";
 import Packets, { GetUserData } from "./packets";
 import { useIsFocused } from "@react-navigation/native";
 
-let user = [];
+let firstName = "";
+let lastName = "";
 const Profile = ({ navigation, route }) => {
   const isFocused = useIsFocused();
 
@@ -38,14 +39,19 @@ const Profile = ({ navigation, route }) => {
     const packet = response.data;
 
     if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
-      console.log("Got profile data");
-      user = JSON.parse(packet);
+      console.log("\nGot profile data");
+      let user = JSON.parse(packet);
+
       user = user.data;
+      firstName = user.firstName;
+      lastName = user.lastName;
+      console.log("data: " + user.firstName);
       console.log("email here: " + user.email);
     }
   };
 
-  console.log("email outside: " + user.email);
+  console.log("first name: " + firstName);
+  console.log("last name: " + lastName);
   // console.log(user.data.email);
   // console.log(user.data.lastName);
   // const username = route.params.username;
@@ -95,7 +101,9 @@ const Profile = ({ navigation, route }) => {
               />
             }
           </TouchableOpacity>
-          <Text style={styles.name}> </Text>
+          <Text style={styles.name}>
+            {firstName} {lastName}
+          </Text>
           {/* {user.data.email} */}
           {/* <TouchableOpacity style={styles.edit} onPress={() => pickImage()}>
             <Text style={styles.editButton}>edit</Text>
