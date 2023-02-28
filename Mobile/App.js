@@ -11,10 +11,10 @@ import Landing from "./components/Landing";
 import React, { useState } from "react";
 import Signup from "./screens/Signup";
 import Earnings from "./screens/Earnings";
+import Profile from "./screens/Profile";
 
 const Packets = require("./packets");
-
-import Profile from "./screens/Profile";
+//import Profile from "./screens/Profile";
 
 
 const Stack = createStackNavigator();
