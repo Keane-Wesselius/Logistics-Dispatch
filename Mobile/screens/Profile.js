@@ -128,11 +128,7 @@ const Profile = ({ navigation, route }) => {
             
       ))}
       </View>
-<<<<<<< Updated upstream
           <Button title="Close" onPress={() => setModalVisible(false)} /> */}
-=======
-          <Button title="Close" onPress={() => setModalVisible(false)} />
->>>>>>> Stashed changes
         </View>
       </Modal>
     </View>

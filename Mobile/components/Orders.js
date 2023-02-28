@@ -66,10 +66,11 @@ const Orders = (props) => {
           
         <View>
           <Text>Buyer ID: {props.buyerId}</Text>
-          <Text>Shipping Name: {props.shippingName}</Text>
+          {/*<Text>Shipping Name: {props.shippingName}</Text>
           <Text>Shipping Address: {props.shippingAddress}</Text>
           <Text>Shipping Info: {props.shippingInfo}</Text>
-          <Text>Shipping Date: {props.shippingDate}</Text>
+        <Text>Shipping Date: {props.shippingDate}</Text>*/}
+        
         </View>
     
     
