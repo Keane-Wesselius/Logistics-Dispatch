@@ -48,14 +48,7 @@ const Map = ({ route}) => {
     setDeliveryAddress('');
     setCoordinates('');
     setDuration(0);
-    navigation.navigate('OrdersList',
-      {
-        removeOrder: orderId
-      });
-      navigation.navigate('Profile',
-      {
-        removeOrder: orderId
-      });
+ 
   }
   /**
    * Handling when presed complete delivery, the deliveries in orderlist should be deleted

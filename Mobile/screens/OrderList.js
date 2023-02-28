@@ -8,11 +8,14 @@ import { useIsFocused } from '@react-navigation/native';
 //import Map from './Map';
 import PagerView from 'react-native-pager-view';
 import Packets, { GetLinkedOrders } from "./packets";
+import Item from '../components/Item'
 
+let allOrders = [];
 const OrderList = ({navigation, props, route}) => {
-
+  //dealing with having to change
+  const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
-  let allOrders = [];
+ 
   useEffect(() => {
     if (isFocused) {
       console.log('orderList about to send packet');
@@ -34,23 +37,29 @@ const OrderList = ({navigation, props, route}) => {
   
 	global.ws.onmessage = (response) => {
 		const packet = response.data;
-		//console.log(packet);
-    //console.log("shiva");
+		
 		if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_CONFIRMED_ORDERS) {
 			console.log("GOT CONFIRMED ORDERS");
-      //console.log("shiva");
+      
 			//const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
 			//orders_json = setLinkedOrdersPacket;
       
 			//console.log("packet: " + packet);
       const json_obj = JSON.parse(packet);
-      //console.log(json_obj);
       allOrders = json_obj.data;
-      //console.log(allOrders)
+      setLoading(false);
+      
+
 		}
 	};
 
-	console.log("All ordres: "+ allOrders)
+ /* if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }*/
 
   //const navigation = useNavigation();
  // navigation.navigate('Map', {
@@ -68,7 +77,6 @@ const OrderList = ({navigation, props, route}) => {
   }, [route.params]);
   
 
-  const filteredOrders = orders_json.filter((order) => order.buyerId !== removeOrder);
   //generating dates in between 1-15 days
   const dates = eachWeekOfInterval({
     start: subDays(new Date(), 1),
@@ -122,12 +130,31 @@ const OrderList = ({navigation, props, route}) => {
       {/**List of all orders with Order component */}
       {allOrders.map((order) => (
       <Orders 
-      key={order.buyerId}
-      buyerId= {order.buyerId}
-      //driverId = {order.driverId}
+      key={order._id}
+      driverId = {order.driverId}
+      confirmedDate = {order.confirmed_date}
+      confirmedTime = {order.confirmed_date}
+      estimatedDeliveryDate = {order.estimatedDeliveryDate}
+      startAddress = {order.startingAddress}
+      maximumDeliveryPrice = {order.maximumDeliveryPrice}
+      merchantId = {order.merchantId}
+      minimumDeliveryPrice = {order.minimumDeliveryPrice}
+      pendingDate = {order.pendingDate}
+      pendingTime = {order.pendingTime}
+      status = {order.status}
+      supplierId = {order.supplierId}
+      totalCost = {order.totalCost}
+      items = {order.items.map((item) => (
+        <Item
+        key={item.name}
+        name={item.name}
+        price={item.price}
+        quantity={item.quantity}
+      />
+      ))}
       //endingAddress = {order.endingAddress}
       //shippingName={order.shippingName}
-      shippingAddress={order.shippingAddress}
+      shippingAddress={order.endingAddress}
       //shippingInfo={order.shippingInfo}
       //shippingDate={order.shippingDate} 
       //text = {'Order 1'}

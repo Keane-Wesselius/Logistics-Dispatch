@@ -62,7 +62,7 @@ const BottomSheet = (props) => {
           
    /**
     * Implementing an animated div to scroll up and down
-    */
+   
     const translateY = useSharedValue(0);
 
     const context = useSharedValue({y: 0});
@@ -85,7 +85,7 @@ const BottomSheet = (props) => {
         return{
             transform: [{translateY: translateY.value}],
         };
-    })
+    }) */
     {/*ref = {scrollViewRef}  scrollEnabled={!isSigning} >*/}
 
 

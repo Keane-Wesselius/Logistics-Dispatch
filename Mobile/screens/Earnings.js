@@ -1,11 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
-// import AppNavigator from "../component/navigator";
 import Header from "../components/header";
 import moment from "moment";
 import { AntDesign } from "@expo/vector-icons";
-// import { Fontisto } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
+import Packets, { GetUserData } from "./packets";
 const Earning = ({ navigation, route }) => {
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      console.log("Earning about to send packet");
+      const GetAllCompletedOrders = new Packets.GetAllCompletedOrders();
+      console.log(GetAllCompletedOrders);
+      try {
+        global.ws.send(GetAllCompletedOrders.toString());
+      } catch {
+        alert("Connection error, check that you are connected to the internet");
+      }
+    } else {
+      console.log("Earning is not focused");
+    }
+  }, [isFocused]);
+
+  global.ws.onmessage = (response) => {
+    const packet = response.data;
+
+    if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS
+    ) {
+      console.log("GOT COMPLETED ORDERS");
+
+      const completed = JSON.parse(packet);
+      console.log("completed : " + completed);
+      console.log("pay : " + completed.data.price);
+
+      //console.log(allOrders)
+    }
+  };
+
   // const username = route.params.username;
   // const { username } = route.params;
 
