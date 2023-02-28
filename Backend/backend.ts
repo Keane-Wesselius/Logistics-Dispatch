@@ -4,7 +4,6 @@ import { DatabaseHandler } from "./database.js";
 import * as Strings from "./strings.js";
 import * as bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
-import { secondsInHour } from "date-fns/constants";
 
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.

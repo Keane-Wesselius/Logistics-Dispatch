@@ -303,6 +303,26 @@ wss.on("connection", function connection(ws) {
             else {
                 console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
             }
+        }
+        else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
+            if (clientUserData.isDriver()) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByDriver().then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+                });
+            }
+            else if (clientUserData.isMerchant()) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByMerchant().then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+                });
+            }
+            else if (clientUserData.isSupplier()) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersBySupplier().then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
+                });
+            }
+            else {
+                console.log("Got invalid account type for user data: " + clientUserData.accountType);
+            }
             //Retrieves items from the database based on chosen supplier
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ITEMS) {
@@ -312,8 +332,7 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else if (clientUserData.isMerchant()) {
-                var getItemPacket = Packets.GetLinkedItems.fromJSONString(data);
-                database === null || database === void 0 ? void 0 : database.getItemsBySupplier(getItemPacket.supplierId).then(function (items) {
+                database === null || database === void 0 ? void 0 : database.getAllItems().then(function (items) {
                     sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
                 });
             }
@@ -387,6 +406,24 @@ wss.on("connection", function connection(ws) {
                 // database?.(updateStatus.orderID);
                 // TODO
             }
+        }
+        else if (packetType == Packets.PacketTypes.UPDATE_ITEM) {
+            if (clientUserData === null || clientUserData === void 0 ? void 0 : clientUserData.isSupplier()) {
+                var updateItemPacket = Packets.UpdateItem.fromJSONString(data);
+                var item = new ItemData(updateItemPacket.itemId, updateItemPacket, clientUserData.id);
+                database === null || database === void 0 ? void 0 : database.updateItem(item).then(function (updatedSuccessfully) {
+                    if (updatedSuccessfully) {
+                        sendIfNotNull(ws, new Packets.ItemUpdateSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.ItemUpdateFailed().toString());
+                    }
+                });
+            }
+            //Creating accounts and adding them to the database
+        }
+        else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
+            sendIfNotNull(ws, new Packets.SetUserData(database === null || database === void 0 ? void 0 : database.getUserData(clientUserData.email)));
             //Creating accounts and adding them to the database
         }
         else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
