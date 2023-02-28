@@ -359,7 +359,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new AddItem(itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME),tryGet(jsonObject, ItemValues.DESCRIPTION),tryGet(jsonObject, ItemValues.QUANTITY),tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT),tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 

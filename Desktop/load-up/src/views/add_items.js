@@ -9,7 +9,12 @@ function addItems() {
     let ws = new WebSocket("ws://localhost:5005/");
 
     // websocket open and close
-    ws.onopen = () => console.log("ws opened: register");
+    ws.onopen = () => {
+        console.log("ws opened: register");
+        const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
+        console.log("User string: " + userPacket.toString());
+        ws.send(userPacket.toString());
+    }
     ws.onclose = () => console.log("ws closed: register");
 
     // when websocket gets resposne back
@@ -17,11 +22,9 @@ function addItems() {
         const packet = res.data;
         console.log(packet);
         // TODO change success and fail packets to items
-        if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
-        alert("Item added successfully")
-        } else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
-        alert("Error adding item");
-        }
+        if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
+            console.log(JSON.parse(packet).data)
+        } 
     };
 
     // websocket error
@@ -63,10 +66,16 @@ function addItems() {
         event.preventDefault(); // Prevent form from submitting and refreshing the page
 
         // Send add item packet to backend
-
         const itemPacket = new Packets.AddItem(name, description, quantity, price, weight, localStorage.getItem('token'));
         console.log("Item add string: " + itemPacket.toString());
         ws.send(itemPacket.toString());
+
+        // Retrieve linked items
+        const itemsPacket = new Packets.GetLinkedItems(localStorage.getItem('token'));
+        console.log("Item list string: " + itemsPacket.toString());
+        ws.send(itemsPacket.toString());
+
+        //JSON PARSE
 
         // Get form data
         const itemName = document.getElementById("item_name").value;
