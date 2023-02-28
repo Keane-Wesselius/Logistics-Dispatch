@@ -52,6 +52,9 @@
 		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 		SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
 
+		GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+		SET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+
 		GET_ALL_ORDERS: "getAllOrders",
 		SET_ALL_ORDERS: "setAllOrders",
 
@@ -328,6 +331,27 @@
 		}
 	}
 
+	class GetAllCompletedOrders extends JSONPacket {
+		constructor(token = null) {
+			super(PacketTypes.GET_ALL_COMPLETED_ORDERS, token);
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+		}
+	}
+
+	class SetAllCompletedOrders extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_ALL_COMPLETED_ORDERS, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetAllCompletedOrders(jsonString);
+		}
+	}
+
 	class UpdateStatus extends Packet {
 		constructor(orderID, status, token = null) {
 			super(PacketTypes.UPDATE_ORDER_STATUS, token);
@@ -395,15 +419,13 @@
 	}
 
 	class GetLinkedItems extends Packet {
-		constructor(supplierId, token = null) {
+		constructor(token = null) {
 			super(PacketTypes.GET_LINKED_ITEMS, token);
-
-			this.supplierId = supplierId;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID), tryGet(jsonObject, Constants.TOKEN));
+			return new GetLinkedItems(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -465,6 +487,7 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.GetAllCompletedOrders = GetAllCompletedOrders;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;
 	exports.GetLinkedItems = GetLinkedItems;
@@ -476,6 +499,7 @@
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
 	exports.RemoveItem = RemoveItem;
+	exports.SetAllCompletedOrders = SetAllCompletedOrders;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetAllOrders = SetAllOrders;
 	exports.SetLinkedItems = SetLinkedItems;

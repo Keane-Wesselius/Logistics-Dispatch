@@ -314,7 +314,7 @@ wss.on("connection", function connection(ws) {
 			}
 
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
-			if(clientUserData.isDriver()) {
+			if (clientUserData.isDriver()) {
 				database?.getAllCompletedOrdersByDriver().then((orders) => {
 					sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
 				});
@@ -418,7 +418,9 @@ wss.on("connection", function connection(ws) {
 
 			//Creating accounts and adding them to the database
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
-			sendIfNotNull(ws, new Packets.SetUserData(database?.getUserData(clientUserData.email)));
+			database?.getUserData(clientUserData.email).then((object) => {
+				sendIfNotNull(ws, new Packets.SetUserData(object));
+			});
 			//Creating accounts and adding them to the database
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
