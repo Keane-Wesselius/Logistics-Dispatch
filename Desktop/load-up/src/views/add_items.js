@@ -10,22 +10,28 @@ function addItems() {
 
     // websocket open and close
     ws.onopen = () => {
-        console.log("ws opened: register");
+        console.log("ws opened: add items");
         const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
         console.log("User string: " + userPacket.toString());
         ws.send(userPacket.toString());
+
     }
-    ws.onclose = () => console.log("ws closed: register");
+    ws.onclose = () => console.log("ws closed: add items");
 
     // when websocket gets resposne back
     ws.onmessage = (res) => {
         const packet = res.data;
         console.log(packet);
-        // TODO change success and fail packets to items
+        // On success save user id
         if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
-            console.log(JSON.parse(packet).data)
-        } 
-    };
+            console.log(JSON.parse(packet).data._id);
+            localStorage.setItem('id', JSON.parse(packet).data._id);
+        }else if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
+            console.log("Linked items packet");
+            // TODO fix reading of data
+            // console.log(JSON.parse(packet).data.name);
+        }
+    }; 
 
     // websocket error
     ws.onerror = (e) => {
@@ -75,15 +81,13 @@ function addItems() {
         console.log("Item list string: " + itemsPacket.toString());
         ws.send(itemsPacket.toString());
 
-        //JSON PARSE
-
         // Get form data
         const itemName = document.getElementById("item_name").value;
         const itemDescription = document.getElementById("item_description").value;
         const itemQuantity = document.getElementById("item_quantity").value;
         const itemPrice = document.getElementById("item_price").value;
         const itemWeight = document.getElementById("item_weight").value;
-
+        
         // If form is complete
         if (itemName !== "" && itemDescription !== "" && itemQuantity !== "" && itemPrice !== "" && itemWeight !== "")
         {
@@ -109,7 +113,7 @@ function addItems() {
     
     return (
         <div>
-            <h1 class="text-center">Add Items</h1>
+            <h1 class="text-center" >Add Items</h1>
             <form className="add-item" id="add-item">
 
                 <label class="font-weight-bold" for="item_name">Item Name:</label>
