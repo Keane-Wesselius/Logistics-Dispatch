@@ -145,19 +145,19 @@ function addActiveConnection(webSocket, userData, token) {
 // Taken From 2/26/2023 2:31 PM: https://stackoverflow.com/a/16106759
 function generateRandomAlphaNumericString(length, allowUppercase) {
     if (allowUppercase === void 0) { allowUppercase = true; }
-    var text = "";
+    var returnString = "";
     var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
     for (var i = 0; i < Math.ceil(length); i++) {
         var randomChar = charset.charAt(Math.floor(Math.random() * charset.length));
         if (allowUppercase && Math.random() >= 0.5) {
             randomChar = randomChar.toUpperCase();
         }
-        text += randomChar;
+        returnString += randomChar;
     }
-    return text;
+    return returnString;
 }
-var tokenLength = 32;
 // TODO: Switch to a real token-based authentication system.
+var tokenLength = 32;
 function generateToken() {
     return generateRandomAlphaNumericString(tokenLength);
 }
@@ -167,15 +167,14 @@ var activeConnections = new Set();
 // TODO: Change to less-commonly used port ( https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports )
 // 19178 should work.
 // Create a WebSocketServer on port 5005 and with a maximum payload of 10 megabytes (10 bytes * 1000 kilobytes * 1000 megabytes). More options can be found here: https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
-var wss = new ws_1.WebSocket.WebSocketServer({
-    port: 5005,
-    maxPayload: 10 * 1000 * 1000
-});
+var wss = new ws_1.WebSocket.WebSocketServer({ port: 5005, maxPayload: 10 * 1000 * 1000 });
 console.log("Server started on " + new Date().toString());
 // Create a new connection method with access to the active WebSocket connection.
 wss.on("connection", function connection(ws) {
     // If an error occurs in this connection. print to the console the error.
-    ws.on("error", console.error);
+    ws.on("error", function (error) {
+        console.error("WebSocket threw an error: " + error.name + ": " + error.message);
+    });
     ws.on("close", function () {
         // TODO: Cannot due this, as for clients which use the token authentication system, they obviously need to drop the WebSocket connection, either due to having to switch pages or screens or whatnot. We SHOULD implement a system which removes and garbage-collects the various unused connections after a period of time.
         // removeActiveConnectionByWebSocketOrToken(ws);
@@ -189,12 +188,11 @@ wss.on("connection", function connection(ws) {
         var packetType = Packets.tryGet(packetJSONObject, Packets.Constants.TYPE);
         if (packetType == null) {
             // TODO: Check that console.log is immune to unsanitized data, as invalid data might be some sort of attack. Might want to temporarily block them for a period of time.
-            console.log("Received invalid packet: " + data);
-            console.log("Len: " + data.toString().length);
+            console.log("Received Invalid Packet: " + data);
+            console.log("Invalid Packet Length: " + data != null ? data.toString().length : "null");
             return;
         }
-        console.log("Got packet of type: " + packetType);
-        console.log("Packet token: " + Packets.tryGet(packetJSONObject, Packets.Constants.TOKEN));
+        console.log("Got packet of type '" + packetType + "' with token '" + Packets.tryGet(packetJSONObject, Packets.Constants.TOKEN) + "'");
         var activeConnection = getActiveConnectionByWebSocketOrToken(ws, Packets.tryGet(packetJSONObject, Packets.Constants.TOKEN));
         if (activeConnection != null) {
             // TODO: This could be a security vulnerability if someone manages to spoof the token of a client, so checking other potential indicators such as IP address / geolocation of IP might help to ensure that simple spoofing attacks cannot be exploited.
@@ -209,19 +207,17 @@ wss.on("connection", function connection(ws) {
         }
         var clientUserData = activeConnection != null ? activeConnection.userData : null;
         var isClientAuthenticated = clientUserData != null;
-        console.log("Is client authenticated: " + isClientAuthenticated);
         // TODO: What happens if the user sends two login packets at once?
+        // TODO: These packet handlers might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
         if (packetType == Packets.PacketTypes.LOGIN) {
             // TODO: If the client fails to send a valid login packet after a few attempts, they should be blocked from connecting for a period to avoid DOS attacks.
             var loginPacket_1 = Packets.LoginPacket.fromJSONString(data);
             if (database != null && loginPacket_1.email != null && loginPacket_1.password != null) {
-                // TODO: These might want to be split off into their own file to reduce the clutter in this file. Not sure how we want to structure the Backend server yet though.
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 database.getUserData(loginPacket_1.email).then(function (userDataJSON) {
                     if (userDataJSON != null) {
                         // bcrypt.compare is actually asynchronous, with a function callback (the '(err, result)' part of the function call), so it doesn't block execution, allowing the script to flow past it into error checking before we've confirmed the password was valid. Therefore, we need to do any error broadcasting INSIDE the bcrypt function for password errors, rather than being able to do all error messages at the end. Another example of some of the strange behavior and potential logical bugs in writing async JavaScript code.
-                        // TODO: Should check error?
                         bcrypt.compare(loginPacket_1.password, userDataJSON.password, function (err, result) {
                             if (result) {
                                 console.log("Got valid login: " + loginPacket_1.email + " " + loginPacket_1.password);
@@ -236,7 +232,7 @@ wss.on("connection", function connection(ws) {
                                 activeConnection.userData = loginUserData;
                                 activeConnection.token = generateToken();
                                 // Packet Structure Example: {"type": "authentication_success", "acctype": "driver", "token": "rhog4sm4ep3vsl35a37ff3n1giociu78"} or {"type": "authentication_success", "acctype": "driver", "token": null}
-                                // Send to the user that their authentication was successfull, returning the account type they signed up with and their associated token. Token can be used to authenticate the user in the case that the websocket connection cannot be kept alive.
+                                // Send to the user that their authentication was successful, returning the account type they signed up with and their associated token. Token can be used to authenticate the user in the case that the websocket connection cannot be kept alive.
                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
                                 sendIfNotNull(ws, new Packets.AuthenticationSuccessPacket(loginUserData.accountType, activeConnection.token));
@@ -248,11 +244,11 @@ wss.on("connection", function connection(ws) {
                         });
                     }
                     else {
-                        console.log("Got invalid login: " + loginPacket_1.email + " " + loginPacket_1.password);
+                        console.log("Got invalid user data JSON: " + loginPacket_1.email + " " + loginPacket_1.password);
                         sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_LOGIN));
                     }
                 })["catch"](function (error) {
-                    console.log("Got invalid login: " + loginPacket_1.email + " " + loginPacket_1.password);
+                    console.log("Got invalid email: " + loginPacket_1.email + " " + loginPacket_1.password);
                     sendIfNotNull(ws, new Packets.AuthenticationFailedPacket(Strings.Strings.INVALID_EMAIL));
                 });
             }
@@ -279,7 +275,7 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else {
-                console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
+                console.log("Got invalid account type for action GET_LINKED_ORDERS: '" + clientUserData.accountType + "'");
             }
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_CONFIRMED_ORDERS) {
@@ -299,7 +295,7 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else {
-                console.log("Got invalid account type for user data: '" + clientUserData.accountType + "'");
+                console.log("Got invalid account type for action GET_ALL_CONFIRMED_ORDERS: '" + clientUserData.accountType + "'");
             }
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
@@ -319,11 +315,31 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else {
-                console.log("Got invalid account type for user data: " + clientUserData.accountType);
+                console.log("Got invalid account type for action GET_ALL_COMPLETED_ORDERS: " + clientUserData.accountType);
             }
-            //Retrieves items from the database based on chosen supplier
+        }
+        else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_ALL_ORDERS) {
+            if (clientUserData.isDriver()) {
+                database === null || database === void 0 ? void 0 : database.getAllOrdersByDriver(clientUserData.id).then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllOrders(JSON.stringify(orders)));
+                });
+            }
+            else if (clientUserData.isMerchant()) {
+                database === null || database === void 0 ? void 0 : database.getAllOrdersByMerchant(clientUserData.id).then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllOrders(JSON.stringify(orders)));
+                });
+            }
+            else if (clientUserData.isSupplier()) {
+                database === null || database === void 0 ? void 0 : database.getAllAcceptedOrdersBySupplier(clientUserData.id).then(function (orders) {
+                    sendIfNotNull(ws, new Packets.SetAllOrders(JSON.stringify(orders)));
+                });
+            }
+            else {
+                console.log("Got invalid account type for action GET_ALL_ORDERS: " + clientUserData.accountType);
+            }
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_LINKED_ITEMS) {
+            // Retrieves items from the database based on chosen supplier
             if (clientUserData.isSupplier()) {
                 database === null || database === void 0 ? void 0 : database.getItemsBySupplier(clientUserData.id).then(function (items) {
                     sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
@@ -335,11 +351,11 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else {
-                console.log("Got invalid account type for action GET_LINKED_ORDERS: " + clientUserData.accountType);
+                console.log("Got invalid account type for action GET_LINKED_ITEMS: " + clientUserData.accountType);
             }
-            //Adding new items into the database, suppliers only
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.ADD_ITEM) {
+            // Adding new items into the database, suppliers only
             if (clientUserData.isSupplier()) {
                 var addItemPacket = Packets.AddItem.fromJSONString(data);
                 var item = new ItemData(null, addItemPacket, clientUserData.id);
@@ -355,9 +371,9 @@ wss.on("connection", function connection(ws) {
             else {
                 console.log("Got invalid account type for action ADD_ITEM: " + clientUserData.accountType);
             }
-            //Removing items from the database, suppliers only
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.REMOVE_ITEM) {
+            // Removing items from the database, suppliers only
             if (clientUserData.isSupplier()) {
                 var removeItemPacket = Packets.RemoveItem.fromJSONString(data);
                 database === null || database === void 0 ? void 0 : database.removeItem(removeItemPacket.itemId).then(function (removedSuccessfully) {
@@ -370,41 +386,61 @@ wss.on("connection", function connection(ws) {
                 });
             }
             else {
-                console.log("Got invalid account type for action REMOVE_ITEM: " +
-                    clientUserData.accountType);
+                console.log("Got invalid account type for action REMOVE_ITEM: " + clientUserData.accountType);
             }
-            //Creating accounts and adding them to the database
         }
-        else if (isClientAuthenticated && packetType == Packets.PacketTypes.UPDATE_STATUS) {
+        else if (isClientAuthenticated && packetType == Packets.PacketTypes.UPDATE_ORDER_STATUS) {
+            // Creating accounts and adding them to the database
             // TODO: Kinda a security concern, as the ObjectID for orders could potentially be spoofed. Should check if the order they are editing can actually be seen by them.
-            var updateStatus = Packets.UpdateStatus.fromJSONString(data);
+            var updateStatus = Packets.UpdateOrderStatus.fromJSONString(data);
+            // TODO: Validate status can actually go from it's previous state to this new state.
             if (updateStatus.status == Packets.Status.ACCEPTED) {
-                database === null || database === void 0 ? void 0 : database.acceptOrder(updateStatus.orderID);
+                database === null || database === void 0 ? void 0 : database.acceptOrder(updateStatus.orderID).then(function (updatedStatusSuccessfully) {
+                    if (updatedStatusSuccessfully) {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusFailure().toString());
+                    }
+                });
             }
             else if (updateStatus.status == Packets.Status.CANCELLED) {
-                database === null || database === void 0 ? void 0 : database.cancelOrder(updateStatus.orderID);
+                database === null || database === void 0 ? void 0 : database.cancelOrder(updateStatus.orderID).then(function (updatedStatusSuccessfully) {
+                    if (updatedStatusSuccessfully) {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusFailure().toString());
+                    }
+                });
             }
             else if (updateStatus.status == Packets.Status.COMPLETED) {
-                database === null || database === void 0 ? void 0 : database.completeOrder(updateStatus.orderID);
+                database === null || database === void 0 ? void 0 : database.completeOrder(updateStatus.orderID).then(function (updatedStatusSuccessfully) {
+                    if (updatedStatusSuccessfully) {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusFailure().toString());
+                    }
+                });
             }
             else if (updateStatus.status == Packets.Status.CONFIRMED) {
-                database === null || database === void 0 ? void 0 : database.confirmOrder(updateStatus.orderID);
-            }
-            else if (updateStatus.status == Packets.Status.DENIED) {
-                // TODO:
-                // database?.denyOrder(updateStatus.orderID);
+                database === null || database === void 0 ? void 0 : database.confirmOrder(updateStatus.orderID).then(function (updatedStatusSuccessfully) {
+                    if (updatedStatusSuccessfully) {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
+                    }
+                    else {
+                        sendIfNotNull(ws, new Packets.UpdateOrderStatusFailure().toString());
+                    }
+                });
             }
             else if (updateStatus.status == Packets.Status.IN_TRANSIT) {
-                // database?.(updateStatus.orderID);
-                // TODO: Apply transit
-            }
-            else if (updateStatus.status == Packets.Status.PENDING) {
-                // TODO: Something
+                // TODO: Implement
             }
             else if (updateStatus.status == Packets.Status.REJECTED) {
-                // database?.(updateStatus.orderID);
-                // TODO
+                // TODO: Implement
             }
+            // TODO: Handlers for the rest of the enums.
         }
         else if (packetType == Packets.PacketTypes.UPDATE_ITEM) {
             if (clientUserData === null || clientUserData === void 0 ? void 0 : clientUserData.isSupplier()) {
@@ -419,15 +455,15 @@ wss.on("connection", function connection(ws) {
                     }
                 });
             }
-            //Creating accounts and adding them to the database
         }
         else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
+            // Creating accounts and adding them to the database
             database === null || database === void 0 ? void 0 : database.getUserData(clientUserData.email).then(function (object) {
                 sendIfNotNull(ws, new Packets.SetUserData(JSON.stringify(object)));
             });
-            //Creating accounts and adding them to the database
         }
         else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
+            // Creating accounts and adding them to the database
             var accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
             if (database != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
                 database.createNewUser(accountPacket).then(function (createdAccount) {

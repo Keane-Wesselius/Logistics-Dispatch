@@ -108,7 +108,8 @@ function getActiveConnectionByWebSocketOrToken(webSocket : WebSocket, token : st
 		console.log(JSON.stringify(activeConnection));
 
 		if (activeConnection.ws == webSocket) {
-			console.log("Got ActiveConnection by WebSocket: " + activeConnection.ws);
+			// TODO: Print identifying WebSocket information, such as IP address or MAC Address, etc.
+			console.log("Got ActiveConnection by WebSocket: ");
 			return activeConnection;
 		} else if (token != null && activeConnection.token === token) {
 			console.log("Got ActiveConnection by token: " + activeConnection.token);
