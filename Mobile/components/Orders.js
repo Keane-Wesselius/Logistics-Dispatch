@@ -14,7 +14,8 @@ const Orders = (props) => {
   const {shippingAddress, onPress} = props;
   const handlePress = (dest_address) =>{
     navigation.navigate('Map', {
-       deliveryAddress: dest_address
+       deliveryAddress: dest_address,
+       orderId: props.buyerId
     })
    //console.log(dest_address);
   }

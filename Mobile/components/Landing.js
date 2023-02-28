@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   heading: {
-    marginTop: SCREEN_HEIGHT / 2,
+    marginTop: SCREEN_HEIGHT / 1.7,
 
     //backgroundColor: 'red'
   },

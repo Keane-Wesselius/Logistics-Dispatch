@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet,Button, Text, View, TouchableOpacity } from 'react-native'
+import { Dimensions, StyleSheet,Button, Text, View,Modal, TouchableOpacity } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { Gesture, GestureDetector, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -7,10 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 //import OrderList from '../screens/OrderList';
 import SignatureScreen from 'react-native-signature-canvas';
 import * as FileSystem from  'expo-file-system';
-
+//import Map from '../screens/Map';
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 
-const BottomSheet = () => {
+const BottomSheet = (props) => {
+    const [modalVisible, setModalVisible] = useState(false);
     //ref for signature
     const signatureRef = useRef(null);
     const scrollViewRef = useRef();
@@ -19,9 +20,13 @@ const BottomSheet = () => {
     const navigation = useNavigation();
     const handlePress = () =>{
         navigation.navigate('OrdersList', {
+            
+        })
+        props.clearDeliveryAddress();
         
-        })}
-    
+    }
+
+    /*
     const handleStartSigning = () => {
         setIsSigning(true);
         scrollViewRef.current.setNativeProps({ scrollEnabled: false });
@@ -31,7 +36,7 @@ const BottomSheet = () => {
         setIsSigning(false);
         scrollViewRef.current.setNativeProps({ scrollEnabled: true });
     };
-            
+     */       
     const saveSignature = async() =>{
         try {
             const signature = await signatureRef.current.readSignature();
@@ -43,6 +48,9 @@ const BottomSheet = () => {
               //  encoding: FileSystem.EncodingType.Base64,
             //});
             console.log("Signature saved: ",signatureUri );
+
+            props.clearDeliveryAddress();
+           
 
         } catch (error) {
             console.error("Error saving signature: ", error);
@@ -64,13 +72,13 @@ const BottomSheet = () => {
     })
    .onUpdate((event) =>{
         translateY.value = event.translationY + context.value.y;
-       //console.log(translateY.value)
+       // console.log(translateY.value)
         translateY.value = Math.max(translateY.value, -SCREEN_HEIGHT/4)
         translateY.value = Math.min(translateY.value, SCREEN_HEIGHT/4)
    })
 
    useEffect(() =>{
-        translateY.value = withTiming(-SCREEN_HEIGHT/10);
+        translateY.value = withTiming(Math.min(translateY.value, SCREEN_HEIGHT/4));
 
    }, []);
     const rBottomSheetStyle = useAnimatedStyle(()=>{
@@ -78,24 +86,153 @@ const BottomSheet = () => {
             transform: [{translateY: translateY.value}],
         };
     })
-  return (
-    <GestureDetector gesture = {gesture}>
-    <Animated.View ref = {scrollViewRef}  scrollEnabled={!isSigning} style ={[styles.bottomSheetContainer, rBottomSheetStyle]}>
-        <View style = {styles.line}>
+    {/*ref = {scrollViewRef}  scrollEnabled={!isSigning} >*/}
+
+
+    return (
+        <View style ={styles.bottomSheetContainer_2}>
+            <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
+                onPress={() => setModalVisible(true)}        
+                >
+                <Text style = {{color: 'white', fontSize: 20}}> Complete/Cancel Delivery</Text>
+                <AntDesign name="arrowup" size={24} color="white" />
+            </TouchableOpacity>
+
+        
+            <Modal  
+                visible={modalVisible}
+                animationType= 'slide'
+                transparent = {true}
+             >
+            <View  style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+            <View style = {{ height: '100%', width: '100%', flexDirection: 'column'}}>
+                    <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
+                    onPress = {()=>{
+                        if (currentIndex == false)
+                            setCurrentIndex(true)
+                        else
+                            setCurrentIndex(false)
+                        }}
+                    >
+                    <Text style = {{color: 'white', fontSize: 20}}> Complete Delivery</Text>
+                    <AntDesign name="arrowdown" size={24} color="white" />
+                    </TouchableOpacity>
+                    {currentIndex == true && 
+                        <View style ={{ 
+                            marginTop: '5%', 
+                            width: '100%',
+                            height: '15%', 
+                            //backgroundColor: 'pink', 
+                            flexDirection: 'row',
+                            justifyContent: 'space-evenly',
+                            }}>
+                            <TouchableOpacity
+                            style ={{
+                                width: 100,
+                                backgroundColor: '#D0EDF6',
+                                borderRadius: 20,
+                                justifyContent: 'center',
+                                alignContent: 'center', 
+                            }}
+                            onPress = {()=>{
+                                if (currentSign== false)
+                                    setCurrentSign(true)
+                                else
+                                    setCurrentSign(false)
+                                }}
+                            >
+                                <Text 
+                                style = {{
+                                    alignSelf: 'center',
+                                    fontSize: 15
+                                }}
+                                >Sign Off package</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                            style ={{
+                                width: 100,
+                                backgroundColor: '#D0EDF6',
+                                borderRadius: 20,
+                                justifyContent: 'center',
+                                alignContent: 'center', 
+                            }}
+                            >
+                                <Text
+                                style = {{
+                                    alignSelf: 'center', 
+                                    fontSize: 15
+
+                                }}
+                                > Left on the door</Text>
+                            </TouchableOpacity>
+                            
+                            </View>
+                        }
+                        {currentSign == true && 
+                            <View style = {{ height: '30%', width: '80%', alignSelf: 'center'}}>
+                            
+                            <SignatureScreen
+                            ref = {signatureRef}
+                            onEmpty = {()=>console.log('empty')}
+                            descriptionText = 'Sign off'
+                            clearText = "clear"
+                            confirmText = "save"
+                            style = {styles.signature}
+                            autoClear = {true}
+                            //onStartSigning={handleStartSigning}
+                            //onStopSigning={handleStopSigning}
+                        />
+                        
+                        <View style = {{flexDirection: 'row', justifyContent: 'space-around'}}>
+                        <Button title="Clear" onPress={()=>{signatureRef.current.clearSignature()}} />
+                        <Button title="Save" onPress={saveSignature} /> 
+                        </View>
+                        </View>
+                    }   
+                
+                <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
+                onPress={handlePress} >
+                    <Text style = {{color: 'white', fontSize: 20}}> Cancel Delivery</Text>
+                    <AntDesign name="arrowdown" size={24} color="white" />
+                </TouchableOpacity>
+                    
+                
+            </View>
+            
+            </View>
+            
+            
+            </View>
+            <TouchableOpacity  style ={[styles.blackButton, {backgroundColor: 'red'}]} activeOpacity ={0.7} pointerEvents = 'box-none'
+                onPress={() => setModalVisible(false)}    
+                >
+                    <Text style = {{color: 'white', fontSize: 20}}> Close</Text>
+                    <AntDesign name="arrowdown" size={24} color="white" />
+                </TouchableOpacity>
+            </Modal>
+        </View>
+    );
+    /**
+  return ( 
+    <GestureDetector  gesture = {gesture}>
+    <Animated.View  style ={[styles.bottomSheetContainer, rBottomSheetStyle]}> 
+        <View style = {styles.line} >
 
         </View>
         <View style = {{ height: '100%', width: '100%', flexDirection: 'column'}}>
-        <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
+            <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
              onPress = {()=>{
                 if (currentIndex == false)
                     setCurrentIndex(true)
                 else
                     setCurrentIndex(false)
                 }}
-        >
+             >
             <Text style = {{color: 'white', fontSize: 20}}> Complete Delivery</Text>
             <AntDesign name="arrowright" size={24} color="white" />
-        </TouchableOpacity>
+             </TouchableOpacity>
 
         
         <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
@@ -168,8 +305,8 @@ const BottomSheet = () => {
             confirmText = "save"
             style = {styles.signature}
             autoClear = {true}
-            onStartSigning={handleStartSigning}
-            onStopSigning={handleStopSigning}
+            //onStartSigning={handleStartSigning}
+            //onStopSigning={handleStopSigning}
         />
         
         <View style = {{flexDirection: 'row', justifyContent: 'space-around'}}>
@@ -182,7 +319,9 @@ const BottomSheet = () => {
       
    </Animated.View>
     </GestureDetector>
+    
   )
+   */
 }
 
 export default BottomSheet
@@ -197,6 +336,16 @@ const styles = StyleSheet.create({
         //top: SCREEN_HEIGHT,
         backgroundColor:  "#fdf6e4",
     },
+    bottomSheetContainer_2: {
+        width: '100%',
+        height: SCREEN_HEIGHT/4,
+        //backgroundColor: 'white',
+        //position: 'absolute',
+        borderRadius: 50,
+        //top: SCREEN_HEIGHT,
+        backgroundColor:  "#fdf6e4",
+    },
+
     line:{
         width: 100,
         height: 4,
@@ -227,4 +376,27 @@ const styles = StyleSheet.create({
         //alignSelf: 'center',
       
          },
+         modalContainer: {
+            flex: 1,
+            //justifyContent: 'flex-end',
+            //alignItems: 'center',
+            //marginBottom: 50,
+            //height: '50%',
+            //backgroundColor:  "white",
+            //opacity: 0.95,
+          },
+          modalContent: {
+            //height: '50%',
+            width: '100%',
+            //marginTop: '80%',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            alignItems: 'center',
+            backgroundColor:  "#fdf6e4",
+            //opacity: 1,
+          
+
+          },
+
 })

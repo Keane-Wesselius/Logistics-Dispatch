@@ -31,14 +31,38 @@ const Map = ({ route}) => {
   //console.log("Map i guess?");
   //getting delivery addresss from orderlist on press
  const [deliveryAddress, setDeliveryAddress] = useState(null);
+ const [orderId, setOrderId] = useState(null);
   useEffect(() => {
     if(route.params && route.params.deliveryAddress){
     setDeliveryAddress(route.params.deliveryAddress);
+    setOrderId(route.params.orderId);
     }
   
   }, [route.params]);
- 
+  //console.log(route.params);
+// console.log(deliveryAddress);
+  //console.log(orderId);
 
+  //clearing delivery Address
+  function clearDeliveryAddress(){
+    setDeliveryAddress('');
+    setCoordinates('');
+    setDuration(0);
+    navigation.navigate('OrdersList',
+      {
+        removeOrder: orderId
+      });
+      navigation.navigate('Profile',
+      {
+        removeOrder: orderId
+      });
+  }
+  /**
+   * Handling when presed complete delivery, the deliveries in orderlist should be deleted
+   */
+  const removeOrder = () => {
+     
+  }
   /*
     All const variables 
   */
@@ -51,9 +75,25 @@ const Map = ({ route}) => {
    const mapViewRef = useRef();
   // for inputing address and getting coordinates
   const [address, setAddress] = useState("");
-  const fake_addressses = [ "400 N Ruby St, Ellensburg, WA 98926", "417 N Pine St, Ellensburg, WA 98926", "1800 Canyon Rd, Ellensburg, WA 98926"  ];
   const [coordinates, setCoordinates] = useState([]);
-  
+  const [searchDeliveryAddress, setSearchDeliveryAddress] = useState(null);
+ /**
+   * 
+   * when clicked search button on map, handles, the minutes and routing
+   * */
+ const handleSubmit = async () => {
+  console.log(address);
+  const result = await Location.geocodeAsync(address);
+  if (result.length > 0) {
+    //console.log(result[0]);
+    setDeliveryAddress(result[0]);
+  }
+  console.log(deliveryAddress);
+
+   <Text>{Math.ceil(duration)} mins </Text> 
+   
+};
+
   const getLocationAsync = async () => {
     try {
       let result = await Location.geocodeAsync(deliveryAddress);
@@ -68,9 +108,11 @@ const Map = ({ route}) => {
   };
 
   useEffect(() => {
-    getLocationAsync();
+    if(deliveryAddress){
+      getLocationAsync();
+    }
   }, [deliveryAddress]);
- 
+  
   /***
    * Getting coordinates from a given array of addresses 
  
@@ -97,21 +139,7 @@ const Map = ({ route}) => {
 
   //console.log(coordinates);
 
-  /**
-   * 
-   * when clicked search button on map, handles, the minutes and routing
-   * */
-  const handleSubmit = async () => {
-  
-    const result = await Location.geocodeAsync(address);
-    if (result.length > 0) {
-      //console.log(result[0]);
-      setDeliveryAddress(result[0]);
-    }
-   
-     <Text>{Math.ceil(duration)} mins </Text>  
-    
-  };
+ 
 
   /**
    * Getting permission right after starting the app
@@ -184,56 +212,8 @@ const Map = ({ route}) => {
    * @returns
    */
   function renderMap() {
-    /**
-     * Putting Destination in the Map
-     */
    
-    const DestinationMarker = () => {
-      return (
-        
-        <Marker coordinate={deliveryAddress}>
-          <View>
-            <Entypo name="location" size={24} color="red" />
-          </View>
-        </Marker>
-      );
-    
-    };
-  
-    /**
-     * Car Icon to display car in the map
-     */
- 
-    const CarIcon = () => {
-      return (
-        //for current location
 
-        <Marker
-          
-          //coordinate={location}
-          //SHIVA this is keane ^^^ The above line is whats screwing up on android devices
-          //For now I have placed the line beneath so the app doesnt freakout
-          coordinate={{latitude: 0, longitude: 0}}
-          //coordinate={fake_location}
-
-          //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
-          //rotation = {}
-          anchor={{ x: 0.5, y: 0.5 }}
-          flat={true}
-          title="Driver Location"
-          //rotation={location.heading}
-        >
-          <View>
-            <FontAwesome5 name="car" size={24} color="red" />
-            <Text style = {{
-             
-              fontSize: 15, 
-              fontWeight: 'bold', 
-              }}>{Math.ceil(duration)} mins </Text>  
-          </View>
-        </Marker>
-      );
-    };
   
     /**
      * Returns Map View
@@ -298,27 +278,56 @@ const Map = ({ route}) => {
             }}
           />
          
-          <CarIcon />
-          {coordinates.map((coord, index) => (
+         
+         {/**
+            * Car Icon to display car in the map
+          */}
+          {location && (
+             <Marker
+          
+             coordinate={location}
+             //SHIVA this is keane ^^^ The above line is whats screwing up on android devices
+             //For now I have placed the line beneath so the app doesnt freakout
+             //coordinate={{latitude: 0, longitude: 0}}
+             //coordinate={fake_location}
+   
+             //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
+             //rotation = {}
+             anchor={{ x: 0.5, y: 0.5 }}
+             flat={true}
+             title="Driver Location"
+             //rotation={location.heading}
+           >
+             <View>
+               <FontAwesome5 name="car" size={24} color="red" />
+               <Text style = {{
+                
+                 fontSize: 15, 
+                 fontWeight: 'bold', 
+                 }}>{Math.ceil(duration)} mins </Text>  
+             </View>
+             </Marker>
+          )}
+
+          
+          {
+          /**
+           * Putting Destination in the Map
+           */}
+          {coordinates && coordinates.map((coord, index) => (
           <Marker key={index} coordinate={coord} title={deliveryAddress} >
              <View>
                      <Entypo name="location-pin" size={24} color="red" />
                  </View>
           </Marker>
         ))}
-           {/**
-          { coordinates.map(coordinate =>{
-            return(
-              <Marker 
-              key={coordinate.latitude}
-              coordinate={{latitude: coordinate.latitude, longitude: coordinate.longitude}}>
-                 <View>
+
+          {/*deliveryAddress &&(<Marker  coordinate={deliveryAddress}  >
+             <View>
                      <Entypo name="location-pin" size={24} color="red" />
                  </View>
-              </Marker>
-            )
-            })}
-             */}
+          </Marker>)*/}
+           
         </MapView>
       </View>
     );
@@ -328,6 +337,7 @@ const Map = ({ route}) => {
    */
   function renderDestinationHeader(){
     return (
+      
       <View
       style = {{
         position: 'absolute',
@@ -340,6 +350,7 @@ const Map = ({ route}) => {
       
       }}
       >
+         {!deliveryAddress &&(
         <View
         style = {{
           flexDirection: 'row',
@@ -395,7 +406,7 @@ const Map = ({ route}) => {
 
         
         </View>
-
+  )}
       </View>
     )
   }
@@ -412,7 +423,7 @@ const Map = ({ route}) => {
           justifyContent: 'center'
         }}>
           <StatusBar style = "light"/>
-          <BottomSheet/>
+          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder}/>
         </View>
         
         
@@ -422,7 +433,7 @@ const Map = ({ route}) => {
   /**
    * Returning Main Map
    */
-  return <View style={{ flex: 1 }}>
+  return <View style={{ flex: 1 }} >
     
     {renderMap()}
     {renderDestinationHeader()}

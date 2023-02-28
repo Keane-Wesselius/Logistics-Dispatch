@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   });
  */
 
-const Sign_in = ({ navigation }) => {
+const Sign_in = ({ navigation, route }) => {
 	// let ws = new WebSocket("ws://");
 	// //onopen happens when the websocket connects
 	// ws.onopen = () => { };
@@ -195,6 +195,10 @@ const Sign_in = ({ navigation }) => {
 			catch(error)
 			{
 				alert("Connection error, check that you are connected to the internet");
+				
+					navigation.navigate('Home')
+					 console.log('shiva')
+				 
 			}
 		} else {
 			alert("Invalid email");
