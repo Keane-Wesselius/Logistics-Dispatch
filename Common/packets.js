@@ -395,15 +395,13 @@
 	}
 
 	class GetLinkedItems extends Packet {
-		constructor(supplierId, token = null) {
+		constructor(token = null) {
 			super(PacketTypes.GET_LINKED_ITEMS, token);
-
-			this.supplierId = supplierId;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedItems(tryGet(jsonObject, Constants.SUPPLIER_ID), tryGet(jsonObject, Constants.TOKEN));
+			return new GetLinkedItems(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
