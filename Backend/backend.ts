@@ -447,21 +447,21 @@ wss.on("connection", function connection(ws) {
       packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS
     ) {
       if (clientUserData.isDriver()) {
-        database?.getAllCompletedOrdersByDriver().then((orders) => {
+        database?.getAllCompletedOrdersByDriver(clientUserData.id).then((orders) => {
           sendIfNotNull(
             ws,
             new Packets.SetAllCompletedOrders(JSON.stringify(orders))
           );
         });
       } else if (clientUserData.isMerchant()) {
-        database?.getAllCompletedOrdersByMerchant().then((orders) => {
+        database?.getAllCompletedOrdersByMerchant(clientUserData.id).then((orders) => {
           sendIfNotNull(
             ws,
             new Packets.SetAllCompletedOrders(JSON.stringify(orders))
           );
         });
       } else if (clientUserData.isSupplier()) {
-        database?.getAllCompletedOrdersBySupplier().then((orders) => {
+        database?.getAllCompletedOrdersBySupplier(clientUserData.id).then((orders) => {
           sendIfNotNull(
             ws,
             new Packets.SetAllCompletedOrders(JSON.stringify(orders))

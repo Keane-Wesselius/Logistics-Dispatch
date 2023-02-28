@@ -65,12 +65,26 @@ const Orders = (props) => {
       
           
         <View>
-          <Text>Buyer ID: {props.buyerId}</Text>
+          
+          <Text>Estimated Delivery Date: {props.estimatedDeliveryDate}</Text>
+          <Text>Start Address: {props.startAddress}</Text>
+          <Text>Shipping Address: {props.shippingAddress}</Text>
+          <Text>Maximum Delivery Price: {props.maximumDeliveryPrice}</Text>
+          <Text>MerchantId: {props.merchantId}</Text>
+          <Text>Minimum Delivery Price: {props.minimumDeliveryPrice}</Text>
+          {/*<Text>Pending Date: {props.pendingDate}</Text>
+          <Text>Pending Time: {props.pendingTime}</Text>
+    <Text>Status: {props.status}</Text>*/}
+          <Text>SupplierId: {props.supplierId}</Text>
+          <Text>TotalCost : {props.totalCost }</Text>
+          <Text>Items: </Text>
+          <Text>{props.items}</Text>
+          
           {/*<Text>Shipping Name: {props.shippingName}</Text>
           <Text>Shipping Address: {props.shippingAddress}</Text>
           <Text>Shipping Info: {props.shippingInfo}</Text>
         <Text>Shipping Date: {props.shippingDate}</Text>*/}
-        
+
         </View>
     
     

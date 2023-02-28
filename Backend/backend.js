@@ -334,17 +334,17 @@ wss.on("connection", function connection(ws) {
         else if (isClientAuthenticated &&
             packetType == Packets.PacketTypes.GET_ALL_COMPLETED_ORDERS) {
             if (clientUserData.isDriver()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByDriver().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByDriver(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
             else if (clientUserData.isMerchant()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByMerchant().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersByMerchant(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
             else if (clientUserData.isSupplier()) {
-                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersBySupplier().then(function (orders) {
+                database === null || database === void 0 ? void 0 : database.getAllCompletedOrdersBySupplier(clientUserData.id).then(function (orders) {
                     sendIfNotNull(ws, new Packets.SetAllCompletedOrders(JSON.stringify(orders)));
                 });
             }
