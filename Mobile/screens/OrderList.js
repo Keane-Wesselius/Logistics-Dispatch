@@ -30,17 +30,22 @@ const OrderList = ({navigation, props, route}) => {
   }, [isFocused]);
 
 	let orders_json = [];
-
+  let allOrders;
 	global.ws.onmessage = (response) => {
 		const packet = response.data;
 		console.log(packet);
-
-		if (Packets.getPacketType(packet) === Packets.PacketTypes.GET_ALL_CONFIRMED_ORDERS) {
+    //console.log("shiva");
+		if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_CONFIRMED_ORDERS) {
 			console.log("GOT CONFIRMED ORDERS");
+      //console.log("shiva");
 			//const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
 			//orders_json = setLinkedOrdersPacket;
       
-			console.log("packet: " + packet);
+			//console.log("packet: " + packet);
+      const json_obj = JSON.parse(packet);
+      //console.log(json_obj);
+      allOrders = json_obj.data;
+      //rconsole.log(allOrders)
 		}
 	};
 
@@ -50,6 +55,7 @@ const OrderList = ({navigation, props, route}) => {
  // navigation.navigate('Map', {
   //  deliveryAddress: 'shiva'
  // });
+ 
   //getting removeorder passed from Map after complete order is pressed
   const [removeOrder, setRemoveOrder] = useState(null);
   
@@ -61,8 +67,7 @@ const OrderList = ({navigation, props, route}) => {
   }, [route.params]);
   
 
-  const filteredOrders = orders_jsons.filter((order) => order.buyerId !== removeOrder);
-  
+  const filteredOrders = orders_json.filter((order) => order.buyerId !== removeOrder);
   //generating dates in between 1-15 days
   const dates = eachWeekOfInterval({
     start: subDays(new Date(), 1),
@@ -114,7 +119,7 @@ const OrderList = ({navigation, props, route}) => {
     </View>
       <View style = {styles.items}>
       {/**List of all orders with Order component */}
-      {filteredOrders.map((order) => (
+      {orders_json.map((order) => (
       <Orders 
       key={order.buyerId}
       buyerId={order.buyerId}
@@ -133,12 +138,14 @@ const OrderList = ({navigation, props, route}) => {
    
     </ScrollView>  
 
-</View>
+  </View>
  
   )
 }
 
 export default OrderList
+
+
 const styles = StyleSheet.create({
     heading:{
       marginTop:'15%',
@@ -181,7 +188,3 @@ const styles = StyleSheet.create({
     }
 })
 
-{/** Todays orders 
-
-
-*/}
