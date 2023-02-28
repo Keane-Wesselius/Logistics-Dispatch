@@ -320,8 +320,7 @@ wss.on("connection", function connection(ws) {
 					sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
 				});
 			} else if (clientUserData.isMerchant()) {
-				const getItemPacket = Packets.GetLinkedItems.fromJSONString(data);
-				database?.getItemsBySupplier(getItemPacket.supplierId).then((items) => {
+				database?.getAllItems().then((items) => {
 					sendIfNotNull(ws, new Packets.SetLinkedItems(JSON.stringify(items)));
 				});
 			} else {
@@ -384,6 +383,20 @@ wss.on("connection", function connection(ws) {
 			} else if (updateStatus.status == Packets.Status.REJECTED) {
 				// database?.(updateStatus.orderID);
 				// TODO
+			}
+		} else if (packetType == Packets.PacketTypes.UPDATE_ITEM) {
+			if (clientUserData?.isSupplier()) {
+				const updateItemPacket = Packets.UpdateItem.fromJSONString(data);
+
+				const item = new ItemData(updateItemPacket.itemId, updateItemPacket, clientUserData.id);
+
+				database?.updateItem(item).then((updatedSuccessfully) => {
+					if (updatedSuccessfully) {
+						sendIfNotNull(ws, new Packets.ItemUpdateSuccess().toString());
+					} else {
+						sendIfNotNull(ws, new Packets.ItemUpdateFailed().toString());
+					}
+				});
 			}
 
 			//Creating accounts and adding them to the database
