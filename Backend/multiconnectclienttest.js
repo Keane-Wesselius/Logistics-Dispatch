@@ -1,6 +1,20 @@
 const Packets = require("../Common/packets");
 const WebSocket = require("ws");
 
+// const testParameter = "test";
+
+// class Test {
+// 	constructor(test) {
+// 		this[testParameter] = test;
+// 	}
+// }
+
+// const test = new Test("12341421");
+// console.log(test.test);
+// console.log(JSON.stringify(test));
+
+// process.exit();
+
 let token = null;
 setTimeout(() => {
 	const ws = new WebSocket((address = "ws://127.0.0.1:5005"));

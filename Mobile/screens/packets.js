@@ -47,7 +47,7 @@
 
 		UPDATE_ORDER_STATUS: "updateStatus",
 		UPDATE_ORDER_STATUS_SUCCESS: "updateStatusSuccess",
-		UPDATE_ORDER_STATUS_FAILED: "updateStatusFailed",
+		UPDATE_ORDER_STATUS_FAILURE: "updateStatusFailure",
 
 		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 		SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
@@ -261,7 +261,6 @@
 		}
 
 		static fromJSONString(jsonString) {
-			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
 			const jsonObject = parseJSON(jsonString);
 			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.TOKEN));
 		}
@@ -338,7 +337,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+			return new GetAllCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
 		}
 	}
 
@@ -352,7 +351,7 @@
 		}
 	}
 
-	class UpdateStatus extends Packet {
+	class UpdateOrderStatus extends Packet {
 		constructor(orderID, status, token = null) {
 			super(PacketTypes.UPDATE_ORDER_STATUS, token);
 
@@ -364,7 +363,27 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
+			return new UpdateOrderStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class UpdateOrderStatusSuccess extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ORDER_STATUS_SUCCESS);
+		}
+
+		static fromJSONString(jsonString) {
+			return new UpdateOrderStatusSuccess();
+		}
+	}
+
+	class UpdateOrderStatusFailure extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ORDER_STATUS_FAILURE);
+		}
+
+		static fromJSONString(jsonString) {
+			return new UpdateOrderStatusFailure();
 		}
 	}
 
@@ -383,7 +402,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new AddItem(itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -414,7 +433,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateItem(itemId = tryGet(jsonObject, ItemValues.ITEM_ID), itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -435,7 +454,7 @@
 		}
 
 		static fromJSONString(jsonString) {
-			return new SetLinkedOrders(jsonString);
+			return new SetLinkedItems(jsonString);
 		}
 	}
 
@@ -507,7 +526,9 @@
 	exports.SetUserData = SetUserData;
 	exports.Status = Status;
 	exports.UpdateItem = UpdateItem;
-	exports.UpdateStatus = UpdateStatus;
+	exports.UpdateOrderStatus = UpdateOrderStatus;
+	exports.UpdateOrderStatusFailure = UpdateOrderStatusFailure;
+	exports.UpdateOrderStatusSuccess = UpdateOrderStatusSuccess;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;
