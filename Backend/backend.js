@@ -460,10 +460,8 @@ wss.on("connection", function connection(ws) {
         }
         else if (isClientAuthenticated &&
             packetType == Packets.PacketTypes.GET_USER_DATA) {
-            console.log(clientUserData.email);
             database === null || database === void 0 ? void 0 : database.getUserData(clientUserData.email).then(function (object) {
                 sendIfNotNull(ws, new Packets.SetUserData(JSON.stringify(object)));
-                console.log(object);
             });
             //Creating accounts and adding them to the database
         }
