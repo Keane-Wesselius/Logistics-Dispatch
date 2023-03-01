@@ -8,7 +8,7 @@ import {
   CollapseBody,
 } from "accordion-collapse-react-native";
 import Packets, { GetAllCompletedOrders } from "../screens/packets";
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from "react-native";
 
 let allOrders = [];
 
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
 
   order: {
-    flexDirection: "row",
+    // flexDirection: "row",
     justifyContent: "space-around",
     marginVertical: 5,
     padding: 10,
