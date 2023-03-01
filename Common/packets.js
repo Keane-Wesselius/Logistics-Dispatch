@@ -25,6 +25,7 @@
 		DRIVER_ID: "driverId",
 		STATUS: "status",
 		TOKEN: "token",
+		ADDRESS: "address",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -67,6 +68,10 @@
 		UPDATE_ITEM: "updateItem",
 		UPDATE_ITEM_SUCCESS: "updateItemSuccess",
 		UPDATE_ITEM_FAILED: "updateItemFailed",
+
+		PLACE_ORDER: "placeOrder",
+		PLACE_ORDER_SUCCESS: "placeOrderSuccess",
+		PLACE_ORDER_FAILURE: "placeOrderFailure",
 	};
 
 	const Status = {
@@ -202,18 +207,19 @@
 	}
 
 	class CreateAccountPacket extends Packet {
-		constructor(name, email, password, acctype) {
+		constructor(name, email, password, acctype, address) {
 			super(PacketTypes.CREATE_ACCOUNT);
 
 			this.name = name;
 			this.email = email;
 			this.password = password;
 			this.acctype = acctype;
+			this.address = address;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE));
+			return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.ADDRESS));
 		}
 	}
 
@@ -521,6 +527,51 @@
 		}
 	}
 
+	// items contains
+	// name: string
+	// quantity: int
+	// price: double
+
+	// 'estimatedDeliveryDate' is new Date().toString();
+	class PlaceOrder extends Packet {
+		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+			super(PacketTypes.PLACE_ORDER, jsonString);
+
+			this.merchantId = merchantId;
+			this.supplierId = supplierId;
+			this.items = items;
+			this.startingAddress = startingAddress;
+			this.endingAddress = endingAddress;
+			this.estimatedDeliveryDate = estimatedDeliveryDate;
+			this.minimumDeliveryPrice = minimumDeliveryPrice;
+			this.maximumDeliveryPrice = maximumDeliveryPrice;
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrder(jsonString);
+		}
+	}
+
+	class PlaceOrderSuccess extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.PLACE_ORDER_SUCCESS, token);
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrderSuccess();
+		}
+	}
+
+	class PlaceOrderFailure extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.PLACE_ORDER_FAILURE, token);
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrderFailure();
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AddItem = AddItem;
@@ -540,6 +591,9 @@
 	exports.ItemValues = ItemValues;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.PlaceOrder = PlaceOrder;
+	exports.PlaceOrderFailure = PlaceOrderFailure;
+	exports.PlaceOrderSuccess = PlaceOrderSuccess;
 	exports.RemoveItem = RemoveItem;
 	exports.SetAllCompletedOrders = SetAllCompletedOrders;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;

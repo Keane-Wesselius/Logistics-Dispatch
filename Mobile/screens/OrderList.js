@@ -11,7 +11,7 @@ import Packets, { GetLinkedOrders } from "./packets";
 import Item from '../components/Item'
 import { ActivityIndicator } from 'react-native';
 
-
+let counter = 0;
 let allOrders = [];
 const OrderList = ({navigation, props, route}) => {
   //dealing with having to change
@@ -135,9 +135,10 @@ const OrderList = ({navigation, props, route}) => {
     </View>
       <View style = {styles.items}>
       {/**List of all orders with Order component */}
-      {allOrders.map((order) => (
+      {allOrders.map((order, index) => (
       <Orders 
       key={order._id}
+      orderNumber = {index +1}
       orderId = {order._id}
       driverId = {order.driverId}
       confirmedDate = {order.confirmed_date}
