@@ -8,6 +8,7 @@ import {
   CollapseBody,
 } from "accordion-collapse-react-native";
 import Packets, { GetAllCompletedOrders } from "../screens/packets";
+import { ActivityIndicator } from 'react-native';
 
 let allOrders = [];
 
@@ -101,6 +102,10 @@ function CompletedDelivery() {
     }
     setActiveSections([...active]);
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <ScrollView style={styles.container}>

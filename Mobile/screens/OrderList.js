@@ -9,6 +9,8 @@ import { useIsFocused } from '@react-navigation/native';
 import PagerView from 'react-native-pager-view';
 import Packets, { GetLinkedOrders } from "./packets";
 import Item from '../components/Item'
+import { ActivityIndicator } from 'react-native';
+
 
 let allOrders = [];
 const OrderList = ({navigation, props, route}) => {
@@ -95,6 +97,11 @@ const OrderList = ({navigation, props, route}) => {
       acc.push(allDays);
       return acc;
     }, []);
+
+    if (loading) {
+      return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+
   return (
     <View style = {styles.container}>
     <Text style = {styles.heading}>List of Orders</Text>

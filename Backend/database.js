@@ -118,6 +118,25 @@ class DatabaseHandler {
 		}
 	}
 
+	async getName(desktopID){
+		const result = await this.dbClient.db("main").collection("users").findOne({ supplierId: new ObjectId(desktopID) });
+		if (!result)
+		{
+			result = await this.dbClient.db("main").collection("users").findOne({ merchantId: new ObjectId(desktopID) });
+		}
+
+		if(result)
+		{
+			if (result.name)
+			{
+				return result.name;
+			}
+		}
+		else{
+			return null;
+		}
+	}
+
 
 
 	//Database call to create a new user
