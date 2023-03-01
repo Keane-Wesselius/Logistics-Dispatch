@@ -7,23 +7,29 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-const Packets = require ("./packets");
+const Packets = require("./packets");
 
 const Signup = ({ navigation }) => {
   //Replace websocket IP with the IP of the machine running Backend.js
-//   let ws = new WebSocket("ws://10.0.0.183:5005/");
+  //   let ws = new WebSocket("ws://10.0.0.183:5005/");
 
-//   ws.onopen = () => {};
-//   ws.onclose = () => console.log("ws closed: Signup page");
+  //   ws.onopen = () => {};
+  //   ws.onclose = () => console.log("ws closed: Signup page");
 
   global.ws.onmessage = (response) => {
     const packet = response.data;
     console.log(packet);
 
-    if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
-      alert("Account created successfully, returning to login")
+    if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS
+    ) {
+      alert("Account created successfully, returning to login");
       navigation.navigate("Login");
-    } else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
+    } else if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.ACCOUNT_CREATE_FAILED
+    ) {
       alert("Error creating account");
     }
   };
@@ -33,7 +39,8 @@ const Signup = ({ navigation }) => {
   };
 
   const accType = "driver";
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setlastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -42,13 +49,18 @@ const Signup = ({ navigation }) => {
     if (password == confirmPassword) {
       //THERE IS NO DATA FOR PROFILE PICTURE BEING SENT TO BACKEND
       //SHOULD WE JUST STORE THE PROFILE PICTURE ON THE DEVICE?
-      const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
+      const accountPacket = new Packets.CreateAccountPacket(
+        firstName,
+        lastName,
+        email,
+        password,
+        accType
+      );
       console.log("Account create string: " + accountPacket.toString());
-      try{
-      global.ws.send(accountPacket.toString());
-      }
-      catch(error){
-          alert("Connection error, check that you are connected to the internet");
+      try {
+        global.ws.send(accountPacket.toString());
+      } catch (error) {
+        alert("Connection error, check that you are connected to the internet");
       }
     } else {
       alert("Error: passwords do not match");
@@ -60,18 +72,28 @@ const Signup = ({ navigation }) => {
       <Text style={styles.heading}>Create a New Account</Text>
 
       <View style={styles.name}>
-        <Text>Name</Text>
+        <Text>First Name</Text>
         <TextInput
           style={styles.input}
-          value={name}
+          value={firstName}
           placeholder="name"
-          onChangeText={setName}
+          onChangeText={setFirstName}
+        />
+      </View>
+
+      <View style={styles.name}>
+        <Text>Last Name</Text>
+        <TextInput
+          style={styles.input}
+          value={lastName}
+          placeholder="name"
+          onChangeText={setlastName}
         />
       </View>
 
       <View style={styles.email}>
         <Text>Email</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           value={email}
           placeholder="email"

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import Orders from '../components/Orders';
+import Orders from "../components/Orders";
 import {
   Collapse,
   CollapseHeader,
@@ -14,34 +14,31 @@ let allOrders = [];
 function CompletedDelivery() {
   let data = null;
   const [loading, setLoading] = useState(true);
-  try{
+  try {
     const Packet = new Packets.GetAllCompletedOrders();
     //console.log(Packet);
     global.ws.send(Packet.toString());
-    }
-    catch(error)
-    {
-      alert("Connection error, check that you are connected to the internet");
-       
-    }
-
+  } catch (error) {
+    alert("Connection error, check that you are connected to the internet");
+  }
 
   global.ws.onmessage = (response) => {
     console.log("Got a packet");
-		const packet = response.data;
-		//console.log(packet);
+    const packet = response.data;
+    //console.log(packet);
 
-		if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS) {
+    if (
+      Packets.getPacketType(packet) ===
+      Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS
+    ) {
       //console.log("packet: " + packet);
       const json_obj = JSON.parse(packet);
       //console.log(json_obj);
-      
-      
+
       allOrders = json_obj.data;
       setLoading(false);
-		} 
-	};
-
+    }
+  };
 
   console.log(allOrders);
 
@@ -89,13 +86,9 @@ function CompletedDelivery() {
   //   ],
   // };
   let orders = [];
-  if (data != null)
-  {
+  if (data != null) {
     orders = data;
   }
-
- 
-
 
   const [activeSections, setActiveSections] = useState([]);
 
@@ -126,18 +119,16 @@ function CompletedDelivery() {
                 {/* </View> */}
               </View>
             </CollapseHeader>
-            
+
             <CollapseBody>
               <View style={styles.orderDetails}>
                 {/* <View> */}
-                <Text style={styles.each}>order ID: {order.driverId}</Text>
+                <Text style={styles.each}>Order ID: {order.driverId}</Text>
 
-                <Text style={styles.each}>supplier: {order.supplierId}</Text>
+                <Text style={styles.each}>Supplier: {order.supplierId}</Text>
                 {/*<Text style={styles.each}>merchant: {order.}</Text>*/}
-                
               </View>
             </CollapseBody>
-          
           </Collapse>
         );
       })}
