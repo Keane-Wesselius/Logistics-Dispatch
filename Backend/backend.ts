@@ -215,7 +215,7 @@ wss.on("connection", function connection(ws) {
 			if (activeConnection.ws != ws) {
 				activeConnection.ws = ws;
 			}
-		} else if (packetType != Packets.PacketTypes.LOGIN && packetType != Packets.PacketTypes.CREATE_ACCOUNT) {
+		} else if (packetType != Packets.PacketTypes.LOGIN && packetType != Packets.PacketTypes.CREATE_ACCOUNT && packetType != Packets.PacketTypes.CREATE_DRIVER_ACCOUNT) {
 			console.error("Failed to get active connection from WebSocket for packet which requires active connection. Closing connection.");
 			ws.close();
 			return;
