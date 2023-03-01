@@ -20,7 +20,7 @@ function SupplierHome() {
 			<video autoPlay loop muted>
 				<source src={HomeVideo} type='video/mp4' />
 			</video>
-            <h1>Welcome Merchant</h1>
+            <h1>Welcome Supplier</h1>
 			<div classname='supplier-btns'>
 				<button className='btns' onClick={() => navigate('/browse')}>
 					My Items
