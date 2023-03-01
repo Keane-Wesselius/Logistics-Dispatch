@@ -353,7 +353,7 @@ class DatabaseHandler {
 				return true;
 			}
 			else {
-				console.log("Item Confirmed: " + orderID);
+				console.log("Item Not Confirmed");
 			}
 
 		}
@@ -446,7 +446,7 @@ class DatabaseHandler {
 
 		if (result) {
 			if (result.status == "confirmed") {
-				updated = result;
+				let updated = result;
 				updated.status = "accepted";
 				updated.driverId = ObjectId(driverID);
 
@@ -457,11 +457,11 @@ class DatabaseHandler {
 
 				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 				if (updatedResult.modifiedCount > 0) {
-					console.log("Item quantity updated");
+					console.log("Accepted order: " + orderID);
 					return true;
 				}
 				else {
-					console.log("Item quantity not updated");
+					console.log("Accept order failed");
 				}
 			}
 
@@ -569,11 +569,11 @@ class DatabaseHandler {
 				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
 				if (updatedResult.modifiedCount > 0) {
-					console.log("Item quantity updated");
+					console.log("Item Completed: " + orderID);
 					return true;
 				}
 				else {
-					console.log("Item quantity not updated");
+					console.log("Item Not Completed");
 					return false;
 				}
 			}
