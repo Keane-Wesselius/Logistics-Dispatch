@@ -105,14 +105,12 @@ function sendIfNotNull(webSocket : WebSocket, data : string | object | null) {
 
 function getActiveConnectionByWebSocketOrToken(webSocket : WebSocket, token : string | null = null) {
 	for (const activeConnection of activeConnections) {
-		console.log(JSON.stringify(activeConnection));
-
-		if (activeConnection.ws == webSocket) {
+		if (token != null && activeConnection.token === token) {
+			console.log("Got ActiveConnection by token: " + activeConnection.token);
+			return activeConnection;
+		} else if (activeConnection.userData != null && activeConnection.ws == webSocket) {
 			// TODO: Print identifying WebSocket information, such as IP address or MAC Address, etc.
 			console.log("Got ActiveConnection by WebSocket: ");
-			return activeConnection;
-		} else if (token != null && activeConnection.token === token) {
-			console.log("Got ActiveConnection by token: " + activeConnection.token);
 			return activeConnection;
 		}
 	}
@@ -356,6 +354,7 @@ wss.on("connection", function connection(ws) {
 				console.log("Got invalid account type for action GET_LINKED_ITEMS: " + clientUserData.accountType);
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.ADD_ITEM) {
+			console.log(JSON.stringify(clientUserData));
 			// Adding new items into the database, suppliers only
 			if (clientUserData.isSupplier()) {
 				const addItemPacket = Packets.AddItem.fromJSONString(data);
@@ -452,7 +451,7 @@ wss.on("connection", function connection(ws) {
 			// Creating accounts and adding them to the database
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
-			if (database != null && accountPacket.name != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
+			if (database != null && accountPacket.name != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null && accountPacket.address != null) {
 				database.createNewUser(accountPacket).then((createdAccount) => {
 					if (createdAccount) {
 						sendIfNotNull(ws, new Packets.AccountCreateSuccessPacket().toString());
@@ -480,6 +479,23 @@ wss.on("connection", function connection(ws) {
 				});
 			} else {
 				sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
+			}
+		} else if (packetType == Packets.PacketTypes.PLACE_ORDER) {
+			// Creating accounts and adding them to the database
+			const placeOrderPacket = JSON.parse(data.toString());
+
+			// Not requiring profile picture explicitly here, as it will save data sending the default from mobile.
+			if (database != null && placeOrderPacket.merchantId != null && placeOrderPacket.supplierId != null && placeOrderPacket.items != null && placeOrderPacket.startingAddress != null && placeOrderPacket.endingAddress != null && placeOrderPacket.estimatedDeliveryDate != null && placeOrderPacket.minimumDeliveryPrice != null && placeOrderPacket.maximumDeliveryPrice != null) {
+				database.placeOrder(placeOrderPacket).then((placedOrderSuccessfully) => {
+					if (placedOrderSuccessfully) {
+						sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
+					} else {
+						// TODO: The error is assumed here, but we should really say exactly what went wrong (existing username, email, etc).
+						sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
+					}
+				});
+			} else {
+				sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
 			}
 		} else {
 			console.log("Received invalid or unhandled packet from client: " + data.toString());

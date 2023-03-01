@@ -6,7 +6,7 @@ let fs = require('fs');
 //by default bcrypt recommends 10 saltRounds using a 2gz processor that will give us roughly 10 hashs/second
 //going too high on this number could cause a hash to run for multiple days, best to leave it as it is
 const saltRounds = 10;
-const databaseName = "main";
+const databaseName = "main2";
 const itemCollection = "items";
 const orderCollection = "orders";
 const userCollection = "users";
