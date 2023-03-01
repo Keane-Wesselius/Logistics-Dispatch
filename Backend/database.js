@@ -6,7 +6,10 @@ let fs = require('fs');
 //by default bcrypt recommends 10 saltRounds using a 2gz processor that will give us roughly 10 hashs/second
 //going too high on this number could cause a hash to run for multiple days, best to leave it as it is
 const saltRounds = 10;
-
+const databaseName = "main2";
+const itemCollection = "items";
+const orderCollection = "orders";
+const userCollection = "users";
 // let uri = null;
 // let dbClient = null;
 
@@ -104,7 +107,7 @@ class DatabaseHandler {
 			// TODO: Add support for getting user data via either email or username
 			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
 			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
-			const result = await this.dbClient.db("main").collection("users").findOne({ email: userEmail });
+			const result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ email: userEmail });
 
 			if (result) {
 				console.log("User found");
@@ -119,10 +122,10 @@ class DatabaseHandler {
 	}
 
 	async getName(desktopID){
-		const result = await this.dbClient.db("main").collection("users").findOne({ supplierId: new ObjectId(desktopID) });
+		const result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ supplierId: new ObjectId(desktopID) });
 		if (!result)
 		{
-			result = await this.dbClient.db("main").collection("users").findOne({ merchantId: new ObjectId(desktopID) });
+			result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ merchantId: new ObjectId(desktopID) });
 		}
 
 		if(result)
@@ -145,7 +148,7 @@ class DatabaseHandler {
 
 		const hashedPassword = await bcrypt.hash(newUser.password, saltRounds)
 		//Checks to see if the username and password already exists in the database 
-		const alreadyExists = await this.dbClient.db("main").collection("users").findOne({ email: newUser.email });
+		const alreadyExists = await this.dbClient.db(databaseName).collection(userCollection).findOne({ email: newUser.email });
 
 		//This case refers to when the user already exists
 		if (alreadyExists) {
@@ -169,7 +172,7 @@ class DatabaseHandler {
 				hashedUser.address = newUser.address;
 			}
 
-			const result = await this.dbClient.db("main").collection("users").insertOne(hashedUser);
+			const result = await this.dbClient.db(databaseName).collection(userCollection).insertOne(hashedUser);
 			if (result) {
 				console.log("New user created");
 				return true;
@@ -227,7 +230,7 @@ class DatabaseHandler {
 		}
 		orderDetails.totalCost = roundMoney(total);
 
-		const result = await this.dbClient.db("main").collection("orders").insertOne(orderDetails);
+		const result = await this.dbClient.db(databaseName).collection(orderCollection).insertOne(orderDetails);
 
 		if (result) {
 			console.log("Order placed succesfully");
@@ -248,7 +251,7 @@ class DatabaseHandler {
 	//To get all orders that a specific supplier can accept
 	//Must pass into the supplierId
 	async getAllPendingOrdersBySupplierId(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "pending", supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "pending", supplierId: new ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
@@ -270,7 +273,7 @@ class DatabaseHandler {
 
 	//Find and return all the pending orders related to a specific merchant
 	async getAllPendingOrdersByMerchantId(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "pending", merchantId: new ObjectId(merchantID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "pending", merchantId: new ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
@@ -294,7 +297,7 @@ class DatabaseHandler {
 
 	//This is what happens when a supplier confirms an order
 	async confirmOrder(orderID) {
-		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": new ObjectId(orderID) });
+		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result.status == "pending") {
 			updated = result;
@@ -304,7 +307,7 @@ class DatabaseHandler {
 			updated.confirmed_date = getDate();
 			updated.confirmed_time = getTime();
 
-			let updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
+			let updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
 			if (updatedResult.modifiedCount > 0) {
 				console.log("Item quantity updated");
@@ -327,7 +330,7 @@ class DatabaseHandler {
 
 
 	async getAllConfirmedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed", supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "confirmed", supplierId: new ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
@@ -349,7 +352,7 @@ class DatabaseHandler {
 	}
 
 	async getAllConfirmedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed", merchantId: new ObjectId(merchantID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "confirmed", merchantId: new ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
@@ -374,7 +377,7 @@ class DatabaseHandler {
 
 	//To find orders that drivers can accept
 	async getAllConfirmedOrdersForDriver() {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "confirmed" });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "confirmed" });
 
 		const results = await cursor.toArray();
 
@@ -400,7 +403,7 @@ class DatabaseHandler {
 
 	//This is what happens when a driver accepts an order 
 	async acceptOrder(orderID, driverID) {
-		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": new ObjectId(orderID) });
+		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result) {
 			if (result.status == "confirmed") {
@@ -413,7 +416,7 @@ class DatabaseHandler {
 				updated.accepted_time = getTime();
 
 
-				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
+				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
 					return true;
@@ -437,7 +440,7 @@ class DatabaseHandler {
 
 
 	async getAllAcceptedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "accepted", supplierId: new ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
@@ -458,7 +461,7 @@ class DatabaseHandler {
 	}
 
 	async getAllAcceptedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", merchantId: new ObjectId(merchantID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "accepted", merchantId: new ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
@@ -480,7 +483,7 @@ class DatabaseHandler {
 
 	//To find orders that drivers have accepted
 	async getAllAcceptedOrdersByDriver(driverID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "accepted", driverId: new ObjectId(driverID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "accepted", driverId: new ObjectId(driverID) });
 
 		const results = await cursor.toArray();
 
@@ -505,7 +508,7 @@ class DatabaseHandler {
 
 	async completeOrder(orderID) {
 		// let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
-		let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": new ObjectId(orderID) });
+		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result) {
 
@@ -517,7 +520,7 @@ class DatabaseHandler {
 				updated.completed_date = getDate();
 				updated.completed_time = getTime();
 
-				const updatedResult = await this.dbClient.db("main").collection("orders").updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
+				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
 				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
@@ -546,7 +549,7 @@ class DatabaseHandler {
 
 
 	async getAllCompletedOrdersByDriver(driverID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", driverId: new ObjectId(driverID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "completed", driverId: new ObjectId(driverID) });
 
 		const results = await cursor.toArray();
 
@@ -567,7 +570,7 @@ class DatabaseHandler {
 	}
 
 	async getAllCompletedOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", merchantId: new ObjectId(merchantID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "completed", merchantId: new ObjectId(merchantID) });
 
 		const results = await cursor.toArray();
 
@@ -588,7 +591,7 @@ class DatabaseHandler {
 	}
 
 	async getAllCompletedOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ status: "completed", supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ status: "completed", supplierId: new ObjectId(supplierID) });
 
 		const results = await cursor.toArray();
 
@@ -610,7 +613,7 @@ class DatabaseHandler {
 	}
 
 	async getAllOrdersBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ supplierId: new ObjectId(supplierID) });
 		const results = await cursor.toArray();
 		if (results.length > 0) {
 			//////
@@ -627,7 +630,7 @@ class DatabaseHandler {
 	}
 
 	async getAllOrdersByMerchant(merchantID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ merchantId: new ObjectId(merchantID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ merchantId: new ObjectId(merchantID) });
 		const results = await cursor.toArray();
 		if (results.length > 0) {
 			//////
@@ -644,7 +647,7 @@ class DatabaseHandler {
 	}
 
 	async getAllOrdersByDriver(driverID) {
-		const cursor = await this.dbClient.db("main").collection("orders").find({ driverId: new ObjectId(driverID) });
+		const cursor = await this.dbClient.db(databaseName).collection(orderCollection).find({ driverId: new ObjectId(driverID) });
 		const results = await cursor.toArray();
 		if (results.length > 0) {
 			//////
@@ -661,7 +664,7 @@ class DatabaseHandler {
 	}
 
 	async cancelOrder(orderID) {
-		const result = await this.dbClient.db("main").collection("orders").deleteOne({ "_id": new ObjectId(orderID), status: "pending" });
+		const result = await this.dbClient.db(databaseName).collection(orderCollection).deleteOne({ "_id": new ObjectId(orderID), status: "pending" });
 		if (result.deletedCount > 0) {
 			console.log("Order was succesfully canceled");
 			return true;
@@ -702,7 +705,7 @@ class DatabaseHandler {
 	//Checks the database for the existance of the item then makes sure there is enough of the item to order
 	//Then updates the database to reflect that items have been sold
 	async updateItemQuantity(itemId, quantity) {
-		const result = await this.dbClient.db("main").collection("items").findOne({ "_id": new ObjectId(itemId) });
+		const result = await this.dbClient.db(databaseName).collection(itemCollection).findOne({ "_id": new ObjectId(itemId) });
 
 		if (result) {
 			console.log("found result");
@@ -710,7 +713,7 @@ class DatabaseHandler {
 				console.log("items available");
 				updated = result;
 				updated.quantity = result.quantity - quantity;
-				const updatedResult = await this.dbClient.db("main").collection("items").updateOne({ "_id": new ObjectId(itemId) }, { $set: updated });
+				const updatedResult = await this.dbClient.db(databaseName).collection(itemCollection).updateOne({ "_id": new ObjectId(itemId) }, { $set: updated });
 
 				if (updatedResult.modifiedCount > 0) {
 					console.log("Item quantity updated");
@@ -731,7 +734,7 @@ class DatabaseHandler {
 	}
 
 	async getAllItems() {
-		const cursor = await this.dbClient.db("main").collection("items").find();
+		const cursor = await this.dbClient.db(databaseName).collection(itemCollection).find();
 
 		const results = await cursor.toArray();
 
@@ -762,7 +765,7 @@ class DatabaseHandler {
 	//Function will insert a new item into the database, used for the supplier to add items to the database
 	async insertNewItem(itemInfo) {
 		itemInfo.postedDate = getDate();
-		const result = await this.dbClient.db("main").collection("items").insertOne(itemInfo);
+		const result = await this.dbClient.db(databaseName).collection(itemCollection).insertOne(itemInfo);
 
 		if (result.insertedCount > 0)
 		{
@@ -775,7 +778,7 @@ class DatabaseHandler {
 	}
 
 	async getItemsBySupplier(supplierID) {
-		const cursor = await this.dbClient.db("main").collection("items").find({ supplierId: new ObjectId(supplierID) });
+		const cursor = await this.dbClient.db(databaseName).collection(itemCollection).find({ supplierId: new ObjectId(supplierID) });
 
 
 		const results = await cursor.toArray();
@@ -797,7 +800,7 @@ class DatabaseHandler {
 	}
 
 	async updateItem(itemInfo) {
-		let result = await this.dbClient.db("main").collection("items").updateOne({ "_id": itemInfo._id }, { $set: itemInfo });
+		let result = await this.dbClient.db(databaseName).collection(itemCollection).updateOne({ "_id": itemInfo._id }, { $set: itemInfo });
 
 		if (result.modifiedCount > 0) {
 			console.log("Item was updated");
@@ -810,7 +813,7 @@ class DatabaseHandler {
 	}
 
 	async removeItem(itemID) {
-		const result = await this.dbClient.db("main").collection("items").deleteOne({ "_id": new ObjectId(itemID) });
+		const result = await this.dbClient.db(databaseName).collection(itemCollection).deleteOne({ "_id": new ObjectId(itemID) });
 		if (result.deletedCount > 0) {
 			console.log("Item was succesfully removed");
 			return true;
