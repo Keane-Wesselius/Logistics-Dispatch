@@ -220,6 +220,25 @@ class DatabaseHandler {
 
 		orderDetails.status = "pending";
 
+		let name = await this.getName(orderDetails.merchantId)
+		if (name)
+		{
+			orderDetails.merchantName = name;
+		}
+		else
+		{
+			return false;
+		}
+		name = await this.getName(orderDetails.supplierId)
+		if (name)
+		{
+			orderDetails.supplierName = name;
+		}
+		else
+		{
+			return false;
+		}
+
 
 		orderDetails.pendingDate = getDate();
 		orderDetails.pendingTime = getTime();
