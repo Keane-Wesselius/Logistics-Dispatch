@@ -28,21 +28,27 @@ const ASPECT_RATIO = width/height;
  * { route, navigation },
  */
 const Map = ({ route}) => {
-  //console.log("Map i guess?");
+  
   //getting delivery addresss from orderlist on press
  const [deliveryAddress, setDeliveryAddress] = useState(null);
+ const [startAddress, setStartAddress] = useState(null);
+ const [startAddressCoord, setStartAddressCoord] = useState(null);
+
+ //gets start and delivery address from orderlist when deliver is pressed
  const [orderId, setOrderId] = useState(null);
   useEffect(() => {
     if(route.params && route.params.deliveryAddress){
     setDeliveryAddress(route.params.deliveryAddress);
     setOrderId(route.params.orderId);
+    setStartAddress(route.params.startAddress);
     }
   
   }, [route.params]);
-  //console.log(route.params);
-// console.log(deliveryAddress);
-  //console.log(orderId);
-
+  // making start address waypoints
+  const waypoints = [startAddress];
+ 
+ 
+ 
   //clearing delivery Address
   function clearDeliveryAddress(){
     setDeliveryAddress('');
@@ -81,7 +87,7 @@ const Map = ({ route}) => {
     //console.log(result[0]);
     setDeliveryAddress(result[0]);
   }
-  console.log(deliveryAddress);
+ 
 
    <Text>{Math.ceil(duration)} mins </Text> 
    
@@ -89,12 +95,18 @@ const Map = ({ route}) => {
 
   const getLocationAsync = async () => {
     try {
-      let result = await Location.geocodeAsync(deliveryAddress);
+      let delivery_result = await Location.geocodeAsync(deliveryAddress);
+      let start_result = await Location.geocodeAsync(startAddress);
       let latlng = {
-        latitude: result[0].latitude,
-        longitude: result[0].longitude,
+        latitude:delivery_result[0].latitude,
+        longitude: delivery_result[0].longitude,
+      };
+      let latlng2 = {
+        latitude: start_result[0].latitude,
+        longitude:start_result[0].longitude,
       };
       setCoordinates([latlng]);
+      setStartAddressCoord([latlng2])
     } catch (error) {
       console.log(error);
     }
@@ -105,6 +117,7 @@ const Map = ({ route}) => {
       getLocationAsync();
     }
   }, [deliveryAddress]);
+  
   
   /***
    * Getting coordinates from a given array of addresses 
@@ -124,13 +137,12 @@ const Map = ({ route}) => {
       }
     }, [coordinates]);
 
-  */
+    */
   //sets destination address for destination marker
   const handleAddress = (text) => {
     setAddress(text);
   };
 
-  //console.log(coordinates);
 
  
 
@@ -160,7 +172,7 @@ const Map = ({ route}) => {
     // retry every 3 second if location yet not available
     timeoutId = setTimeout(getLocation, 3000);
   
-    //changing rotation of marker as we rotate the phone
+    //changing rotation of marker as we rotate the phone and move to destination route
     Location.watchPositionAsync(
     {
       accuracy: Location.Accuracy.High,
@@ -199,7 +211,7 @@ const Map = ({ route}) => {
 
     return Math.atan2(dy,dx) *180/ Math.PI;
   }
-
+  
   /**
    * Renders Map to Screen
    * @returns
@@ -232,7 +244,7 @@ const Map = ({ route}) => {
             destination={deliveryAddress}
             strokeColor = 'purple'
             strokeWidth= {3}
-            //waypoints = {coordinates}
+            waypoints = {waypoints}
             alternatives = {true}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
@@ -240,7 +252,7 @@ const Map = ({ route}) => {
             //optimizing waypoints
             optimizeWaypoints={true}
          
-            waypoints_times = {duration} 
+            //waypoints_times = {duration} 
             onReady = {result => {
               setDuration(result.duration)
 
@@ -291,6 +303,7 @@ const Map = ({ route}) => {
              title="Driver Location"
              //rotation={location.heading}
            >
+            {/**car marker */}
              <View>
                <FontAwesome5 name="car" size={24} color="red" />
                <Text style = {{
@@ -314,7 +327,14 @@ const Map = ({ route}) => {
                  </View>
           </Marker>
         ))}
-
+        {startAddressCoord && startAddressCoord.map((coord, index) => (
+          <Marker key={index} coordinate={coord} title={startAddress} >
+             <View>
+                  <Entypo name="location-pin" size={24} color="red" />
+              </View>
+          </Marker>
+        ))}
+           
           {/*deliveryAddress &&(<Marker  coordinate={deliveryAddress}  >
              <View>
                      <Entypo name="location-pin" size={24} color="red" />
