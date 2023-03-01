@@ -139,6 +139,28 @@ class DatabaseHandler {
 			return null;
 		}
 	}
+	
+
+	async updateProfilePicture(userID, picture){
+		let result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ "_id": new ObjectId(userID) });
+		
+		if (result)
+		{	updated = result;
+			updated.profilePicture = picture;
+
+			let updatedResult = await this.dbClient.db(databaseName).collection(userCollection).updateOne({ "_id": new ObjectId(userID) }, { $set: updated });
+
+			if (updatedResult.modifiedCount > 0) {
+				console.log("User profile picture updated");
+				return true;
+			}
+			else {
+				console.log("Error updating picture");
+			}
+		}
+		return false;
+	
+	}
 
 
 
@@ -324,7 +346,7 @@ class DatabaseHandler {
 
 			// TODO: Camelcase
 			updated.confirmed_date = getDate();
-			updated.confirmed_time = getTime();
+			//updated.confirmed_time = getTime();
 
 			let updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
@@ -432,7 +454,7 @@ class DatabaseHandler {
 
 
 				updated.accepted_date = getDate();
-				updated.accepted_time = getTime();
+				//updated.accepted_time = getTime();
 
 
 				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
@@ -537,7 +559,7 @@ class DatabaseHandler {
 
 
 				updated.completed_date = getDate();
-				updated.completed_time = getTime();
+				//updated.completed_time = getTime();
 
 				const updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
@@ -858,6 +880,7 @@ function roundMoney(num, decimalPlaces = 2) {
 
 function getDate() {
 	let d = new Date();
+	return d.toString();
 	return d.getFullYear() + "-" + ('0' + (d.getMonth() + 1)).slice(-2) + "-" + ('0' + d.getDate()).slice(-2);
 }
 
