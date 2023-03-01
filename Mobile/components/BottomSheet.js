@@ -36,18 +36,72 @@ const BottomSheet = (props) => {
         setIsSigning(false);
         scrollViewRef.current.setNativeProps({ scrollEnabled: true });
     };
-     */       
+     */  
+     // Called after ref.current.readSignature() reads a non-empty base64 string
+  const handleOK = (signature) => {
+    console.log(signature);
+    onOK(signature); // Callback from Component props
+  };
+
+  // Called after ref.current.readSignature() reads an empty string
+  const handleEmpty = () => {
+    console.log("Empty");
+  };
+
+  // Called after ref.current.clearSignature()
+  const handleClear = () => {
+    console.log("clear success!");
+  };
+
+  // Called after end of stroke
+  const handleEnd = () => {
+    signatureRef.current.readSignature();
+    //console.log(  signatureRef.current.readSignature())
+  };
+
+  // Called after ref.current.getData()
+  const handleData = (data) => {
+    console.log(data);
+  };  
+  
+  const saveSignature = async(signature)=>{
+    //const signature = await signatureRef.current.readSignature();
+    console.log('signature:', signature);
+    const path = FileSystem.cacheDirectory + "sign.png";
+    /*try{
+    await FileSystem.writeAsStringAsync(
+        path,
+        signature.replace("sign/png;base64,", ""),
+        { encoding: FileSystem.EncodingType.Base64 }
+      )
+        .then(() => FileSystem.getInfoAsync(path))
+        .then(console.log)
+        .catch(console.error);
+    }
+    catch(error){
+        console.error(error);
+    }*/
+}
+  /* 
     const saveSignature = async() =>{
         try {
+            // Get the signature data from the ref
             const signature = await signatureRef.current.readSignature();
-            // save signature data to a  database or file
-            //const signatureData = signature.encoded;
+            console.log('signature:', signature);
+            // Create a file URI for the signature image
             const signatureUri = FileSystem.documentDirectory + 'signature.png';
-            //writing in a file
-            //await FileSystem.writeAsStringAsync(signatureUri, signature, {
-              //  encoding: FileSystem.EncodingType.Base64,
-            //});
-            console.log("Signature saved: ",signatureUri );
+            // Convert the signature data to a base64-encoded PNG image
+            const base64Image = signature.replace('data:image/png;base64,', '');
+
+            // Write the signature image to a file in the local storage
+            await FileSystem.writeAsStringAsync(signatureUri, base64Image, {
+            encoding: FileSystem.EncodingType.Base64,
+            });
+  
+            console.log('Signature saved:', signatureUri);
+  
+      // Clear the signature canvas
+      signatureRef.current.clearSignature();
 
             props.clearDeliveryAddress();
            
@@ -55,7 +109,7 @@ const BottomSheet = (props) => {
         } catch (error) {
             console.error("Error saving signature: ", error);
         }
-    }
+    }*/
     // indexes for opening and closing div when pressed button    
     const[currentIndex, setCurrentIndex] = useState(false);
     const[currentSign, setCurrentSign] = useState(false);
@@ -175,7 +229,12 @@ const BottomSheet = (props) => {
                             
                             <SignatureScreen
                             ref = {signatureRef}
-                            onEmpty = {()=>console.log('empty')}
+                            //onEnd={handleEnd}
+                            onOK={saveSignature}
+                            onEmpty={handleEmpty}
+                            onClear={handleClear}
+                            onGetData={handleData}
+                            //onEmpty = {()=>console.log('empty')}
                             descriptionText = 'Sign off'
                             clearText = "clear"
                             confirmText = "save"

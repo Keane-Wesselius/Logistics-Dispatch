@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-native-signature-capture": "^0.4.12"
+  }
+}
