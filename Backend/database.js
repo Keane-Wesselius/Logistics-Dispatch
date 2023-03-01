@@ -339,7 +339,7 @@ class DatabaseHandler {
 		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result.status == "pending") {
-			updated = result;
+			let updated = result;
 			updated.status = "confirmed";
 
 			// TODO: Camelcase
@@ -349,11 +349,11 @@ class DatabaseHandler {
 			let updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
 			if (updatedResult.modifiedCount > 0) {
-				console.log("Item quantity updated");
+				console.log("Item Confirmed: " + orderID);
 				return true;
 			}
 			else {
-				console.log("Item quantity not updated");
+				console.log("Item Confirmed: " + orderID);
 			}
 
 		}
