@@ -69,6 +69,7 @@ const Map = ({ route}) => {
    const [location, setLocation] = useState(null);
    //getting time to get to the location, getting angle of car right
    const [duration, setDuration] = useState(0);
+   const [miles, setMiles] = useState(0);
    const [isReady, setIsReady] = useState(false);
    const [angle, setAngle] = useState(0);
    const mapViewRef = useRef();
@@ -194,7 +195,7 @@ const Map = ({ route}) => {
       clearTimeout(timeoutId);
     }
   }, []);
-  //console.log(location);
+  
  
   
   /**
@@ -255,7 +256,7 @@ const Map = ({ route}) => {
             //waypoints_times = {duration} 
             onReady = {result => {
               setDuration(result.duration)
-
+              setMiles(result.distance )
               if(mapViewRef.current){
                 //fit route into maps
                 mapViewRef.current.fitToCoordinates(result.coordinates, {
@@ -310,7 +311,13 @@ const Map = ({ route}) => {
                 
                  fontSize: 15, 
                  fontWeight: 'bold', 
-                 }}>{Math.ceil(duration)} mins </Text>  
+                 }}>{Math.ceil(duration)} mins,</Text>  
+                 <Text style = {{
+                
+                fontSize: 15, 
+                fontWeight: 'bold', 
+                }}>{Math.ceil(miles)} miles </Text>  
+                
              </View>
              </Marker>
           )}
