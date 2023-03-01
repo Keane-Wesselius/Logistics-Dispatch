@@ -49,7 +49,7 @@ const Signup = ({ navigation }) => {
     if (password == confirmPassword) {
       //THERE IS NO DATA FOR PROFILE PICTURE BEING SENT TO BACKEND
       //SHOULD WE JUST STORE THE PROFILE PICTURE ON THE DEVICE?
-      const accountPacket = new Packets.CreateAccountPacket(
+      const accountPacket = new Packets.CreateDriverAccountPacket(
         firstName,
         lastName,
         email,

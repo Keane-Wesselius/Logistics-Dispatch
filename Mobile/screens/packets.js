@@ -36,7 +36,7 @@
 		AUTHENTICATION_FAILED: "authenticationFailed",
 
 		CREATE_ACCOUNT: "createAccount",
-		CREATE_DRIVER_ACCOUNT: "createAccount",
+		CREATE_DRIVER_ACCOUNT: "createDriverAccount",
 		ACCOUNT_CREATE_SUCCESS: "accountCreateSuccess",
 		ACCOUNT_CREATE_FAILED: "accountCreateFailed",
 
