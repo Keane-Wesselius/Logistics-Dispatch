@@ -378,7 +378,7 @@ export class UpdateOrderStatus extends Packet {
 		super(PacketTypes.UPDATE_ORDER_STATUS, token);
 
 		// TODO: Sanitize
-		this.orderID = orderID;
+		this.orderId = orderID;
 		// TODO: Check if 'status' is a valid enum value.
 		this.status = status;
 	}

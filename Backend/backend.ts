@@ -391,7 +391,7 @@ wss.on("connection", function connection(ws) {
 
 			// TODO: Validate status can actually go from it's previous state to this new state.
 			if (updateStatus.status == Packets.Status.ACCEPTED) {
-				database?.acceptOrder(updateStatus.orderID).then((updatedStatusSuccessfully) => {
+				database?.acceptOrder(updateStatus.orderId).then((updatedStatusSuccessfully) => {
 					if (updatedStatusSuccessfully) {
 						sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
 					} else {
@@ -399,7 +399,7 @@ wss.on("connection", function connection(ws) {
 					}
 				});
 			} else if (updateStatus.status == Packets.Status.CANCELLED) {
-				database?.cancelOrder(updateStatus.orderID).then((updatedStatusSuccessfully) => {
+				database?.cancelOrder(updateStatus.orderId).then((updatedStatusSuccessfully) => {
 					if (updatedStatusSuccessfully) {
 						sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
 					} else {
@@ -407,7 +407,7 @@ wss.on("connection", function connection(ws) {
 					}
 				});
 			} else if (updateStatus.status == Packets.Status.COMPLETED) {
-				database?.completeOrder(updateStatus.orderID).then((updatedStatusSuccessfully) => {
+				database?.completeOrder(updateStatus.orderId).then((updatedStatusSuccessfully) => {
 					if (updatedStatusSuccessfully) {
 						sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
 					} else {
@@ -415,7 +415,7 @@ wss.on("connection", function connection(ws) {
 					}
 				});
 			} else if (updateStatus.status == Packets.Status.CONFIRMED) {
-				database?.confirmOrder(updateStatus.orderID).then((updatedStatusSuccessfully) => {
+				database?.confirmOrder(updateStatus.orderId).then((updatedStatusSuccessfully) => {
 					if (updatedStatusSuccessfully) {
 						sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
 					} else {

@@ -547,12 +547,19 @@ class DatabaseHandler {
 
 	async completeOrder(orderID) {
 		// let result = await this.dbClient.db("main").collection("orders").findOne({ "_id": ObjectId(orderID) });
+		console.log(orderID);
 		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result) {
-
-			if (result.status == "accepted") {
-				updated = result;
+			//////////////////////////////////////////
+			/////////////////////////////////////////
+			/////////////////////////////////////////
+			////////////////////////////////////////////////
+			////////////////////////////////////////////////
+			///////////////////////////////////////////////
+			//////////////////////////////NOT CONFIRMED SUPPOSED TO BE ACCEPTED
+			if (result.status == "confirmed") {
+				let updated = result;
 				updated.status = "completed";
 
 

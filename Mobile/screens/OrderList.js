@@ -31,6 +31,7 @@ const OrderList = ({navigation, props, route}) => {
         alert("Connection error, check that you are connected to the internet");
       }
     } else {
+      setLoading(true);
       console.log('OrderList is not focused');
     }
   }, [isFocused]);

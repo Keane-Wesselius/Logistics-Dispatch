@@ -73,8 +73,12 @@ const Profile = ({ navigation, route }) => {
     })();
   }, []);
 
+  //base64 is just the image not the filepath
+  //Dont upload 
+  //pass the whole result
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
+      //base64: true,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
