@@ -11,10 +11,13 @@ const Earning = ({ navigation, route }) => {
   useEffect(() => {
     if (isFocused) {
       console.log("Earning about to send packet");
-      const GetAllCompletedOrders = new Packets.GetAllCompletedOrders();
-      console.log(GetAllCompletedOrders);
+      // const GetAllCompletedOrders = new Packets.GetAllCompletedOrders();
+
+      // console.log(packet);
       try {
-        global.ws.send(GetAllCompletedOrders.toString());
+        const packet = new Packets.GetAllCompletedOrders();
+        global.ws.send(packet.toString());
+        console.log(packet.toString());
       } catch {
         alert("Connection error, check that you are connected to the internet");
       }
@@ -25,16 +28,17 @@ const Earning = ({ navigation, route }) => {
 
   global.ws.onmessage = (response) => {
     const packet = response.data;
-
+    console.log(packet);
     if (
       Packets.getPacketType(packet) ===
       Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS
     ) {
-      console.log("GOT COMPLETED ORDERS");
+      console.log("\nGOT COMPLETED ORDERS");
 
-      const completed = JSON.parse(packet);
-      console.log("completed : " + completed);
-      console.log("pay : " + completed.data.price);
+      const allOrder = JSON.parse(packet);
+      let orders = allOrder.data;
+      console.log("completed : " + orders);
+      console.log("pay : " + orders.totalCost);
 
       //console.log(allOrders)
     }
