@@ -46,7 +46,7 @@ const Map = ({ route}) => {
   }, [route.params]);
   // making start address waypoints
   const waypoints = [startAddress];
-  //console.log(orderId);
+
  
  
   //clearing delivery Address

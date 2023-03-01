@@ -5,11 +5,11 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { AntDesign } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native';
 //import OrderList from '../screens/OrderList';
-import SignatureScreen from 'react-native-signature-canvas';
+import Signature from 'react-native-signature-canvas';
 import * as FileSystem from  'expo-file-system';
 //import Map from '../screens/Map';
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
-
+import SignatureCapture from 'react-native-signature-capture';
 const BottomSheet = (props) => {
     const [modalVisible, setModalVisible] = useState(false);
     //ref for signature
@@ -27,48 +27,28 @@ const BottomSheet = (props) => {
     }
     //getting order id:
     console.log("orderId:", props.orderId);
-    /*
-    const handleStartSigning = () => {
-        setIsSigning(true);
-        scrollViewRef.current.setNativeProps({ scrollEnabled: false });
-    };
-
-    const handleStopSigning = () => {
-        setIsSigning(false);
-        scrollViewRef.current.setNativeProps({ scrollEnabled: true });
-    };
-     */  
-     // Called after ref.current.readSignature() reads a non-empty base64 string
-  const handleOK = (signature) => {
-    console.log(signature);
-    onOK(signature); // Callback from Component props
-  };
-
-  // Called after ref.current.readSignature() reads an empty string
-  const handleEmpty = () => {
-    console.log("Empty");
-  };
-
-  // Called after ref.current.clearSignature()
-  const handleClear = () => {
-    console.log("clear success!");
-  };
-
-  // Called after end of stroke
-  const handleEnd = () => {
-    signatureRef.current.readSignature();
-    //console.log(  signatureRef.current.readSignature())
-  };
-
-  // Called after ref.current.getData()
-  const handleData = (data) => {
-    console.log(data);
-  };  
+   
+   
+    const _onSaveEvent = (result) => {
+        //result.encoded - for the base64 encoded png
+        //result.pathName - for the file path name
+        alert('Signature Captured Successfully');
+        console.log(result.encoded);
+      };
+    
+      const _onDragEvent = () => {
+        // This callback will be called when the user enters signature
+        console.log('dragged');
+      };
+    
   
-  const saveSignature = async(signature)=>{
-    //const signature = await signatureRef.current.readSignature();
+  const saveSignature = async()=>{
+    if (signatureRef) {
+        console.log("shiva")
+    }
+   // const signature = await signatureRef.current.readSignature();
     //console.log('signature:', signature);
-    const path = FileSystem.cacheDirectory + "sign.png";
+    //const path = FileSystem.cacheDirectory + "sign.png";
     /*try{
     await FileSystem.writeAsStringAsync(
         path,
@@ -115,33 +95,22 @@ const BottomSheet = (props) => {
     const[currentIndex, setCurrentIndex] = useState(false);
     const[currentSign, setCurrentSign] = useState(false);
           
-   /**
-    * Implementing an animated div to scroll up and down
-   
-    const translateY = useSharedValue(0);
+    const [signature, setSign] = useState(null);
 
-    const context = useSharedValue({y: 0});
-    const gesture = Gesture.Pan()
-    .onStart(()=>{
-        context.value = {y: translateY.value};
-    })
-   .onUpdate((event) =>{
-        translateY.value = event.translationY + context.value.y;
-       // console.log(translateY.value)
-        translateY.value = Math.max(translateY.value, -SCREEN_HEIGHT/4)
-        translateY.value = Math.min(translateY.value, SCREEN_HEIGHT/4)
-   })
+  const handleOK = (signature) => {
+    console.log(signature);
+    setSign(signature);
+  };
 
-   useEffect(() =>{
-        translateY.value = withTiming(Math.min(translateY.value, SCREEN_HEIGHT/4));
+  const handleEmpty = () => {
+    console.log("Empty");
+  };
 
-   }, []);
-    const rBottomSheetStyle = useAnimatedStyle(()=>{
-        return{
-            transform: [{translateY: translateY.value}],
-        };
-    }) */
-    {/*ref = {scrollViewRef}  scrollEnabled={!isSigning} >*/}
+  const style = `.m-signature-pad--footer
+    .button {
+      background-color: red;
+      color: #FFF;
+    }`;
 
 
     return (
@@ -226,31 +195,61 @@ const BottomSheet = (props) => {
                             </View>
                         }
                         {currentSign == true && 
-                            <View style = {{ height: '30%', width: '80%', alignSelf: 'center'}}>
+                             <View style={{ height: '30%', width: '80%', alignSelf: 'center'}}>
+                             {/*<View style={styles.preview}>
+                               {signature ? (
+                                 <Image
+                                   resizeMode={"contain"}
+                                   style={{ width: 335, height: 114 }}
+                                   source={{ uri: signature }}
+                                 />
+                               ) : null}
+                             </View>
+                             
+                              onPress={()=>{signatureRef.current.clearSignature()}}
+                             */}
+                             <Signature
+                                style = {styles.signature}
+                               onOK={handleOK}
+                               onEmpty={handleEmpty}
+                               descriptionText="Sign"
+                               clearText="Clear"
+                               confirmText="Save"
+                               webStyle={style}
+                             />
+
+                            <View style = {{flexDirection: 'row', justifyContent: 'space-around'}}>
+                            <Button title="Clear" />
+                            <Button title="Save" onPress={saveSignature} /> 
+                         </View>
+                           </View>}
+                           {/**  <View style = {{ height: '30%', width: '80%', alignSelf: 'center'}}>
                             
-                            <SignatureScreen
-                            ref = {signatureRef}
-                            //onEnd={handleEnd}
-                            onOK={saveSignature}
-                            onEmpty={handleEmpty}
-                            onClear={handleClear}
-                            onGetData={handleData}
-                            //onEmpty = {()=>console.log('empty')}
-                            descriptionText = 'Sign off'
-                            clearText = "clear"
-                            confirmText = "save"
-                            style = {styles.signature}
-                            autoClear = {true}
-                            //onStartSigning={handleStartSigning}
-                            //onStopSigning={handleStopSigning}
-                        />
+                                <SignatureScreen
+                                    ref = {signatureRef}
+                                    //onEnd={handleEnd}
+                                    onOK={saveSignature}
+                                    //onEmpty={handleEmpty}
+                                    //onClear={handleClear}
+                                    //onGetData={handleData}
+                                    //onEmpty = {()=>console.log('empty')}
+                                    descriptionText = 'Sign off'
+                                    clearText = "clear"
+                                    confirmText = "save"
+                                    style = {styles.signature}
+                                    autoClear = {true}
+                                    //onStartSigning={handleStartSigning}
+                                    //onStopSigning={handleStopSigning}
+                                />
+                             
+                            <View style = {{flexDirection: 'row', justifyContent: 'space-around'}}>
+                            <Button title="Clear" onPress={()=>{signatureRef.current.clearSignature()}} />
+                            <Button title="Save" onPress={saveSignature} /> 
+                         </View>
+                        </View>*/}
+                    
                         
-                        <View style = {{flexDirection: 'row', justifyContent: 'space-around'}}>
-                        <Button title="Clear" onPress={()=>{signatureRef.current.clearSignature()}} />
-                        <Button title="Save" onPress={saveSignature} /> 
-                        </View>
-                        </View>
-                    }   
+
                 
                 <TouchableOpacity style ={styles.blackButton} activeOpacity ={0.7} pointerEvents = 'box-none'
                 onPress={handlePress} >
@@ -457,6 +456,26 @@ const styles = StyleSheet.create({
             //opacity: 1,
           
 
+          },
+          preview: {
+            width: 335,
+            height: 114,
+            backgroundColor: "#F8F8F8",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 15,
+          },
+          previewText: {
+            color: "#FFF",
+            fontSize: 14,
+            height: 40,
+            lineHeight: 40,
+            paddingLeft: 10,
+            paddingRight: 10,
+            backgroundColor: "#69B2FF",
+            width: 120,
+            textAlign: "center",
+            marginTop: 10,
           },
 
 })
