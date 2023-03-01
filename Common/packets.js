@@ -9,10 +9,13 @@
 	// Contains constant names for JSON tags.
 	const Constants = {
 		NAME: "name",
+		FIRST_NAME: "firstName",
+		LAST_NAME: "lastName",
 		USERNAME: "username",
 		EMAIL: "email",
 		PASSWORD: "password",
 		ACCTYPE: "acctype",
+		PROFILE_PICTURE: "profilePicture",
 		AREA: "area",
 		TYPE: "type",
 		ERROR_MESSAGE: "errorMessage",
@@ -33,6 +36,7 @@
 		AUTHENTICATION_FAILED: "authenticationFailed",
 
 		CREATE_ACCOUNT: "createAccount",
+		CREATE_DRIVER_ACCOUNT: "createAccount",
 		ACCOUNT_CREATE_SUCCESS: "accountCreateSuccess",
 		ACCOUNT_CREATE_FAILED: "accountCreateFailed",
 
@@ -210,6 +214,24 @@
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
 			return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE));
+		}
+	}
+
+	class CreateDriverAccountPacket extends Packet {
+		constructor(firstName, lastName, email, password, acctype, profilePicture) {
+			super(PacketTypes.CREATE_DRIVER_ACCOUNT);
+
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.email = email;
+			this.password = password;
+			this.acctype = acctype;
+			this.profilePicture = profilePicture;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new CreateDriverAccountPacket(tryGet(jsonObject, Constants.FIRST_NAME), tryGet(jsonObject, Constants.LAST_NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.PROFILE_PICTURE));
 		}
 	}
 
@@ -506,6 +528,7 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.CreateDriverAccountPacket = CreateDriverAccountPacket;
 	exports.GetAllCompletedOrders = GetAllCompletedOrders;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;

@@ -452,7 +452,7 @@ wss.on("connection", function connection(ws) {
 			// Creating accounts and adding them to the database
 			const accountPacket = Packets.CreateAccountPacket.fromJSONString(data);
 
-			if (database != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
+			if (database != null && accountPacket.name != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
 				database.createNewUser(accountPacket).then((createdAccount) => {
 					if (createdAccount) {
 						sendIfNotNull(ws, new Packets.AccountCreateSuccessPacket().toString());
@@ -461,6 +461,25 @@ wss.on("connection", function connection(ws) {
 						sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
 					}
 				});
+			} else {
+				sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
+			}
+		} else if (packetType == Packets.PacketTypes.CREATE_DRIVER_ACCOUNT) {
+			// Creating accounts and adding them to the database
+			const accountPacket = Packets.CreateDriverAccountPacket.fromJSONString(data);
+
+			// Not requiring profile picture explicitly here, as it will save data sending the default from mobile.
+			if (database != null && accountPacket.firstName != null && accountPacket.lastName != null && accountPacket.email != null && accountPacket.password != null && accountPacket.acctype != null) {
+				database.createNewUser(accountPacket).then((createdAccount) => {
+					if (createdAccount) {
+						sendIfNotNull(ws, new Packets.AccountCreateSuccessPacket().toString());
+					} else {
+						// TODO: The error is assumed here, but we should really say exactly what went wrong (existing username, email, etc).
+						sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
+					}
+				});
+			} else {
+				sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
 			}
 		} else {
 			console.log("Received invalid or unhandled packet from client: " + data.toString());
