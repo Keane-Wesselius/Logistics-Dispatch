@@ -12,12 +12,14 @@ const Orders = (props) => {
   const[currentIndex, setCurrentIndex] = useState(null);
   //const[shippingAddress, setShippingAddress] = useState('');
   const {shippingAddress, onPress} = props;
-  const handlePress = (dest_address) =>{
+  const handlePress = (dest_address, startAddress) =>{
     navigation.navigate('Map', {
        deliveryAddress: dest_address,
-       orderId: props.buyerId
+       orderId: props.buyerId,
+       startAddress: startAddress
     })
    //console.log(dest_address);
+   //console.log(startAddress);
   }
   //parsing from json file
     /*
@@ -54,7 +56,7 @@ const Orders = (props) => {
    
    
     
-    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress(props.shippingAddress)} >
+    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress(props.shippingAddress, props.startAddress)} >
         <Text>Deliver</Text>
         </TouchableOpacity>   
     
