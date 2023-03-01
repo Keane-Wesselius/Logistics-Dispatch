@@ -7,15 +7,19 @@ import Map from '../screens/Map';
 
 
 const Orders = (props) => {
+    //console.log("orders somehow?");
     const navigation = useNavigation();
   const[currentIndex, setCurrentIndex] = useState(null);
   //const[shippingAddress, setShippingAddress] = useState('');
   const {shippingAddress, onPress} = props;
-  const handlePress = (dest_address) =>{
+  const handlePress = (dest_address, startAddress) =>{
     navigation.navigate('Map', {
-       deliveryAddress: dest_address
+       deliveryAddress: dest_address,
+       orderId: props.orderId,
+       startAddress: startAddress
     })
    //console.log(dest_address);
+   //console.log(startAddress);
   }
   //parsing from json file
     /*
@@ -48,11 +52,11 @@ const Orders = (props) => {
             Details
         </Text>
     </TouchableOpacity>
-    <Text style = {{fontSize: 20, fontWeight: 'bold'}}> Order: {props.buyerId}</Text>
+    <Text style = {{fontSize: 20, fontWeight: 'bold'}}> Order: {props.orderNumber}</Text>
    
    
     
-    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress(props.shippingAddress)} >
+    <TouchableOpacity style = {styles.circular} onPress = {() => handlePress(props.shippingAddress, props.startAddress)} >
         <Text>Deliver</Text>
         </TouchableOpacity>   
     
@@ -63,11 +67,26 @@ const Orders = (props) => {
       
           
         <View>
-          <Text>Buyer ID: {props.buyerId}</Text>
-          <Text>Shipping Name: {props.shippingName}</Text>
+          
+          <Text>Estimated Delivery Date: {props.estimatedDeliveryDate}</Text>
+          <Text>Start Address: {props.startAddress}</Text>
+          <Text>Shipping Address: {props.shippingAddress}</Text>
+          <Text>Maximum Delivery Price: {props.maximumDeliveryPrice}</Text>
+          <Text>MerchantId: {props.merchantId}</Text>
+          <Text>Minimum Delivery Price: {props.minimumDeliveryPrice}</Text>
+          {/*<Text>Pending Date: {props.pendingDate}</Text>
+          <Text>Pending Time: {props.pendingTime}</Text>
+    <Text>Status: {props.status}</Text>*/}
+          <Text>SupplierId: {props.supplierId}</Text>
+          <Text>TotalCost : {props.totalCost }</Text>
+          <Text>Items: </Text>
+          <Text>{props.items}</Text>
+          
+          {/*<Text>Shipping Name: {props.shippingName}</Text>
           <Text>Shipping Address: {props.shippingAddress}</Text>
           <Text>Shipping Info: {props.shippingInfo}</Text>
-          <Text>Shipping Date: {props.shippingDate}</Text>
+        <Text>Shipping Date: {props.shippingDate}</Text>*/}
+
         </View>
     
     

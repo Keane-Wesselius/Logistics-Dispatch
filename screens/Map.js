@@ -28,17 +28,40 @@ const ASPECT_RATIO = width/height;
  * { route, navigation },
  */
 const Map = ({ route}) => {
-
+  
   //getting delivery addresss from orderlist on press
  const [deliveryAddress, setDeliveryAddress] = useState(null);
+ const [startAddress, setStartAddress] = useState(null);
+ const [startAddressCoord, setStartAddressCoord] = useState(null);
+
+ //gets start and delivery address from orderlist when deliver is pressed
+ const [orderId, setOrderId] = useState(null);
   useEffect(() => {
     if(route.params && route.params.deliveryAddress){
     setDeliveryAddress(route.params.deliveryAddress);
+    setOrderId(route.params.orderId);
+    setStartAddress(route.params.startAddress);
     }
   
   }, [route.params]);
+  // making start address waypoints
+  const waypoints = [startAddress];
+  //console.log(orderId);
  
-
+ 
+  //clearing delivery Address
+  function clearDeliveryAddress(){
+    setDeliveryAddress('');
+    setCoordinates('');
+    setDuration(0);
+ 
+  }
+  /**
+   * Handling when presed complete delivery, the deliveries in orderlist should be deleted
+   */
+  const removeOrder = () => {
+     
+  }
   /*
     All const variables 
   */
@@ -46,31 +69,57 @@ const Map = ({ route}) => {
    const [location, setLocation] = useState(null);
    //getting time to get to the location, getting angle of car right
    const [duration, setDuration] = useState(0);
+   const [miles, setMiles] = useState(0);
    const [isReady, setIsReady] = useState(false);
    const [angle, setAngle] = useState(0);
    const mapViewRef = useRef();
   // for inputing address and getting coordinates
   const [address, setAddress] = useState("");
-  const fake_addressses = [ "400 N Ruby St, Ellensburg, WA 98926", "417 N Pine St, Ellensburg, WA 98926", "1800 Canyon Rd, Ellensburg, WA 98926"  ];
   const [coordinates, setCoordinates] = useState([]);
-  
+  const [searchDeliveryAddress, setSearchDeliveryAddress] = useState(null);
+ /**
+   * 
+   * when clicked search button on map, handles, the minutes and routing
+   * */
+ const handleSubmit = async () => {
+  console.log(address);
+  const result = await Location.geocodeAsync(address);
+  if (result.length > 0) {
+    //console.log(result[0]);
+    setDeliveryAddress(result[0]);
+  }
+ 
+
+   <Text>{Math.ceil(duration)} mins </Text> 
+   
+};
+
   const getLocationAsync = async () => {
     try {
-      let result = await Location.geocodeAsync(deliveryAddress);
+      let delivery_result = await Location.geocodeAsync(deliveryAddress);
+      let start_result = await Location.geocodeAsync(startAddress);
       let latlng = {
-        latitude: result[0].latitude,
-        longitude: result[0].longitude,
+        latitude:delivery_result[0].latitude,
+        longitude: delivery_result[0].longitude,
+      };
+      let latlng2 = {
+        latitude: start_result[0].latitude,
+        longitude:start_result[0].longitude,
       };
       setCoordinates([latlng]);
+      setStartAddressCoord([latlng2])
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    getLocationAsync();
+    if(deliveryAddress){
+      getLocationAsync();
+    }
   }, [deliveryAddress]);
- 
+  
+  
   /***
    * Getting coordinates from a given array of addresses 
  
@@ -89,29 +138,14 @@ const Map = ({ route}) => {
       }
     }, [coordinates]);
 
-  */
+    */
   //sets destination address for destination marker
   const handleAddress = (text) => {
     setAddress(text);
   };
 
-  //console.log(coordinates);
 
-  /**
-   * 
-   * when clicked search button on map, handles, the minutes and routing
-   * */
-  const handleSubmit = async () => {
-  
-    const result = await Location.geocodeAsync(address);
-    if (result.length > 0) {
-      //console.log(result[0]);
-      setDeliveryAddress(result[0]);
-    }
-   
-     <Text>{Math.ceil(duration)} mins </Text>  
-    
-  };
+ 
 
   /**
    * Getting permission right after starting the app
@@ -139,7 +173,7 @@ const Map = ({ route}) => {
     // retry every 3 second if location yet not available
     timeoutId = setTimeout(getLocation, 3000);
   
-    //changing rotation of marker as we rotate the phone
+    //changing rotation of marker as we rotate the phone and move to destination route
     Location.watchPositionAsync(
     {
       accuracy: Location.Accuracy.High,
@@ -161,7 +195,7 @@ const Map = ({ route}) => {
       clearTimeout(timeoutId);
     }
   }, []);
-  //console.log(location);
+  
  
   
   /**
@@ -178,58 +212,14 @@ const Map = ({ route}) => {
 
     return Math.atan2(dy,dx) *180/ Math.PI;
   }
-
+  
   /**
    * Renders Map to Screen
    * @returns
    */
   function renderMap() {
-    /**
-     * Putting Destination in the Map
-     */
    
-    const DestinationMarker = () => {
-      return (
-        
-        <Marker coordinate={deliveryAddress}>
-          <View>
-            <Entypo name="location" size={24} color="red" />
-          </View>
-        </Marker>
-      );
-    
-    };
-  
-    /**
-     * Car Icon to display car in the map
-     */
- 
-    const CarIcon = () => {
-      return (
-        //for current location
 
-        <Marker
-          coordinate={location}
-          //coordinate={fake_location}
-
-          //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
-          //rotation = {}
-          anchor={{ x: 0.5, y: 0.5 }}
-          flat={true}
-          title="Driver Location"
-          //rotation={location.heading}
-        >
-          <View>
-            <FontAwesome5 name="car" size={24} color="red" />
-            <Text style = {{
-             
-              fontSize: 15, 
-              fontWeight: 'bold', 
-              }}>{Math.ceil(duration)} mins </Text>  
-          </View>
-        </Marker>
-      );
-    };
   
     /**
      * Returns Map View
@@ -255,7 +245,7 @@ const Map = ({ route}) => {
             destination={deliveryAddress}
             strokeColor = 'purple'
             strokeWidth= {3}
-            //waypoints = {coordinates}
+            waypoints = {waypoints}
             alternatives = {true}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
@@ -263,10 +253,10 @@ const Map = ({ route}) => {
             //optimizing waypoints
             optimizeWaypoints={true}
          
-            waypoints_times = {duration} 
+            //waypoints_times = {duration} 
             onReady = {result => {
               setDuration(result.duration)
-
+              setMiles(result.distance )
               if(mapViewRef.current){
                 //fit route into maps
                 mapViewRef.current.fitToCoordinates(result.coordinates, {
@@ -294,27 +284,70 @@ const Map = ({ route}) => {
             }}
           />
          
-          <CarIcon />
-          {coordinates.map((coord, index) => (
+         
+         {/**
+            * Car Icon to display car in the map
+          */}
+          {location && (
+             <Marker
+          
+             coordinate={location}
+             //SHIVA this is keane ^^^ The above line is whats screwing up on android devices
+             //For now I have placed the line beneath so the app doesnt freakout
+             //coordinate={{latitude: 0, longitude: 0}}
+             //coordinate={fake_location}
+   
+             //coordinate = {{  latitude: location.coords.latitude, longitude: location.coords.longitude,}}
+             //rotation = {}
+             anchor={{ x: 0.5, y: 0.5 }}
+             flat={true}
+             title="Driver Location"
+             //rotation={location.heading}
+           >
+            {/**car marker */}
+             <View>
+               <FontAwesome5 name="car" size={24} color="red" />
+               <Text style = {{
+                
+                 fontSize: 15, 
+                 fontWeight: 'bold', 
+                 }}>{Math.ceil(duration)} mins,</Text>  
+                 <Text style = {{
+                
+                fontSize: 15, 
+                fontWeight: 'bold', 
+                }}>{Math.ceil(miles)} miles </Text>  
+                
+             </View>
+             </Marker>
+          )}
+
+          
+          {
+          /**
+           * Putting Destination in the Map
+           */}
+          {coordinates && coordinates.map((coord, index) => (
           <Marker key={index} coordinate={coord} title={deliveryAddress} >
              <View>
                      <Entypo name="location-pin" size={24} color="red" />
                  </View>
           </Marker>
         ))}
-           {/**
-          { coordinates.map(coordinate =>{
-            return(
-              <Marker 
-              key={coordinate.latitude}
-              coordinate={{latitude: coordinate.latitude, longitude: coordinate.longitude}}>
-                 <View>
+        {startAddressCoord && startAddressCoord.map((coord, index) => (
+          <Marker key={index} coordinate={coord} title={startAddress} >
+             <View>
+                  <Entypo name="location-pin" size={24} color="red" />
+              </View>
+          </Marker>
+        ))}
+           
+          {/*deliveryAddress &&(<Marker  coordinate={deliveryAddress}  >
+             <View>
                      <Entypo name="location-pin" size={24} color="red" />
                  </View>
-              </Marker>
-            )
-            })}
-             */}
+          </Marker>)*/}
+           
         </MapView>
       </View>
     );
@@ -324,6 +357,7 @@ const Map = ({ route}) => {
    */
   function renderDestinationHeader(){
     return (
+      
       <View
       style = {{
         position: 'absolute',
@@ -336,6 +370,7 @@ const Map = ({ route}) => {
       
       }}
       >
+         {!deliveryAddress &&(
         <View
         style = {{
           flexDirection: 'row',
@@ -391,7 +426,7 @@ const Map = ({ route}) => {
 
         
         </View>
-
+  )}
       </View>
     )
   }
@@ -408,7 +443,7 @@ const Map = ({ route}) => {
           justifyContent: 'center'
         }}>
           <StatusBar style = "light"/>
-          <BottomSheet/>
+          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder} orderId = {orderId}/>
         </View>
         
         
@@ -418,7 +453,7 @@ const Map = ({ route}) => {
   /**
    * Returning Main Map
    */
-  return <View style={{ flex: 1 }}>
+  return <View style={{ flex: 1 }} >
     
     {renderMap()}
     {renderDestinationHeader()}
