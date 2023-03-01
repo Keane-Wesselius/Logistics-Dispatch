@@ -69,17 +69,17 @@ class ItemData {
 	itemName : string;
 	description : string;
 	quantity : number;
-	supplierID : ObjectId;
+	supplierId : ObjectId;
 	price : number;
 	weight : number;
 	postedDate : Date;
 
-	constructor(itemId : ObjectId | null, itemData : Packets.AddItem, supplierID : string) {
+	constructor(itemId : ObjectId | null, itemData : Packets.AddItem, supplierId : string) {
 		this._id = itemId;
 		this.itemName = itemData.itemName;
 		this.description = itemData.description;
 		this.quantity = itemData.quantity;
-		this.supplierID = new ObjectId(supplierID);
+		this.supplierId = new ObjectId(supplierId);
 		this.price = itemData.price;
 		this.weight = itemData.weight;
 		this.postedDate = new Date();

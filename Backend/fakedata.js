@@ -16,6 +16,7 @@ function getAddress() {
 
 let token = null;
 let items = null;
+let userData = null;
 
 const driverEmail = "driver@gmail.com";
 const merchantEmail = "merchant@gmail.com";
@@ -48,9 +49,24 @@ ws.on("open", function open() {
 		ws.send(getAllItems.toString());
 	}, 3000);
 
+	// console.log(JSON.stringify(items));
 	setTimeout(() => {
-		console.log(JSON.stringify(items));
+		const loginPacket = new Packets.LoginPacket(merchantEmail, password);
+		ws.send(loginPacket.toString());
 	}, 4000);
+
+	setTimeout(() => {
+		const getUserData = new Packets.GetUserData(token);
+		ws.send(getUserData.toString());
+	}, 5000);
+
+	// setTimeout(() => {
+	// 	const item = items[0];
+	// 	const quantity = 5;
+
+	// 	const getUserData = new Packets.PlaceOrder(userData.merchantId, item[0], {item.name, quantity, item.price * quantity}, token);
+	// 	ws.send(getUserData.toString());
+	// }, 6000);
 });
 
 ws.on("message", function message(data) {
@@ -62,6 +78,9 @@ ws.on("message", function message(data) {
 	} else if (Packets.getPacketType(data) === Packets.PacketTypes.SET_LINKED_ITEMS) {
 		const setLinkedItems = JSON.parse(data);
 		items = setLinkedItems.data;
+	} else if (Packets.getPacketType(data) === Packets.PacketTypes.SET_USER_DATA) {
+		const setUserData = JSON.parse(data);
+		userData = setUserData.data;
 	}
 });
 
