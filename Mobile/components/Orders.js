@@ -52,7 +52,7 @@ const Orders = (props) => {
             Details
         </Text>
     </TouchableOpacity>
-    <Text style = {{fontSize: 20, fontWeight: 'bold'}}> Order: {props.buyerId}</Text>
+    <Text style = {{fontSize: 20, fontWeight: 'bold'}}> Order: {props.orderNumber}</Text>
    
    
     

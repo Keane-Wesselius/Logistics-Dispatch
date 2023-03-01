@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     maxWidth: 200,
     maxHeight: 200,
     borderRadius: 50,
-    borderWidth: 2,
-    borderColor: "blue",
+    //borderWidth: 2,
+   // borderColor: "blue",
   },
 });
 
