@@ -46,7 +46,7 @@ const Map = ({ route}) => {
   }, [route.params]);
   // making start address waypoints
   const waypoints = [startAddress];
- 
+  //console.log(orderId);
  
  
   //clearing delivery Address
@@ -443,7 +443,7 @@ const Map = ({ route}) => {
           justifyContent: 'center'
         }}>
           <StatusBar style = "light"/>
-          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder}/>
+          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder} orderId = {orderId}/>
         </View>
         
         

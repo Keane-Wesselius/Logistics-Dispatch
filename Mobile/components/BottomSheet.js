@@ -25,7 +25,8 @@ const BottomSheet = (props) => {
         props.clearDeliveryAddress();
         
     }
-
+    //getting order id:
+    console.log("orderId:", props.orderId);
     /*
     const handleStartSigning = () => {
         setIsSigning(true);
@@ -66,7 +67,7 @@ const BottomSheet = (props) => {
   
   const saveSignature = async(signature)=>{
     //const signature = await signatureRef.current.readSignature();
-    console.log('signature:', signature);
+    //console.log('signature:', signature);
     const path = FileSystem.cacheDirectory + "sign.png";
     /*try{
     await FileSystem.writeAsStringAsync(

@@ -138,6 +138,7 @@ const OrderList = ({navigation, props, route}) => {
       {allOrders.map((order) => (
       <Orders 
       key={order._id}
+      orderId = {order._id}
       driverId = {order.driverId}
       confirmedDate = {order.confirmed_date}
       confirmedTime = {order.confirmed_date}
