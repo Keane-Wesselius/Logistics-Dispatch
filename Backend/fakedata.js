@@ -9,12 +9,9 @@ function getName() {
 let database = new Database.DatabaseHandler();
 
 const driverEmail = "driver@gmail.com";
+const merchantEmail = "merchant@gmail.com";
+const supplierEmail = "merchant@gmail.com";
 
-database.createNewUser({ email: , password: "1", acctype: "driver", firstName: getName(), lastName: getName() });
-database.createNewUser({ email: "merchant@gmail.com", password: "1", acctype: "merchant", name: getName(), address: "1800 Canyon Rd, Ellensburg, WA 98926" });
-database.createNewUser({ email: "supplier@gmail.com", password: "1", acctype: "supplier", name: getName(), address: "1800 Canyon Rd, Ellensburg, WA 98926" });
-
-database.
-
-// let jsonObject = new JSON.parse();
-// database.placeOrder()
+database.createNewUser({ email: driverEmail, password: "1", acctype: "driver", firstName: getName(), lastName: getName() });
+database.createNewUser({ email: merchantEmail, password: "1", acctype: "merchant", name: getName(), address: "1800 Canyon Rd, Ellensburg, WA 98926" });
+database.createNewUser({ email: supplierEmail, password: "1", acctype: "supplier", name: getName(), address: "1800 Canyon Rd, Ellensburg, WA 98926" });

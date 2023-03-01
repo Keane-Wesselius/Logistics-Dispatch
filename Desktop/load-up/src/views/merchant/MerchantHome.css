@@ -1,0 +1,91 @@
+video {
+    object-fit: cover;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: -1;
+    scale: 0.5;
+}
+
+.merchant-container {
+    height:93vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.2);
+}
+
+.merchant-container > video {
+    width: auto;
+    height: auto;
+}
+
+.merchant-container > h1 {
+    color: #fff;
+    font-size: 100px;
+    margin-top: -200px;
+    margin-bottom: 1rem;
+    z-index: 0;
+}
+
+.merchant-container > p {
+    margin-top: 8px;                        
+    color: #fff;
+    font-size: 32px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    text-shadow: 2px 2px 5px #7d0581;
+}
+
+.merchant-container > p:nth-child(3) {
+    margin-top: 2rem;
+}
+
+.merchant-btns {
+    margin-top: 32px;
+    margin: 6px;
+}
+.btns {
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 1rem;
+    }
+
+.btns:hover {
+        background-color: rgb(193, 193, 193);
+        color: #242424;
+        transition: all 0.3s ease-out;
+        }
+
+.fa-play-circle {
+    margin-left: 4px;
+}
+
+@media screen and (max-width: 960px) {
+    .merchant-container > h1 {
+        font-size: 70px;
+        margin-top: -150px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .merchant-container > h1 {
+        font-size: 50px;
+        margin-top: -100px;
+    }
+
+    .merchant-container > p {
+        font-size: 30px;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}

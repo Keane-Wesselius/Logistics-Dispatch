@@ -14,12 +14,13 @@ import { AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Packets, { GetUserData } from "./packets";
 import { useIsFocused } from "@react-navigation/native";
+import { ActivityIndicator } from 'react-native';
 
 let firstName = "";
 let lastName = "";
 const Profile = ({ navigation, route }) => {
   const isFocused = useIsFocused();
-
+  const [user, setUser] = useState("");
   useEffect(() => {
     if (isFocused) {
       console.log("Profile about to send packet");
@@ -43,10 +44,13 @@ const Profile = ({ navigation, route }) => {
       let user = JSON.parse(packet);
 
       user = user.data;
+      
       firstName = user.firstName;
       lastName = user.lastName;
       console.log("data: " + user.firstName);
+      console.log("last: " + user.lastName);
       console.log("email here: " + user.email);
+      setUser(user);
     }
   };
 
@@ -81,6 +85,10 @@ const Profile = ({ navigation, route }) => {
       setImage(result.assets[0].uri);
     }
   };
+
+  if (user == "") {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <View style={styles.container}>

@@ -281,15 +281,12 @@
       this.token = token;
     }
 
-    static fromJSONString(jsonString) {
-      // TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
-      const jsonObject = parseJSON(jsonString);
-      return new AuthenticationSuccessPacket(
-        tryGet(jsonObject, Constants.ACCTYPE),
-        tryGet(jsonObject, Constants.TOKEN)
-      );
-    }
-  }
+		static fromJSONString(jsonString) {
+			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
+			const jsonObject = parseJSON(jsonString);
+			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
 
   // TODO: Not an actual implementation, but shows how the schemes should work. If do not want the user to be able to select what area they are seeing the active jobs from, we should make this an empty packet.
   class GetLinkedOrders extends Packet {
@@ -360,11 +357,11 @@
       super(PacketTypes.GET_ALL_COMPLETED_ORDERS, token);
     }
 
-    static fromJSONString(jsonString) {
-      const jsonObject = parseJSON(jsonString);
-      return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN));
-    }
-  }
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+		}
+	}
 
   class SetAllCompletedOrders extends JSONPacket {
     constructor(jsonString) {
@@ -376,9 +373,9 @@
     }
   }
 
-  class UpdateStatus extends Packet {
-    constructor(orderID, status, token = null) {
-      super(PacketTypes.UPDATE_ORDER_STATUS, token);
+	class UpdateStatus extends Packet {
+		constructor(orderID, status, token = null) {
+			super(PacketTypes.UPDATE_ORDER_STATUS, token);
 
       // TODO: Sanitize
       this.orderID = orderID;
@@ -386,15 +383,11 @@
       this.status = status;
     }
 
-    static fromJSONString(jsonString) {
-      const jsonObject = parseJSON(jsonString);
-      return new UpdateStatus(
-        tryGet(jsonObject, Constants.ORDER_ID),
-        tryGet(jsonObject, Constants.STATUS),
-        tryGet(jsonObject, Constants.TOKEN)
-      );
-    }
-  }
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
 
   // TODO: SetActiveJobsPacket, which will send the result of backend.getAllJobs(), which should be an JSON array containing all the jobs.
 
@@ -409,18 +402,11 @@
       this.weight = weight;
     }
 
-    static fromJSONString(jsonString) {
-      const jsonObject = parseJSON(jsonString);
-      return new AddItem(
-        (itemName = tryGet(jsonObject, ItemValues.ITEM_NAME)),
-        (description = tryGet(jsonObject, ItemValues.DESCRIPTION)),
-        (quantity = tryGet(jsonObject, ItemValues.QUANTITY)),
-        (price = tryGet(jsonObject, ItemValues.PRICE)),
-        (weight = tryGet(jsonObject, ItemValues.WEIGHT)),
-        (token = tryGet(jsonObject, Constants.TOKEN))
-      );
-    }
-  }
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new AddItem(itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
 
   class RemoveItem extends Packet {
     constructor(itemId, token = null) {
@@ -458,19 +444,11 @@
       this.weight = weight;
     }
 
-    static fromJSONString(jsonString) {
-      const jsonObject = parseJSON(jsonString);
-      return new UpdateItem(
-        (itemId = tryGet(jsonObject, ItemValues.ITEM_ID)),
-        (itemName = tryGet(jsonObject, ItemValues.ITEM_NAME)),
-        (description = tryGet(jsonObject, ItemValues.DESCRIPTION)),
-        (quantity = tryGet(jsonObject, ItemValues.QUANTITY)),
-        (price = tryGet(jsonObject, ItemValues.PRICE)),
-        (weight = tryGet(jsonObject, ItemValues.WEIGHT)),
-        (token = tryGet(jsonObject, Constants.TOKEN))
-      );
-    }
-  }
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new UpdateItem(itemId = tryGet(jsonObject, ItemValues.ITEM_ID), itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
 
   class GetLinkedItems extends Packet {
     constructor(token = null) {
@@ -488,10 +466,10 @@
       super(PacketTypes.SET_LINKED_ITEMS, jsonString);
     }
 
-    static fromJSONString(jsonString) {
-      return new SetLinkedOrders(jsonString);
-    }
-  }
+		static fromJSONString(jsonString) {
+			return new SetLinkedOrders(jsonString);
+		}
+	}
 
   class ItemUpdateSuccess extends Packet {
     constructor() {
@@ -534,35 +512,36 @@
     }
   }
 
-  exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
-  exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
-  exports.AddItem = AddItem;
-  exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
-  exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
-  exports.Constants = Constants;
-  exports.CreateAccountPacket = CreateAccountPacket;
-  exports.GetAllCompletedOrders = GetAllCompletedOrders;
-  exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
-  exports.GetAllOrders = GetAllOrders;
-  exports.GetLinkedItems = GetLinkedItems;
-  exports.GetLinkedOrders = GetLinkedOrders;
-  exports.GetUserData = GetUserData;
-  exports.ItemUpdateFailed = ItemUpdateFailed;
-  exports.ItemUpdateSuccess = ItemUpdateSuccess;
-  exports.ItemValues = ItemValues;
-  exports.LoginPacket = LoginPacket;
-  exports.PacketTypes = PacketTypes;
-  exports.RemoveItem = RemoveItem;
-  exports.SetAllCompletedOrders = SetAllCompletedOrders;
-  exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
-  exports.SetAllOrders = SetAllOrders;
-  exports.SetLinkedItems = SetLinkedItems;
-  exports.SetLinkedOrders = SetLinkedOrders;
-  exports.SetUserData = SetUserData;
-  exports.Status = Status;
-  exports.UpdateItem = UpdateItem;
-  exports.UpdateStatus = UpdateStatus;
-  exports.getPacketType = getPacketType;
-  exports.parseJSON = parseJSON;
-  exports.tryGet = tryGet;
-});
+	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
+	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
+	exports.AddItem = AddItem;
+	exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
+	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
+	exports.Constants = Constants;
+	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.GetAllCompletedOrders = GetAllCompletedOrders;
+	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
+	exports.GetAllOrders = GetAllOrders;
+	exports.GetLinkedItems = GetLinkedItems;
+	exports.GetLinkedOrders = GetLinkedOrders;
+	exports.GetUserData = GetUserData;
+	exports.ItemUpdateFailed = ItemUpdateFailed;
+	exports.ItemUpdateSuccess = ItemUpdateSuccess;
+	exports.ItemValues = ItemValues;
+	exports.LoginPacket = LoginPacket;
+	exports.PacketTypes = PacketTypes;
+	exports.RemoveItem = RemoveItem;
+	exports.SetAllCompletedOrders = SetAllCompletedOrders;
+	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
+	exports.SetAllOrders = SetAllOrders;
+	exports.SetLinkedItems = SetLinkedItems;
+	exports.SetLinkedOrders = SetLinkedOrders;
+	exports.SetUserData = SetUserData;
+	exports.Status = Status;
+	exports.UpdateItem = UpdateItem;
+	exports.UpdateStatus = UpdateStatus;
+	exports.getPacketType = getPacketType;
+	exports.parseJSON = parseJSON;
+	exports.tryGet = tryGet;
+
+}));

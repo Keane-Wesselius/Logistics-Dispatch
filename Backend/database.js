@@ -10,10 +10,7 @@ const saltRounds = 10;
 // let uri = null;
 // let dbClient = null;
 
-//Still need to be able to cancel orders of all types (merchant, driver)
-//delete items for supplier
-//totals not being calculated yet
-//NOTHING HAS BEEN TESTED AT ALL
+
 
 class DatabaseHandler {
 	constructor() {
