@@ -58,7 +58,7 @@
 		SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
 
 		GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
-		SET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+		SET_ALL_COMPLETED_ORDERS: "setAllCompletedOrders",
 
 		GET_ALL_ORDERS: "getAllOrders",
 		SET_ALL_ORDERS: "setAllOrders",

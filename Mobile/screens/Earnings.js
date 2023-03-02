@@ -5,8 +5,13 @@ import moment from "moment";
 import { AntDesign } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import Packets, { GetUserData } from "./packets";
+import { ActivityIndicator } from "react-native";
+
+const earningsMap = new Map();
+
 const Earning = ({ navigation, route }) => {
   const isFocused = useIsFocused();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isFocused) {
@@ -22,25 +27,37 @@ const Earning = ({ navigation, route }) => {
         alert("Connection error, check that you are connected to the internet");
       }
     } else {
+      setLoading(true);
       console.log("Earning is not focused");
     }
   }, [isFocused]);
 
+  
+
   global.ws.onmessage = (response) => {
-    const packet = response.data;
-    console.log(packet);
-    if (
-      Packets.getPacketType(packet) ===
-      Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS
-    ) {
+    const orderPacket = response.data;
+    //console.log(orderPacket);
+    if (Packets.getPacketType(orderPacket) === Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS) {
       console.log("\nGOT COMPLETED ORDERS");
 
-      const allOrder = JSON.parse(packet);
-      let orders = allOrder.data;
-      console.log("completed : " + orders);
-      console.log("pay : " + orders.totalCost);
+      const json_obj = JSON.parse(orderPacket);
+      let allOrders = json_obj.data;
+
+      for (var i = 0; i < allOrders.length; i++) {
+        let date = new Date(allOrders[i].completed_date);
+        date = moment(date).format("MM/DD");
+        //console.log(date);
+        if (!earningsMap.has(date)) {
+          earningsMap.set(date, allOrders[i].minimumDeliveryPrice);
+        } else {
+          let oldPay = earningsMap.get(date);
+          earningsMap.set(date, allOrders[i].minimumDeliveryPrice + oldPay);
+        }
+      }
+      //console.log(...earningsMap.entries());
 
       //console.log(allOrders)
+      setLoading(false);
     }
   };
 
@@ -49,13 +66,13 @@ const Earning = ({ navigation, route }) => {
 
   const [week, setWeek] = useState(new Date());
   const [earnings, setEarnings] = useState({
-    Sunday: 60,
-    Monday: 30,
-    Tuesday: 35,
-    Wednesday: 40,
-    Thursday: 45,
-    Friday: 50,
-    Saturday: 55,
+    Sunday: null,
+    Monday: null,
+    Tuesday: null,
+    Wednesday: null,
+    Thursday: null,
+    Friday: null,
+    Saturday: null,
   });
 
   let total = 0;
@@ -78,6 +95,24 @@ const Earning = ({ navigation, route }) => {
       week.getMonth(),
       week.getDate() - week.getDay() + 6
     );
+    
+    let sunday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay())).format("MM/DD");
+    let monday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 1)).format("MM/DD");
+    let tuesday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 2)).format("MM/DD");
+    let wednesday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 3)).format("MM/DD");
+    let thursday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 4)).format("MM/DD");
+    let friday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 5)).format("MM/DD");
+    let saturday = moment(new Date(week.getFullYear(), week.getMonth(), week.getDate() - week.getDay() + 6)).format("MM/DD");
+
+    setEarnings({
+      Sunday: (earningsMap.has(sunday) ? earningsMap.get(sunday) : 0),
+      Monday: (earningsMap.has(monday) ? earningsMap.get(monday) : 0),
+      Tuesday: (earningsMap.has(tuesday) ? earningsMap.get(tuesday) : 0),
+      Wednesday: (earningsMap.has(wednesday) ? earningsMap.get(wednesday) : 0),
+      Thursday: (earningsMap.has(thursday) ? earningsMap.get(thursday) : 0),
+      Friday: (earningsMap.has(friday) ? earningsMap.get(friday) : 0),
+      Saturday: (earningsMap.has(saturday) ? earningsMap.get(saturday) : 0),
+    });
   };
 
   const prevWeek = () => {
@@ -102,8 +137,12 @@ const Earning = ({ navigation, route }) => {
       setWeek(newWeek);
       getEarningsForWeek(newWeek);
     }
-  };
 
+    
+  };
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -131,7 +170,7 @@ const Earning = ({ navigation, route }) => {
         </View>
 
         <View style={styles.earning}>
-          <Text style={styles.total}> total </Text>
+          <Text style={styles.total}> Total </Text>
           <Text style={styles.amount}>${total}</Text>
         </View>
         <Text style={styles.amount}>
