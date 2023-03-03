@@ -3,9 +3,12 @@ import './Browse.css';
 
 const Packets = require("../../backend/packets");
 
+let ws = null;
 function Browse() {
     useEffect(() => {
-        let ws = new WebSocket("ws://localhost:5005/");
+        if (ws == null) {
+            ws = new WebSocket("ws://localhost:5005/");
+        }
 
          // websocket open and close
         ws.onopen = () => {
@@ -24,9 +27,17 @@ function Browse() {
                 console.log("Linked items packet");
                 const tmp = JSON.parse(packet);
                 setItems(tmp.data);
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_SUCCESS){
+                console.log("Cart Item Success Packet");
+                alert("Successfully added item to cart!")
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_FAILURE){
+                const cartItemFailurePacket = Packets.CartItemFailure.fromJSONString(packet);
+
+                console.log("Cart Item Failure Packet");
+                alert("Failed to add item to cart: " + cartItemFailurePacket.errorMessage);
             }
 
-            ws.close();
+            // ws.close();
         }; 
 
         // websocket error
@@ -61,7 +72,17 @@ function Browse() {
 class TableRow extends Component {
     // add to cart
     handleSubmit = () => {
-        alert("Item added to cart!");
+        if(this.quantity != null) {
+            const addCartItem = new Packets.AddCartItem(this.props.rowContent._id, this.quantity, localStorage.getItem('token'));
+            console.log("Sending addCartItem packet: " + addCartItem.toString());
+            ws.send(addCartItem.toString());
+        } else {
+            alert("Please pick a valid quantity number.")
+        }
+    }
+
+    handleQuantityChange = (e) => {
+        this.quantity = e.target.value;
     }
 
     render() {
@@ -84,7 +105,7 @@ class TableRow extends Component {
                     <td>{row.supplierID}</td>
                     <td>{row.postedDate}</td>
                     <td>
-                        <select className="cart">
+                        <select className="cart" onChange={this.handleQuantityChange}>
                             <option hidden-value="" disabled selected hidden>Quantity</option>
                             {range.map((n) => <option>{n}</option>)}
                         </select>

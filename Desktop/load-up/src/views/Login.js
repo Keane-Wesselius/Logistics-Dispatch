@@ -6,10 +6,16 @@ import './LoginRegister.css';
 
 const Packets = require("../backend/packets");
 
+let ws = null;
 function Login() {
-	let ws = new WebSocket("ws://localhost:5005/");
 	const navigate = useNavigate();
 	const updateNavbar = useNavbarUpdate();
+
+	// Ensure that the ws object exists, replacing it only if it doesn't.
+	// TODO: Check if WebSocket is invalid, recreating it if it is.
+	if (ws == null) {
+		ws = new WebSocket("ws://localhost:5005/");
+	}
 
 	// websocket open and close
 	ws.onopen = () => console.log("ws opened: login");
@@ -20,22 +26,22 @@ function Login() {
 		ws.onmessage = (res) => {
 			const packet = res.data;
 			console.log(packet);
-	
+
 			if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_SUCCESS) {
 				alert("Login successful");
-	
+
 				const authenticationSuccessPacket = Packets.AuthenticationSuccessPacket.fromJSONString(packet);
 				localStorage.setItem('token', authenticationSuccessPacket.token);
 				console.log("Login token: " + localStorage.getItem('token'));
-	
-					if (authenticationSuccessPacket.acctype === "merchant") {
-						navigate("/merchant_home");
-					}
-					else {
-						navigate("/supplier_home");
-					}
-	
-					updateNavbar(authenticationSuccessPacket.acctype);
+
+				if (authenticationSuccessPacket.acctype === "merchant") {
+					navigate("/merchant_home");
+				}
+				else {
+					navigate("/supplier_home");
+				}
+
+				updateNavbar(authenticationSuccessPacket.acctype);
 			}
 			else if (Packets.getPacketType(packet) === Packets.PacketTypes.AUTHENTICATION_FAILED) {
 				alert("Wrong username or password");
@@ -51,6 +57,13 @@ function Login() {
 	// handles login
 	const handleLogin = (e) => {
 		e.preventDefault();
+
+		if(ws == null) {
+			ws = new WebSocket("ws://localhost:5005/");
+		}
+
+		console.log(ws.readyState);
+
 		//We create a packet to send to the backend using the username and password entered on the screen
 		const loginPacket = new Packets.LoginPacket(username, password);
 		console.log("Login Packet String: " + loginPacket.toString());

@@ -20,6 +20,15 @@ export const Constants = {
 	STATUS: "status",
 	TOKEN: "token",
 	ADDRESS: "address",
+	STARTING_ADDRESS: "startingAddress",
+	ENDING_ADDRESS: "endingAddress",
+	ESTIMATED_DELIVERY_DATE: "estimatedDeliveryDate",
+	MINIMUM_DELIVERY_PRICE: "minimumDeliveryPrice",
+	MAXIMUM_DELIVERY_PRICE: "maximumDeliveryPrice",
+	ITEM_ID_LIST: "itemIdList",
+	ITEM_LIST: "itemList",
+	ITEM_ID: "itemId",
+	QUANTITY: "quantity",
 };
 
 // TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -66,6 +75,13 @@ export const PacketTypes = {
 	PLACE_ORDER: "placeOrder",
 	PLACE_ORDER_SUCCESS: "placeOrderSuccess",
 	PLACE_ORDER_FAILURE: "placeOrderFailure",
+
+	GET_CART_ITEMS: "getCartItems",
+	SET_CART_ITEMS: "setCartItems",
+	ADD_CART_ITEM: "addCartItem",
+	REMOVE_CART_ITEM: "removeCartItem",
+	CART_ITEM_SUCCESS: "cartItemSuccess",
+	CART_ITEM_FAILURE: "cartItemFailure",
 };
 
 export const Status = {
@@ -528,8 +544,8 @@ export class SetAllOrders extends JSONPacket {
 
 // 'estimatedDeliveryDate' is new Date().toString();
 export class PlaceOrder extends Packet {
-	constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
-		super(PacketTypes.PLACE_ORDER, jsonString);
+	constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice, token = null) {
+		super(PacketTypes.PLACE_ORDER, token);
 
 		this.merchantId = merchantId;
 		this.supplierId = supplierId;
@@ -542,13 +558,14 @@ export class PlaceOrder extends Packet {
 	}
 
 	static fromJSONString(jsonString) {
-		return new PlaceOrder(jsonString);
+		const jsonObject = parseJSON(jsonString);
+		return new PlaceOrder(tryGet(jsonObject, Constants.MERCHANT_ID), tryGet(jsonObject, Constants.SUPPLIER_ID), tryGet(jsonObject, Constants.STARTING_ADDRESS), tryGet(jsonObject, Constants.ENDING_ADDRESS), tryGet(jsonObject, Constants.ESTIMATED_DELIVERY_DATE), tryGet(jsonObject, Constants.MINIMUM_DELIVERY_PRICE, tryGet(jsonObject, Constants.MAXIMUM_DELIVERY_PRICE), tryGet(jsonObject, Constants.TOKEN)));
 	}
 }
 
 export class PlaceOrderSuccess extends Packet {
-	constructor(token = null) {
-		super(PacketTypes.PLACE_ORDER_SUCCESS, token);
+	constructor() {
+		super(PacketTypes.PLACE_ORDER_SUCCESS);
 	}
 
 	static fromJSONString(jsonString) {
@@ -557,11 +574,85 @@ export class PlaceOrderSuccess extends Packet {
 }
 
 export class PlaceOrderFailure extends Packet {
-	constructor(token = null) {
-		super(PacketTypes.PLACE_ORDER_FAILURE, token);
+	constructor() {
+		super(PacketTypes.PLACE_ORDER_FAILURE);
 	}
 
 	static fromJSONString(jsonString) {
 		return new PlaceOrderFailure();
+	}
+}
+
+export class GetCartItems extends Packet {
+	constructor(token = null) {
+		super(PacketTypes.GET_CART_ITEMS, token);
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new GetCartItems(tryGet(jsonObject, Constants.TOKEN));
+	}
+}
+
+export class SetCartItems extends Packet {
+	constructor(itemList) {
+		super(PacketTypes.SET_CART_ITEMS);
+
+		this.itemList = itemList;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new SetCartItems(tryGet(jsonObject, Constants.ITEM_LIST));
+	}
+}
+
+export class AddCartItem extends Packet {
+	constructor(itemId, quantity, token = null) {
+		super(PacketTypes.ADD_CART_ITEM, token);
+
+		this.itemId = itemId;
+		this.quantity = quantity;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new AddCartItem(tryGet(jsonObject, Constants.ITEM_ID), tryGet(jsonObject, Constants.QUANTITY), tryGet(jsonObject, Constants.TOKEN));
+	}
+}
+
+export class RemoveCartItem extends Packet {
+	constructor(itemId, token = null) {
+		super(PacketTypes.REMOVE_CART_ITEM, token);
+
+		this.itemId = itemId;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new RemoveCartItem(tryGet(jsonObject, Constants.ITEM_ID), tryGet(jsonObject, Constants.TOKEN));
+	}
+}
+
+export class CartItemSuccess extends Packet {
+	constructor() {
+		super(PacketTypes.CART_ITEM_SUCCESS);
+	}
+
+	static fromJSONString(jsonString) {
+		return new CartItemSuccess();
+	}
+}
+
+export class CartItemFailure extends Packet {
+	constructor(errorMessage) {
+		super(PacketTypes.CART_ITEM_FAILURE);
+
+		this.errorMessage = errorMessage;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new CartItemFailure(tryGet(jsonObject, Constants.ERROR_MESSAGE));
 	}
 }

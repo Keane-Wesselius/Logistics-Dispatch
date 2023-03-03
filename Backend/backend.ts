@@ -35,12 +35,14 @@ class UserData {
 	firstName : string | null;
 	lastName : string | null;
 	name : string | null;
+	cart : Set<object>[];
 
 	constructor(userDataJSON : DatabaseUserData) {
 		this.id = userDataJSON._id.toString();
 		if (userDataJSON.acctype != null) {
 			this.accountType = AccountType[userDataJSON.acctype.toUpperCase()];
 		}
+
 		this.email = userDataJSON.email;
 
 		if (this.accountType == AccountType.DRIVER) {
@@ -49,6 +51,10 @@ class UserData {
 		} else {
 			this.name = userDataJSON.name;
 		}
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		this.cart = new Set<object>();
 	}
 
 	isDriver() {
@@ -87,6 +93,7 @@ class ItemData {
 }
 
 class ActiveConnection {
+	// TODO: Remove WebSocket and switch to just the token-based system, as it is much more reliable and secure.
 	ws : WebSocket;
 	token : string | null;
 	userData : UserData | null;
@@ -429,7 +436,7 @@ wss.on("connection", function connection(ws) {
 			}
 
 			// TODO: Handlers for the rest of the enums.
-		} else if (packetType == Packets.PacketTypes.UPDATE_ITEM) {
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.UPDATE_ITEM) {
 			if (clientUserData?.isSupplier()) {
 				const updateItemPacket = Packets.UpdateItem.fromJSONString(data);
 				const item = new ItemData(updateItemPacket.itemId, updateItemPacket, clientUserData.id);
@@ -480,7 +487,7 @@ wss.on("connection", function connection(ws) {
 			} else {
 				sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
 			}
-		} else if (packetType == Packets.PacketTypes.PLACE_ORDER) {
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.PLACE_ORDER) {
 			// Creating accounts and adding them to the database
 			const placeOrderPacket = JSON.parse(data.toString());
 
@@ -496,6 +503,94 @@ wss.on("connection", function connection(ws) {
 				});
 			} else {
 				sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
+			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_CART_ITEMS) {
+			if (clientUserData.accountType != AccountType.DRIVER) {
+				// TODO: Bad duck-tape fix to avoid having to marshal Set to JSON ourselves.
+				sendIfNotNull(ws, new Packets.SetCartItems(Array.from(clientUserData.cart)));
+			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.ADD_CART_ITEM) {
+			if (clientUserData.accountType != AccountType.DRIVER) {
+				const addCartItemPacket = Packets.AddCartItem.fromJSONString(data.toString());
+
+				database.getAllItems().then((items) => {
+					let cartItemErrorMessage : string | null = null;
+					let databaseItem : object | null = null;
+
+					if (items != null) {
+						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+						// @ts-ignore
+						for (const item of items) {
+							console.log("Item: " + JSON.stringify(item));
+							// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+							// @ts-ignore
+							if (item._id == addCartItemPacket.itemId) {
+								const itemCartQuantity = parseInt(addCartItemPacket.quantity);
+								const databaseItemQuantity = parseInt(item.quantity);
+
+								if (databaseItemQuantity == null || isNaN(databaseItemQuantity)) {
+									cartItemErrorMessage = "Invalid database quantity, please contact a system administrator.";
+									console.log("Got invalid database quantity: " + item.quantity);
+								}
+
+								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+								// @ts-ignore
+								if (itemCartQuantity != null && !isNaN(itemCartQuantity) && itemCartQuantity < databaseItemQuantity) {
+									databaseItem = item;
+									// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+									// @ts-ignore
+									databaseItem.quantity = itemCartQuantity;
+								} else {
+									// TODO: Constant string.
+									console.log("Got invalid quantity: " + itemCartQuantity)
+									cartItemErrorMessage = "Invalid quantity of items for cart.";
+								}
+
+								break;
+							}
+						}
+					} else {
+						cartItemErrorMessage = "No items exist to order.";
+					}
+
+					if (databaseItem == null) {
+						cartItemErrorMessage = "Could not find item with id '" + addCartItemPacket.itemId + "' to order.";
+					}
+
+					if (cartItemErrorMessage == null) {
+						sendIfNotNull(ws, new Packets.CartItemSuccess());
+						// TODO: Reduce quantity of item in database.
+
+						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+						// @ts-ignore
+						clientUserData.cart.add(databaseItem);
+					} else {
+						sendIfNotNull(ws, new Packets.CartItemFailure(cartItemErrorMessage));
+					}
+				});
+			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.REMOVE_CART_ITEM) {
+			if (clientUserData.accountType != AccountType.DRIVER) {
+				const removeCartItemPacket = Packets.RemoveCartItem.fromJSONString(data.toString());
+				let foundCartItem : object | null = null;
+
+				for (const cartItem of clientUserData.cart) {
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					// @ts-ignore
+					if (cartItem._id == removeCartItemPacket.itemId) {
+						foundCartItem = cartItem;
+						break;
+					}
+				}
+
+				if (foundCartItem != null) {
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					// @ts-ignore
+					clientUserData.cart.delete(foundCartItem);
+					sendIfNotNull(ws, new Packets.CartItemSuccess());
+				} else {
+					sendIfNotNull(ws, new Packets.CartItemFailure("Could not find cart item to remove."));
+				}
 			}
 		} else {
 			console.log("Received invalid or unhandled packet from client: " + data.toString());

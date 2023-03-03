@@ -3,14 +3,16 @@ import './Cart.css';
 
 const Packets = require("../../backend/packets");
 
+let ws = null;
 function Cart() {
-
-    let ws = new WebSocket("ws://localhost:5005/");
+	if (ws == null) {
+		ws = new WebSocket("ws://localhost:5005/");
+	}
 
     // websocket open and close
     ws.onopen = () => {
         console.log("ws opened: merchant cart");
-        const userPacket = "GetCartItems(localStorage.getItem('token'));"//new Packets.GetLinkedItems(localStorage.getItem('token'));
+        const userPacket = new Packets.GetCartItems(localStorage.getItem('token')); // "//new Packets.GetLinkedItems(localStorage.getItem('token'));
         console.log("User string: " + userPacket.toString());
         ws.send(userPacket.toString());
     }
@@ -20,13 +22,14 @@ function Cart() {
     ws.onmessage = (res) => {
         const packet = res.data;
         console.log(packet);
-        if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
+        if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_CART_ITEMS){
+			const setCartItemsPacket = Packets.SetCartItems.fromJSONString(packet);
+			
             console.log("Cart items packet");
-            const tmp = JSON.parse(packet);
-            setItems(tmp.data);
+            setItems(setCartItemsPacket.itemList);
         }
 
-        ws.close();
+        // ws.close();
     }; 
 
     // websocket error
