@@ -13,8 +13,46 @@ const Earning = ({ navigation, route }) => {
   const isFocused = useIsFocused();
   const [loading, setLoading] = useState(true);
 
+
+
+  
+
+
   useEffect(() => {
     if (isFocused) {
+
+      global.ws.onmessage = (response) => {
+        const orderPacket = response.data;
+        //console.log(orderPacket);
+        console.log("Earnings got a packet back")
+        if (Packets.getPacketType(orderPacket) === Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS) {
+          console.log("Earnings GOT COMPLETED ORDERS");
+    
+          const json_obj = JSON.parse(orderPacket);
+          let allOrders = json_obj.data;
+    
+          for (var i = 0; i < allOrders.length; i++) {
+            let date = new Date(allOrders[i].completed_date);
+            date = moment(date).format("MM/DD");
+            //console.log(date);
+            if (!earningsMap.has(date)) {
+              earningsMap.set(date, allOrders[i].minimumDeliveryPrice);
+            } else {
+              let oldPay = earningsMap.get(date);
+              earningsMap.set(date, allOrders[i].minimumDeliveryPrice + oldPay);
+            }
+          }
+          //console.log(...earningsMap.entries());
+    
+          //console.log(allOrders)
+          
+        }
+        setLoading(false);
+      };
+
+
+
+
       console.log("Earning about to send packet");
       // const GetAllCompletedOrders = new Packets.GetAllCompletedOrders();
 
@@ -22,7 +60,7 @@ const Earning = ({ navigation, route }) => {
       try {
         const packet = new Packets.GetAllCompletedOrders();
         global.ws.send(packet.toString());
-        console.log(packet.toString());
+        //console.log(packet.toString());
       } catch {
         alert("Connection error, check that you are connected to the internet");
       }
@@ -34,32 +72,7 @@ const Earning = ({ navigation, route }) => {
 
   
 
-  global.ws.onmessage = (response) => {
-    const orderPacket = response.data;
-    //console.log(orderPacket);
-    if (Packets.getPacketType(orderPacket) === Packets.PacketTypes.SET_ALL_COMPLETED_ORDERS) {
-      console.log("\nGOT COMPLETED ORDERS");
-
-      const json_obj = JSON.parse(orderPacket);
-      let allOrders = json_obj.data;
-
-      for (var i = 0; i < allOrders.length; i++) {
-        let date = new Date(allOrders[i].completed_date);
-        date = moment(date).format("MM/DD");
-        //console.log(date);
-        if (!earningsMap.has(date)) {
-          earningsMap.set(date, allOrders[i].minimumDeliveryPrice);
-        } else {
-          let oldPay = earningsMap.get(date);
-          earningsMap.set(date, allOrders[i].minimumDeliveryPrice + oldPay);
-        }
-      }
-      //console.log(...earningsMap.entries());
-
-      //console.log(allOrders)
-      setLoading(false);
-    }
-  };
+  
 
   // const username = route.params.username;
   // const { username } = route.params;

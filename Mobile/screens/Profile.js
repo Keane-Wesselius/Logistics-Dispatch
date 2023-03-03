@@ -23,6 +23,27 @@ const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState("");
   useEffect(() => {
     if (isFocused) {
+      
+      global.ws.onmessage = (response) => {
+        const packet = response.data;
+    
+        if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
+          console.log("\nGot profile data");
+          let user = JSON.parse(packet);
+    
+          user = user.data;
+          
+          firstName = user.firstName;
+          lastName = user.lastName;
+          console.log("data: " + user.firstName);
+          console.log("last: " + user.lastName);
+          console.log("email here: " + user.email);
+          setUser(user);
+        }
+      };
+
+
+
       console.log("Profile about to send packet");
       // const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
       // console.log(getAllConfirmedOrdersPacket);
@@ -36,23 +57,7 @@ const Profile = ({ navigation, route }) => {
     }
   }, [isFocused]);
 
-  global.ws.onmessage = (response) => {
-    const packet = response.data;
-
-    if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
-      console.log("\nGot profile data");
-      let user = JSON.parse(packet);
-
-      user = user.data;
-      
-      firstName = user.firstName;
-      lastName = user.lastName;
-      console.log("data: " + user.firstName);
-      console.log("last: " + user.lastName);
-      console.log("email here: " + user.email);
-      setUser(user);
-    }
-  };
+  
 
   console.log("first name: " + firstName);
   console.log("last name: " + lastName);

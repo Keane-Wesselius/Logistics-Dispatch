@@ -18,8 +18,36 @@ const OrderList = ({navigation, props, route}) => {
   const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
  
+
+  
+
   useEffect(() => {
     if (isFocused) {
+
+      global.ws.onmessage = (response) => {
+        const packet = response.data;
+        console.log("Orderlist Got a packet back");
+        console.log("order List got this packet:" + packet);
+        if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_CONFIRMED_ORDERS) {
+          console.log("GOT CONFIRMED ORDERS");
+          
+          //const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
+          //orders_json = setLinkedOrdersPacket;
+          
+          //console.log("packet: " + packet);
+          const json_obj = JSON.parse(packet);
+          allOrders = json_obj.data;
+          setLoading(false);
+          
+    
+        }
+      };
+
+
+
+
+
+
       console.log('orderList about to send packet');
       const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
       console.log(getAllConfirmedOrdersPacket);
@@ -34,27 +62,15 @@ const OrderList = ({navigation, props, route}) => {
       setLoading(true);
       console.log('OrderList is not focused');
     }
+
+    console.log("Orderlist isFocused = " + isFocused);
+    
   }, [isFocused]);
 
 	let orders_json = [];
-  
-	global.ws.onmessage = (response) => {
-		const packet = response.data;
-		
-		if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_ALL_CONFIRMED_ORDERS) {
-			console.log("GOT CONFIRMED ORDERS");
-      
-			//const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
-			//orders_json = setLinkedOrdersPacket;
-      
-			//console.log("packet: " + packet);
-      const json_obj = JSON.parse(packet);
-      allOrders = json_obj.data;
-      setLoading(false);
-      
 
-		}
-	};
+	
+ 
 
  /* if (loading) {
     return (
