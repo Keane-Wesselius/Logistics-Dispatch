@@ -1,8 +1,8 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
-})(this, (function (exports) { 'use strict';
+// (function (global, factory) {
+// 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+// 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+// 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Packets = {}));
+// })(this, (function (exports) { 'use strict';
 
 	// Essentially, Rollup 'compiles' a JavaScript module which can be used in both Node and the browser (Expo), which will be required for this project and utilizes Rollup ( https://rollupjs.org )
 
@@ -358,7 +358,7 @@
 		}
 	}
 
-	class GetAllCompletedOrders extends JSONPacket {
+	class GetAllCompletedOrders extends Packet {
 		constructor(token = null) {
 			super(PacketTypes.GET_ALL_COMPLETED_ORDERS, token);
 		}
@@ -534,7 +534,7 @@
 
 	// 'estimatedDeliveryDate' is new Date().toString();
 	class PlaceOrder extends Packet {
-		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice, jsonString) {
 			super(PacketTypes.PLACE_ORDER, jsonString);
 
 			this.merchantId = merchantId;
@@ -610,4 +610,4 @@
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;
 
-}));
+// }));

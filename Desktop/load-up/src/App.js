@@ -10,6 +10,7 @@ import Track from './views/common/Track';
 import AddItems from './views/supplier/AddItems';
 import Browse from './views/common/Browse';
 import History from './views/common/History';
+import Cart from './views/merchant/Cart'
 import './App.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path='/add_items' element={<AddItems/>} />
         <Route path='/track' element={<Track/>} />
         <Route path='/browse' element={<Browse/>} />
+        <Route path='/cart' element={<Cart/>} />
         <Route path='/history' element={<History/>} />
       </Routes>
       <Navbar />

@@ -15,7 +15,7 @@ function Register() {
   ws.onopen = () => console.log("ws opened: register");
   ws.onclose = () => console.log("ws closed: register");
 
-  // when websocket gets resposne back
+  // when websocket gets response back
   useEffect(() => {
     ws.onmessage = (res) => {
       const packet = res.data;
@@ -46,7 +46,7 @@ function Register() {
 
   const handleCreate = (e) => {
     e.preventDefault();
-    const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType);
+    const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType, address);
     console.log("Account create string: " + accountPacket.toString());
 
     ws.send(accountPacket.toString());
@@ -55,6 +55,7 @@ function Register() {
   const [name, setName] = useState("");
   const [accType, setAccType] = useState("");
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
 
   return (
@@ -85,7 +86,13 @@ function Register() {
                 {/*<!-- Email input -->*/}
                 <div class="form-outline mb-4">
                   <input type="email" name="email" id="form3Example3" class="form-control" required onChange={e => setEmail(e.target.value)} />
-                  <label class="form-label" for="form3Example3">Email address</label>
+                  <label class="form-label" for="form3Example3">Email</label>
+                </div>
+
+                {/*<!-- Email input -->*/}
+                <div class="form-outline mb-4">
+                  <input type="text" name="address" id="form3Example3" class="form-control" required onChange={e => setAddress(e.target.value)} />
+                  <label class="form-label" for="form3Example3">Address</label>
                 </div>
   
                 {/*<!-- Password input -->*/}

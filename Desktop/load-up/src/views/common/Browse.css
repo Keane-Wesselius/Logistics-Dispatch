@@ -52,3 +52,11 @@
     background-color: #007bff;
     color: #fff;
 }
+
+.cart {
+    padding: 5px;
+    margin: 2px;
+    border: 1px solid #ddd;
+    background-color: #007bff;
+    color: #fff;
+}
