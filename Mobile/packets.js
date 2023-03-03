@@ -9,10 +9,13 @@
 	// Contains constant names for JSON tags.
 	const Constants = {
 		NAME: "name",
+		FIRST_NAME: "firstName",
+		LAST_NAME: "lastName",
 		USERNAME: "username",
 		EMAIL: "email",
 		PASSWORD: "password",
 		ACCTYPE: "acctype",
+		PROFILE_PICTURE: "profilePicture",
 		AREA: "area",
 		TYPE: "type",
 		ERROR_MESSAGE: "errorMessage",
@@ -22,6 +25,7 @@
 		DRIVER_ID: "driverId",
 		STATUS: "status",
 		TOKEN: "token",
+		ADDRESS: "address",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -33,6 +37,7 @@
 		AUTHENTICATION_FAILED: "authenticationFailed",
 
 		CREATE_ACCOUNT: "createAccount",
+		CREATE_DRIVER_ACCOUNT: "createDriverAccount",
 		ACCOUNT_CREATE_SUCCESS: "accountCreateSuccess",
 		ACCOUNT_CREATE_FAILED: "accountCreateFailed",
 
@@ -47,13 +52,13 @@
 
 		UPDATE_ORDER_STATUS: "updateStatus",
 		UPDATE_ORDER_STATUS_SUCCESS: "updateStatusSuccess",
-		UPDATE_ORDER_STATUS_FAILED: "updateStatusFailed",
+		UPDATE_ORDER_STATUS_FAILURE: "updateStatusFailure",
 
 		GET_ALL_CONFIRMED_ORDERS: "getAllConfirmedOrders",
 		SET_ALL_CONFIRMED_ORDERS: "setAllConfirmedOrders",
 
 		GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
-		SET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
+		SET_ALL_COMPLETED_ORDERS: "setAllCompletedOrders",
 
 		GET_ALL_ORDERS: "getAllOrders",
 		SET_ALL_ORDERS: "setAllOrders",
@@ -63,6 +68,10 @@
 		UPDATE_ITEM: "updateItem",
 		UPDATE_ITEM_SUCCESS: "updateItemSuccess",
 		UPDATE_ITEM_FAILED: "updateItemFailed",
+
+		PLACE_ORDER: "placeOrder",
+		PLACE_ORDER_SUCCESS: "placeOrderSuccess",
+		PLACE_ORDER_FAILURE: "placeOrderFailure",
 	};
 
 	const Status = {
@@ -198,18 +207,37 @@
 	}
 
 	class CreateAccountPacket extends Packet {
-		constructor(name, email, password, acctype) {
+		constructor(name, email, password, acctype, address) {
 			super(PacketTypes.CREATE_ACCOUNT);
 
 			this.name = name;
 			this.email = email;
 			this.password = password;
 			this.acctype = acctype;
+			this.address = address;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE));
+			return new CreateAccountPacket(tryGet(jsonObject, Constants.NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.ADDRESS));
+		}
+	}
+
+	class CreateDriverAccountPacket extends Packet {
+		constructor(firstName, lastName, email, password, acctype, profilePicture) {
+			super(PacketTypes.CREATE_DRIVER_ACCOUNT);
+
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.email = email;
+			this.password = password;
+			this.acctype = acctype;
+			this.profilePicture = profilePicture;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new CreateDriverAccountPacket(tryGet(jsonObject, Constants.FIRST_NAME), tryGet(jsonObject, Constants.LAST_NAME), tryGet(jsonObject, Constants.EMAIL), tryGet(jsonObject, Constants.PASSWORD), tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.PROFILE_PICTURE));
 		}
 	}
 
@@ -261,7 +289,6 @@
 		}
 
 		static fromJSONString(jsonString) {
-			// TODO: Doesn't do anything, as AuthenticationSuccessPacket is an empty packet.
 			const jsonObject = parseJSON(jsonString);
 			return new AuthenticationSuccessPacket(tryGet(jsonObject, Constants.ACCTYPE), tryGet(jsonObject, Constants.TOKEN));
 		}
@@ -338,7 +365,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new GetLinkedCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
+			return new GetAllCompletedOrders(tryGet(jsonObject, Constants.TOKEN))
 		}
 	}
 
@@ -352,19 +379,39 @@
 		}
 	}
 
-	class UpdateStatus extends Packet {
+	class UpdateOrderStatus extends Packet {
 		constructor(orderID, status, token = null) {
 			super(PacketTypes.UPDATE_ORDER_STATUS, token);
 
 			// TODO: Sanitize
-			this.orderID = orderID;
+			this.orderId = orderID;
 			// TODO: Check if 'status' is a valid enum value.
 			this.status = status;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
+			return new UpdateOrderStatus(tryGet(jsonObject, Constants.ORDER_ID), tryGet(jsonObject, Constants.STATUS), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class UpdateOrderStatusSuccess extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ORDER_STATUS_SUCCESS);
+		}
+
+		static fromJSONString(jsonString) {
+			return new UpdateOrderStatusSuccess();
+		}
+	}
+
+	class UpdateOrderStatusFailure extends Packet {
+		constructor() {
+			super(PacketTypes.UPDATE_ORDER_STATUS_FAILURE);
+		}
+
+		static fromJSONString(jsonString) {
+			return new UpdateOrderStatusFailure();
 		}
 	}
 
@@ -383,7 +430,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new AddItem(itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new AddItem(tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -414,7 +461,7 @@
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new UpdateItem(itemId = tryGet(jsonObject, ItemValues.ITEM_ID), itemName = tryGet(jsonObject, ItemValues.ITEM_NAME), description = tryGet(jsonObject, ItemValues.DESCRIPTION), quantity = tryGet(jsonObject, ItemValues.QUANTITY), price = tryGet(jsonObject, ItemValues.PRICE), weight = tryGet(jsonObject, ItemValues.WEIGHT), token = tryGet(jsonObject, Constants.TOKEN));
+			return new UpdateItem(tryGet(jsonObject, ItemValues.ITEM_ID), tryGet(jsonObject, ItemValues.ITEM_NAME), tryGet(jsonObject, ItemValues.DESCRIPTION), tryGet(jsonObject, ItemValues.QUANTITY), tryGet(jsonObject, ItemValues.PRICE), tryGet(jsonObject, ItemValues.WEIGHT), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -435,7 +482,7 @@
 		}
 
 		static fromJSONString(jsonString) {
-			return new SetLinkedOrders(jsonString);
+			return new SetLinkedItems(jsonString);
 		}
 	}
 
@@ -480,6 +527,51 @@
 		}
 	}
 
+	// items contains
+	// name: string
+	// quantity: int
+	// price: double
+
+	// 'estimatedDeliveryDate' is new Date().toString();
+	class PlaceOrder extends Packet {
+		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+			super(PacketTypes.PLACE_ORDER, jsonString);
+
+			this.merchantId = merchantId;
+			this.supplierId = supplierId;
+			this.items = items;
+			this.startingAddress = startingAddress;
+			this.endingAddress = endingAddress;
+			this.estimatedDeliveryDate = estimatedDeliveryDate;
+			this.minimumDeliveryPrice = minimumDeliveryPrice;
+			this.maximumDeliveryPrice = maximumDeliveryPrice;
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrder(jsonString);
+		}
+	}
+
+	class PlaceOrderSuccess extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.PLACE_ORDER_SUCCESS, token);
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrderSuccess();
+		}
+	}
+
+	class PlaceOrderFailure extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.PLACE_ORDER_FAILURE, token);
+		}
+
+		static fromJSONString(jsonString) {
+			return new PlaceOrderFailure();
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AddItem = AddItem;
@@ -487,6 +579,7 @@
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
+	exports.CreateDriverAccountPacket = CreateDriverAccountPacket;
 	exports.GetAllCompletedOrders = GetAllCompletedOrders;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;
@@ -498,6 +591,9 @@
 	exports.ItemValues = ItemValues;
 	exports.LoginPacket = LoginPacket;
 	exports.PacketTypes = PacketTypes;
+	exports.PlaceOrder = PlaceOrder;
+	exports.PlaceOrderFailure = PlaceOrderFailure;
+	exports.PlaceOrderSuccess = PlaceOrderSuccess;
 	exports.RemoveItem = RemoveItem;
 	exports.SetAllCompletedOrders = SetAllCompletedOrders;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
@@ -507,7 +603,9 @@
 	exports.SetUserData = SetUserData;
 	exports.Status = Status;
 	exports.UpdateItem = UpdateItem;
-	exports.UpdateStatus = UpdateStatus;
+	exports.UpdateOrderStatus = UpdateOrderStatus;
+	exports.UpdateOrderStatusFailure = UpdateOrderStatusFailure;
+	exports.UpdateOrderStatusSuccess = UpdateOrderStatusSuccess;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;
