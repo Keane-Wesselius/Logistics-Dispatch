@@ -499,18 +499,26 @@ wss.on("connection", function connection(ws) {
 
 				// Need to check user's cart items, get the linked supplier Id's, then add that order to the database.
 				for (const itemData of clientUserData.cart) {
-					if (!supplierIdToItemOrderArrayMap.has("" + itemData.supplierId)) {
-						supplierIdToItemOrderArrayMap.set("" + itemData.supplierId, []);
+					const supplierIdString = itemData.supplierId.toString();
+					if (!supplierIdToItemOrderArrayMap.has(supplierIdString)) {
+						supplierIdToItemOrderArrayMap.set(supplierIdString, []);
 					}
 
-					supplierIdToItemOrderArrayMap.get["" + itemData.supplierId]?.push(itemData);
+					supplierIdToItemOrderArrayMap.get(supplierIdString)?.push(itemData);
 				}
 
-				for (const [supplierId, itemDataArray] of supplierIdToItemOrderArrayMap) {
+				for (const [supplierId, itemDataArray] of supplierIdToItemOrderArrayMap.entries()) {
 					database.getUserDataBySupplierId(supplierId).then((supplierUserData) => {
 						if (supplierUserData != null) {
+							const actualItemDataArray = [];
+							for (const item of itemDataArray) {
+								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+								// @ts-ignore
+								actualItemDataArray.push({ name: item.itemName, quantity: item.quantity, price: item.price });
+							}
+
 							// TODO: Add date parameters and price.
-							database.placeOrder(clientUserData.id, supplierId, itemDataArray, supplierUserData.address, clientUserData.address, "todo", "todo", "todo").then((placedOrderSuccessfully) => {
+							database.placeOrder(clientUserData.id, supplierId, actualItemDataArray, supplierUserData.address, clientUserData.address, "todo", "todo", "todo").then((placedOrderSuccessfully) => {
 								if (placedOrderSuccessfully) {
 									sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
 								} else {
