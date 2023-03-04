@@ -1,17 +1,24 @@
 import React, { useState, useEffect, Component } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
+import { useNavbarUpdate } from '../../NavbarContext';
 import './Track.css';
-
 const Packets = require("../../backend/packets");
 
 function Track() {
+
+    const updateNavbar = useNavbarUpdate();
+
     useEffect(() => {
         let ws = new WebSocket("ws://localhost:5005/");
 
          // websocket open and close
         ws.onopen = () => {
             console.log("ws opened: merchant track");
-            const userPacket = new Packets.GetAllConfirmedOrders(localStorage.getItem('token'));
+            const orderPacket = new Packets.GetAllConfirmedOrders(localStorage.getItem('token'));
+            console.log("User string: " + orderPacket.toString());
+            ws.send(orderPacket.toString());
+
+            const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
             console.log("User string: " + userPacket.toString());
             ws.send(userPacket.toString());
         }
@@ -25,9 +32,13 @@ function Track() {
                 console.log("Confirmed items packet");
                 const tmp = JSON.parse(packet);
                 setItems(tmp.data);
+            } else if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
+                console.log(JSON.parse(packet).data._id);
+                localStorage.setItem('id', JSON.parse(packet).data._id);
+                updateNavbar(JSON.parse(packet).data.acctype);
             }
 
-            ws.close();
+            //ws.close();
         }; 
 
         // websocket error

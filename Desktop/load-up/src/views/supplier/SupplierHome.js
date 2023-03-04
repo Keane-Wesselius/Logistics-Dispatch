@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'
 import HomeVideo from '../../components/images/home_page.mp4';
+import { useNavbarUpdate } from '../../NavbarContext';
 import './SupplierHome.css';
 
 // PAGES:
@@ -14,7 +15,8 @@ import './SupplierHome.css';
 
 function SupplierHome() {
 	const navigate = useNavigate();
-
+	const updateNavbar = useNavbarUpdate();
+    updateNavbar('supplier');
 	return (
 		<div className='supplier-container'>
 			<video autoPlay loop muted>

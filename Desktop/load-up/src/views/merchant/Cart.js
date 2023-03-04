@@ -1,10 +1,13 @@
 import React, { useState, Component } from 'react';
 import './Cart.css';
-
+import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
 
 let ws = null;
 function Cart() {
+    const updateNavbar = useNavbarUpdate();
+    updateNavbar('merchant');
+
 	if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
 		ws = new WebSocket("ws://localhost:5005/");
 	}
@@ -31,6 +34,11 @@ function Cart() {
 			alert("Successfully placed order!")
         } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_FAILURE){
 			alert("Failed to place order.")
+        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_SUCCESS){
+			alert("Item removed from cart!");
+            location.reload();
+        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_FAILURE){
+			alert("Failed to remove item from cart!");
         }
 
         // ws.close();
@@ -74,7 +82,9 @@ function Cart() {
 class TableRow extends Component {
     // remove to cart
     handleRemove = () => {
-        alert("Item removed from cart!");
+        const removeCartItem = new Packets.RemoveCartItem(this.props.rowContent._id, localStorage.getItem('token'));
+        console.log("Sending RemoveCartItem packet: " + removeCartItem.toString());
+        ws.send(removeCartItem.toString());
     }
 
     render() {

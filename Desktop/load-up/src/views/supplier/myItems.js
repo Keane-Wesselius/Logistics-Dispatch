@@ -1,15 +1,15 @@
 import React, { useState, useEffect, Component } from 'react';
-import './Browse.css';
+import './myItems.css';
 import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
 
 let ws = null;
 
-function Browse() {
+function MyItems() {
     
 	const updateNavbar = useNavbarUpdate();
+    updateNavbar('supplier');
 
-	// console.log(ws != null ? ws.status : "websocket is null");
     useEffect(() => {
 		if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
 			ws = new WebSocket("ws://localhost:5005/");
@@ -17,16 +17,12 @@ function Browse() {
 
          // websocket open and close
         ws.onopen = () => {
-            console.log("ws opened: merchant browse");
+            console.log("ws opened: myItems");
             const itemPacket = new Packets.GetLinkedItems(localStorage.getItem('token'));
             console.log("User string: " + itemPacket.toString());
             ws.send(itemPacket.toString());
-
-            const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
-            console.log("User string: " + userPacket.toString());
-            ws.send(userPacket.toString());
         }
-        ws.onclose = () => console.log("ws closed: merchant browse");
+        ws.onclose = () => console.log("ws closed: myItems");
 
         // when websocket gets resposne back
         ws.onmessage = (res) => {
@@ -36,19 +32,7 @@ function Browse() {
                 console.log("Linked items packet");
                 const tmp = JSON.parse(packet);
                 setItems(tmp.data);
-            } else if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
-                console.log(JSON.parse(packet).data._id);
-                localStorage.setItem('id', JSON.parse(packet).data._id);
-                updateNavbar(JSON.parse(packet).data.acctype);
-            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_SUCCESS){
-                console.log("Cart Item Success Packet");
-                alert("Successfully added item to cart!")
-            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_FAILURE){
-                const cartItemFailurePacket = Packets.CartItemFailure.fromJSONString(packet);
-                console.log("Cart Item Failure Packet");
-                alert("Failed to add item to cart: " + cartItemFailurePacket.errorMessage);
-            }
-
+            } 
             // ws.close();
         }; 
 
@@ -59,10 +43,10 @@ function Browse() {
     }, []);
 
     const [items, setItems] = useState([]);
-    const heading = ["ID", "Name", "Description", "Quantity", "Price", "Weight", "Supplier", "Date", "Add to Cart"]
+    const heading = ["ID", "Name", "Description", "Quantity", "Price", "Weight", "Date Added"]
 
     return (
-        <div className="browse" >
+        <div className="myitems" >
             <h1 class="text-center">Available Items</h1>
             <table className="bitem-table">
                 <thead>
@@ -82,21 +66,6 @@ function Browse() {
 }
 
 class TableRow extends Component {
-    // add to cart
-    handleSubmit = () => {
-        if(this.quantity != null) {
-            const addCartItem = new Packets.AddCartItem(this.props.rowContent._id, this.quantity, localStorage.getItem('token'));
-            console.log("Sending addCartItem packet: " + addCartItem.toString());
-            ws.send(addCartItem.toString());
-        } else {
-            alert("Please pick a valid quantity number.")
-        }
-    }
-
-    handleQuantityChange = (e) => {
-        this.quantity = e.target.value;
-    }
-
     render() {
         var row = this.props.rowContent;
         var range = []
@@ -105,7 +74,7 @@ class TableRow extends Component {
         }
 
         if (Object.hasOwn(row, '_id') && Object.hasOwn(row, 'itemName') && Object.hasOwn(row, 'description') && Object.hasOwn(row, 'quantity') &&
-            Object.hasOwn(row, 'price') && Object.hasOwn(row, 'weight') && Object.hasOwn(row, 'supplierId') && Object.hasOwn(row, 'postedDate')) {
+            Object.hasOwn(row, 'price') && Object.hasOwn(row, 'weight') && Object.hasOwn(row, 'postedDate')) {
             return (
                 <tr>
                     <td>{row._id}</td>
@@ -114,17 +83,7 @@ class TableRow extends Component {
                     <td>{row.quantity}</td>
                     <td>{row.price}</td>
                     <td>{row.weight}</td>
-                    <td>{row.supplierId}</td>
                     <td>{row.postedDate}</td>
-                    <td>
-                        <select className="cart" onChange={this.handleQuantityChange}>
-                            <option hidden-value="" disabled selected hidden>Quantity</option>
-                            {range.map((n) => <option>{n}</option>)}
-                        </select>
-                        <button className="cart" onClick={this.handleSubmit}>
-                            Submit
-                        </button>
-                    </td>
                 </tr>
             )
         } else {
@@ -133,4 +92,4 @@ class TableRow extends Component {
     }
 }
 
-export default Browse;
+export default MyItems;
