@@ -26,6 +26,7 @@ interface DatabaseUserData {
 	lastName : string | null;
 	name : string | null;
 	profilePicture : string | null;
+	address : string | null;
 }
 
 class UserData {
@@ -35,7 +36,8 @@ class UserData {
 	firstName : string | null;
 	lastName : string | null;
 	name : string | null;
-	cart : Set<object>[];
+	address : string | null;
+	cart : Set<ItemData>;
 
 	constructor(userDataJSON : DatabaseUserData) {
 		this.id = userDataJSON._id.toString();
@@ -52,9 +54,11 @@ class UserData {
 			this.name = userDataJSON.name;
 		}
 
+		this.address = userDataJSON.address;
+
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		this.cart = new Set<object>();
+		this.cart = new Set<ItemData>();
 	}
 
 	isDriver() {
@@ -366,6 +370,8 @@ wss.on("connection", function connection(ws) {
 			if (clientUserData.isSupplier()) {
 				const addItemPacket = Packets.AddItem.fromJSONString(data);
 				const item = new ItemData(null, addItemPacket, clientUserData.id);
+				console.log("Add Item Packet: " + JSON.stringify(addItemPacket));
+				console.log("Added Item: " + JSON.stringify(item));
 
 				database?.insertNewItem(item).then((addedSuccessfully) => {
 					if (addedSuccessfully) {
@@ -488,21 +494,37 @@ wss.on("connection", function connection(ws) {
 				sendIfNotNull(ws, new Packets.AccountCreateFailedPacket("Failed to create account, account with username / email already exists.").toString());
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.PLACE_ORDER) {
-			// Creating accounts and adding them to the database
-			const placeOrderPacket = JSON.parse(data.toString());
+			if (clientUserData.isMerchant()) {
+				const supplierIdToItemOrderArrayMap = new Map<string, Array<ItemData>>();
 
-			// Not requiring profile picture explicitly here, as it will save data sending the default from mobile.
-			if (database != null && placeOrderPacket.merchantId != null && placeOrderPacket.supplierId != null && placeOrderPacket.items != null && placeOrderPacket.startingAddress != null && placeOrderPacket.endingAddress != null && placeOrderPacket.estimatedDeliveryDate != null && placeOrderPacket.minimumDeliveryPrice != null && placeOrderPacket.maximumDeliveryPrice != null) {
-				database.placeOrder(placeOrderPacket).then((placedOrderSuccessfully) => {
-					if (placedOrderSuccessfully) {
-						sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
-					} else {
-						// TODO: The error is assumed here, but we should really say exactly what went wrong (existing username, email, etc).
-						sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
+				// Need to check user's cart items, get the linked supplier Id's, then add that order to the database.
+				for (const itemData of clientUserData.cart) {
+					if (!supplierIdToItemOrderArrayMap.has("" + itemData.supplierId)) {
+						supplierIdToItemOrderArrayMap.set("" + itemData.supplierId, []);
 					}
-				});
+
+					supplierIdToItemOrderArrayMap.get["" + itemData.supplierId]?.push(itemData);
+				}
+
+				for (const [supplierId, itemDataArray] of supplierIdToItemOrderArrayMap) {
+					database.getUserDataBySupplierId(supplierId).then((supplierUserData) => {
+						if (supplierUserData != null) {
+							// TODO: Add date parameters and price.
+							database.placeOrder(clientUserData.id, supplierId, itemDataArray, supplierUserData.address, clientUserData.address, "todo", "todo", "todo").then((placedOrderSuccessfully) => {
+								if (placedOrderSuccessfully) {
+									sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
+								} else {
+									// TODO: The error is assumed here, but we should really say exactly what went wrong.
+									sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
+								}
+							});
+						} else {
+							console.log("Couldn't get supplier by ID for place order: " + supplierId);
+						}
+					});
+				}
 			} else {
-				sendIfNotNull(ws, new Packets.PlaceOrderFailure().toString());
+				console.log("Got invalid account type for action PLACE_ORDER: " + clientUserData.accountType);
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_CART_ITEMS) {
 			if (clientUserData.accountType != AccountType.DRIVER) {
@@ -515,15 +537,11 @@ wss.on("connection", function connection(ws) {
 
 				database.getAllItems().then((items) => {
 					let cartItemErrorMessage : string | null = null;
-					let databaseItem : object | null = null;
+					let databaseItem : ItemData | null = null;
 
 					if (items != null) {
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						// @ts-ignore
 						for (const item of items) {
 							console.log("Item: " + JSON.stringify(item));
-							// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-							// @ts-ignore
 							if (item._id == addCartItemPacket.itemId) {
 								const itemCartQuantity = parseInt(addCartItemPacket.quantity);
 								const databaseItemQuantity = parseInt(item.quantity);
@@ -536,6 +554,8 @@ wss.on("connection", function connection(ws) {
 								// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 								// @ts-ignore
 								if (itemCartQuantity != null && !isNaN(itemCartQuantity) && itemCartQuantity < databaseItemQuantity) {
+									// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+									// @ts-ignore
 									databaseItem = item;
 									// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 									// @ts-ignore

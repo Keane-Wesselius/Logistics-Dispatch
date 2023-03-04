@@ -5,10 +5,11 @@ const Packets = require("../../backend/packets");
 
 let ws = null;
 function Browse() {
+	// console.log(ws != null ? ws.status : "websocket is null");
     useEffect(() => {
-        if (ws == null) {
-            ws = new WebSocket("ws://localhost:5005/");
-        }
+		if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+			ws = new WebSocket("ws://localhost:5005/");
+		}
 
          // websocket open and close
         ws.onopen = () => {
@@ -115,7 +116,9 @@ class TableRow extends Component {
                     </td>
                 </tr>
             )
-        }
+        } else {
+			console.log("Got malformed row object, not rendering: " + JSON.stringify(row));
+		}
     }
 }
 

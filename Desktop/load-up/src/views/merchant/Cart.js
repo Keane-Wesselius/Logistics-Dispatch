@@ -5,7 +5,7 @@ const Packets = require("../../backend/packets");
 
 let ws = null;
 function Cart() {
-	if (ws == null) {
+	if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
 		ws = new WebSocket("ws://localhost:5005/");
 	}
 
@@ -27,6 +27,10 @@ function Cart() {
 			
             console.log("Cart items packet");
             setItems(setCartItemsPacket.itemList);
+        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_SUCCESS){
+			alert("Successfully placed order!")
+        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_FAILURE){
+			alert("Failed to place order.")
         }
 
         // ws.close();
@@ -38,8 +42,8 @@ function Cart() {
     };
 
     const handleOrder = () => {
-        alert("Cart items ordered!");
-        // something something PlaceOrder packet
+		const placeOrderPacket = new Packets.PlaceOrder(localStorage.getItem('token'));
+        ws.send(placeOrderPacket.toString());
     }
 
     const [items, setItems] = useState([]);
@@ -95,7 +99,9 @@ class TableRow extends Component {
                     </td>
                 </tr>
             )
-        }
+        } else {
+			console.log("Got malformed row object, not rendering: " + JSON.stringify(row));
+		}
     }
 }
 

@@ -543,29 +543,14 @@
 		}
 	}
 
-	// items contains
-	// name: string
-	// quantity: int
-	// price: double
-
-	// 'estimatedDeliveryDate' is new Date().toString();
 	class PlaceOrder extends Packet {
-		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice, token = null) {
+		constructor(token = null) {
 			super(PacketTypes.PLACE_ORDER, token);
-
-			this.merchantId = merchantId;
-			this.supplierId = supplierId;
-			this.items = items;
-			this.startingAddress = startingAddress;
-			this.endingAddress = endingAddress;
-			this.estimatedDeliveryDate = estimatedDeliveryDate;
-			this.minimumDeliveryPrice = minimumDeliveryPrice;
-			this.maximumDeliveryPrice = maximumDeliveryPrice;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new PlaceOrder(tryGet(jsonObject, Constants.MERCHANT_ID), tryGet(jsonObject, Constants.SUPPLIER_ID), tryGet(jsonObject, Constants.STARTING_ADDRESS), tryGet(jsonObject, Constants.ENDING_ADDRESS), tryGet(jsonObject, Constants.ESTIMATED_DELIVERY_DATE), tryGet(jsonObject, Constants.MINIMUM_DELIVERY_PRICE, tryGet(jsonObject, Constants.MAXIMUM_DELIVERY_PRICE), tryGet(jsonObject, Constants.TOKEN)));
+			return new PlaceOrder(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
