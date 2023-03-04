@@ -110,20 +110,39 @@ class DatabaseHandler {
 			if (result) {
 				console.log("User found");
 				return result;
-			}
-
-			else {
+			} else {
 				console.log("User not found");
 				return null;
 			}
+		} else {
+			return null;
+		}
+	}
+
+	async getUserDataBySupplierId(supplierId) {
+		if (supplierId != null) {
+			// TODO: Add support for getting user data via either email or username
+			// Will get the test database, then the users collection, then find the first entry where email is equal to the 'userEmail' parameter.
+			//Currently I (keane) need to figure out bCrypt so i am passing the encrypted version of the password to get true values
+			const result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(supplierId) });
+
+			if (result) {
+				console.log("User found");
+				return result;
+			} else {
+				console.log("User not found");
+				return null;
+			}
+		} else {
+			return null;
 		}
 	}
 
 	async getName(desktopID){
-		const result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ supplierId: new ObjectId(desktopID) });
+		let result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(desktopID) });
 		if (!result)
 		{
-			result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ merchantId: new ObjectId(desktopID) });
+			result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(desktopID) });
 		}
 
 		if(result)
@@ -236,7 +255,16 @@ class DatabaseHandler {
 	// 	estimatedDeliveryDate (date)
 	// 	minimumDeliveryPrice (double)
 	// 	maximumDeliveryPrice (double)
-	async placeOrder(orderDetails) {
+	async placeOrder(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+		let orderDetails = {};
+		orderDetails.merchantId = merchantId;
+		orderDetails.supplierId = supplierId;
+		orderDetails.items = items;
+		orderDetails.startingAddress = startingAddress;
+		orderDetails.endingAddress = endingAddress;
+		orderDetails.estimatedDeliveryDate = estimatedDeliveryDate;
+		orderDetails.minimumDeliveryPrice = minimumDeliveryPrice;
+		orderDetails.maximumDeliveryPrice = maximumDeliveryPrice;
 
 		orderDetails.status = "pending";
 
@@ -247,6 +275,7 @@ class DatabaseHandler {
 		}
 		else
 		{
+			console.log("Order place failed: couldn't get merchant name");
 			return false;
 		}
 		name = await this.getName(orderDetails.supplierId)
@@ -256,6 +285,7 @@ class DatabaseHandler {
 		}
 		else
 		{
+			console.log("Order place failed: couldn't get supplier name");
 			return false;
 		}
 

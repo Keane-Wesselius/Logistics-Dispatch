@@ -25,8 +25,8 @@ function AddItems() {
         if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
             console.log(JSON.parse(packet).data._id);
             localStorage.setItem('id', JSON.parse(packet).data._id);
-        }else if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
-            console.log("Linked items packet");
+        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
+            // console.log("Linked items packet");
             // TODO fix reading of data
             // console.log(JSON.parse(packet).data.name);
         }
@@ -103,6 +103,7 @@ function AddItems() {
         items.push(item);
 
         // Add item to table
+		// TODO: Replace with setting when desktop receives the SetLinkedItems packet.
         addItemToTable(item); 
 
         // Reset form

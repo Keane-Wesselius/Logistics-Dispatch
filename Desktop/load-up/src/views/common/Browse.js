@@ -5,10 +5,11 @@ const Packets = require("../../backend/packets");
 
 let ws = null;
 function Browse() {
+	// console.log(ws != null ? ws.status : "websocket is null");
     useEffect(() => {
-        if (ws == null) {
-            ws = new WebSocket("ws://localhost:5005/");
-        }
+		if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+			ws = new WebSocket("ws://localhost:5005/");
+		}
 
          // websocket open and close
         ws.onopen = () => {
@@ -93,7 +94,7 @@ class TableRow extends Component {
         }
 
         if (Object.hasOwn(row, '_id') && Object.hasOwn(row, 'itemName') && Object.hasOwn(row, 'description') && Object.hasOwn(row, 'quantity') &&
-            Object.hasOwn(row, 'price') && Object.hasOwn(row, 'weight') && Object.hasOwn(row, 'supplierID') && Object.hasOwn(row, 'postedDate')) {
+            Object.hasOwn(row, 'price') && Object.hasOwn(row, 'weight') && Object.hasOwn(row, 'supplierId') && Object.hasOwn(row, 'postedDate')) {
             return (
                 <tr>
                     <td>{row._id}</td>
@@ -102,7 +103,7 @@ class TableRow extends Component {
                     <td>{row.quantity}</td>
                     <td>{row.price}</td>
                     <td>{row.weight}</td>
-                    <td>{row.supplierID}</td>
+                    <td>{row.supplierId}</td>
                     <td>{row.postedDate}</td>
                     <td>
                         <select className="cart" onChange={this.handleQuantityChange}>
@@ -115,7 +116,9 @@ class TableRow extends Component {
                     </td>
                 </tr>
             )
-        }
+        } else {
+			console.log("Got malformed row object, not rendering: " + JSON.stringify(row));
+		}
     }
 }
 

@@ -7,13 +7,14 @@ import './LoginRegister.css';
 const Packets = require("../backend/packets");
 
 let ws = null;
+
 function Login() {
 	const navigate = useNavigate();
 	const updateNavbar = useNavbarUpdate();
 
 	// Ensure that the ws object exists, replacing it only if it doesn't.
 	// TODO: Check if WebSocket is invalid, recreating it if it is.
-	if (ws == null) {
+	if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
 		ws = new WebSocket("ws://localhost:5005/");
 	}
 
@@ -57,12 +58,6 @@ function Login() {
 	// handles login
 	const handleLogin = (e) => {
 		e.preventDefault();
-
-		if(ws == null) {
-			ws = new WebSocket("ws://localhost:5005/");
-		}
-
-		console.log(ws.readyState);
 
 		//We create a packet to send to the backend using the username and password entered on the screen
 		const loginPacket = new Packets.LoginPacket(username, password);
