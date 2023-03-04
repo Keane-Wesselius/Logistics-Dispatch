@@ -8,6 +8,7 @@ import Packets, { GetUserData } from "./packets";
 import { ActivityIndicator } from "react-native";
 
 const earningsMap = new Map();
+let earningsSet = false;
 
 const Earning = ({ navigation, route }) => {
   const isFocused = useIsFocused();
@@ -32,6 +33,7 @@ const Earning = ({ navigation, route }) => {
           let allOrders = json_obj.data;
     
           for (var i = 0; i < allOrders.length; i++) {
+            console.log(allOrders[i]);
             let date = new Date(allOrders[i].completed_date);
             date = moment(date).format("MM/DD");
             //console.log(date);
@@ -155,6 +157,10 @@ const Earning = ({ navigation, route }) => {
   };
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+  else if (!earningsSet) {
+    getEarningsForWeek(week);
+    earningsSet = true;
   }
   return (
     <View style={styles.container}>
