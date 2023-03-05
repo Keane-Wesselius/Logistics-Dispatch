@@ -21,6 +21,7 @@ let lastName = "";
 const Profile = ({ navigation, route }) => {
   const isFocused = useIsFocused();
   const [user, setUser] = useState("");
+  //const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (isFocused) {
       

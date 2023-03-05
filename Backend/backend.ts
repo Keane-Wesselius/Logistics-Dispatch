@@ -404,7 +404,7 @@ wss.on("connection", function connection(ws) {
 
 			// TODO: Validate status can actually go from it's previous state to this new state.
 			if (updateStatus.status == Packets.Status.ACCEPTED) {
-				database?.acceptOrder(updateStatus.orderId).then((updatedStatusSuccessfully) => {
+				database?.acceptOrder(updateStatus.orderId, clientUserData.id).then((updatedStatusSuccessfully) => {
 					if (updatedStatusSuccessfully) {
 						sendIfNotNull(ws, new Packets.UpdateOrderStatusSuccess().toString());
 					} else {

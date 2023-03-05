@@ -379,17 +379,35 @@ class DatabaseHandler {
 			let updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
 
 			if (updatedResult.modifiedCount > 0) {
-				console.log("Item Confirmed: " + orderID);
+				console.log("Order Confirmed: " + orderID);
 				return true;
 			}
 			else {
-				console.log("Item Not Confirmed");
+				console.log("Order Not Confirmed");
 			}
+		}
 
+		else if (result.status == "accepted") {
+			let updated = result;
+			updated.status = "confirmed";
+
+			// TODO: Camelcase
+			//updated.confirmed_date = getDate();
+			//updated.confirmed_time = getTime();
+
+			let updatedResult = await this.dbClient.db(databaseName).collection(orderCollection).updateOne({ "_id": new ObjectId(orderID) }, { $set: updated });
+
+			if (updatedResult.modifiedCount > 0) {
+				console.log("Order Confirmed: " + orderID);
+				return true;
+			}
+			else {
+				console.log("Order Not Confirmed");
+			}
 		}
 
 		else {
-			console.log("Can only confirm a pending order");
+			console.log("Unable to confirm order");
 		}
 		return false;
 	}
@@ -478,7 +496,7 @@ class DatabaseHandler {
 			if (result.status == "confirmed") {
 				let updated = result;
 				updated.status = "accepted";
-				updated.driverId = ObjectId(driverID);
+				updated.driverId = new ObjectId(driverID);
 
 
 				updated.accepted_date = getDate();
@@ -588,7 +606,7 @@ class DatabaseHandler {
 			////////////////////////////////////////////////
 			///////////////////////////////////////////////
 			//////////////////////////////NOT CONFIRMED SUPPOSED TO BE ACCEPTED
-			if (result.status == "confirmed") {
+			if (result.status == "accepted") {
 				let updated = result;
 				updated.status = "completed";
 

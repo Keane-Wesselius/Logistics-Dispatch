@@ -20,33 +20,46 @@ const BottomSheet = (props) => {
     // navigation to orderlist screen when pressed cancel order
     const navigation = useNavigation();
     const handlePress = () =>{
-        navigation.navigate('OrdersList', {
+
+        global.ws.onmessage = (response) => {
+            const packet = response.data;
             
-        })
-        props.clearDeliveryAddress();
+            if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS) {
+                console.log("Order confirmed");
+          
+                navigation.navigate('OrdersList', {
+                })
+                props.clearDeliveryAddress();
+    
+            }
+
+            else {
+                alert("Unable to cancel order");
+            }
+        };
+
+
+        console.log('Trying to cancel order');
+      const acceptPacket = new Packets.UpdateOrderStatus(props.orderId, Status.CONFIRMED);
+      console.log(acceptPacket);
+      try{
+	    global.ws.send(acceptPacket.toString());
+      }
+      catch
+      {
+        alert("Connection error, check that you are connected to the internet");
+      }
+
+
+
+        
         
     }
     //getting order id:
     //console.log("orderId:", props.orderId);
 
 
-    global.ws.onmessage = (response) => {
-		const packet = response.data;
-		
-		if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS) {
-			console.log("Order confirmed");
-      
-			//const setLinkedOrdersPacket = GetLinkedOrders.fromJSONString(packet);
-			//orders_json = setLinkedOrdersPacket;
-      
-			//console.log("packet: " + packet);
-      //const json_obj = JSON.parse(packet);
-      //allOrders = json_obj.data;
-      //setLoading(false);
-      
-
-		}
-	};
+    
     /*
     const handleStartSigning = () => {
         setIsSigning(true);

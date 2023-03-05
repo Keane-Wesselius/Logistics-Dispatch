@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import orders_json from './orders.json';
 import { useNavigation } from '@react-navigation/native'
 import Map from '../screens/Map';
+import Packets, { UpdateOrderStatus, Status } from "./packets";
 
 
 const Orders = (props) => {
@@ -13,14 +14,50 @@ const Orders = (props) => {
   //const[shippingAddress, setShippingAddress] = useState('');
   const {shippingAddress, onPress} = props;
   const handlePress = (dest_address, startAddress) =>{
-    navigation.navigate('Map', {
-       deliveryAddress: dest_address,
-       orderId: props.orderId,
-       startAddress: startAddress
-    })
+
+
+    global.ws.onmessage = (response) => {
+        const packet = response.data;
+        console.log("Order Got a packet back");
+        console.log("Order got this packet:" + packet);
+        if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS) {
+            console.log("Order was accepted");
+        
+            navigation.navigate('Map', {
+                deliveryAddress: dest_address,
+                orderId: props.orderId,
+                startAddress: startAddress
+            })
+        }
+
+        else if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_FAILURE)
+        {
+            alert("Failed to take order");
+        }
+      };
+
+
+
+
+    console.log('order trying to get accepted');
+      const acceptPacket = new Packets.UpdateOrderStatus(props.orderId, Status.ACCEPTED);
+      console.log(acceptPacket);
+      try{
+	    global.ws.send(acceptPacket.toString());
+      }
+      catch
+      {
+        alert("Connection error, check that you are connected to the internet");
+      }
+    }
+
+    
+
+
+    
    //console.log(dest_address);
    //console.log(startAddress);
-  }
+  //}
   //parsing from json file
     /*
    {parsedOrders.map((order, index) => (

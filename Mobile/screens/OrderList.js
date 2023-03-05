@@ -37,15 +37,11 @@ const OrderList = ({navigation, props, route}) => {
           //console.log("packet: " + packet);
           const json_obj = JSON.parse(packet);
           allOrders = json_obj.data;
-          setLoading(false);
           
     
         }
+        setLoading(false);
       };
-
-
-
-
 
 
       console.log('orderList about to send packet');

@@ -10,9 +10,14 @@ import {
 import Packets, { GetAllCompletedOrders } from "../screens/packets";
 import { ActivityIndicator } from "react-native";
 
+// const isFocused = useIsFocused();
 let allOrders = [];
 
 function CompletedDelivery() {
+
+
+  
+
   let data = null;
   const [loading, setLoading] = useState(true);
   try {
