@@ -138,18 +138,19 @@ const BottomSheet = (props) => {
             
 	        global.ws.send(ConfirmOrderPacket.toString());
       
-  
+           
             //console.log('Signature saved:', signatureUri);
   
-      // Clear the signature canvas
-      signatureRef.current.clearSignature();
-
-            props.clearDeliveryAddress();
+            // Clear the signature canvas
+            //signatureRef.current.clearSignature();
+            console.log('Signature saved:');
+            
            
 
         } catch (error) {
             console.error("Error saving signature: ", error);
         }
+        props.clearDeliveryAddress();
     }
     // indexes for opening and closing div when pressed button    
     const[currentIndex, setCurrentIndex] = useState(false);

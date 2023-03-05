@@ -245,7 +245,7 @@ const Map = ({ route}) => {
             destination={deliveryAddress}
             strokeColor = 'purple'
             strokeWidth= {3}
-            waypoints = {waypoints}
+            //waypoints = {waypoints}
             alternatives = {true}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
