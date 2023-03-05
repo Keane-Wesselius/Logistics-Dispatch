@@ -6,10 +6,10 @@ import DefaultNavbar from './DefaultNavbar';
 function Navbar() {
     const navbar = useNavbar();
 
-    if (navbar === "merchant") {
+    if (navbar.toLowerCase() === "merchant") {
         return <MerchantNavbar />
     }
-    else if (navbar === "supplier") {
+    else if (navbar.toLowerCase() === "supplier") {
         return <SupplierNavbar />
     }
     else {

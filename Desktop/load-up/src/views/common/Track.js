@@ -1,12 +1,16 @@
 import React, { useState, useEffect, Component } from 'react';
-import { GoogleMap } from '@react-google-maps/api';
+import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import { useNavbarUpdate } from '../../NavbarContext';
+
 import './Track.css';
 const Packets = require("../../backend/packets");
 
 function Track() {
 
     const updateNavbar = useNavbarUpdate();
+    const { isLoaded } = useLoadScript({
+        googleMapsApiKey: 'AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA'
+      });
 
     useEffect(() => {
         let ws = new WebSocket("ws://localhost:5005/");
@@ -48,11 +52,12 @@ function Track() {
     }, []);
 
     const [items, setItems] = useState([]);
+    const [locations, setLocations] = useState([]);
     const heading = ["ID", "Name", "Description", "Quantity", "Price", "Weight", "Supplier", "Date", "Map"]
 
     return (
         <div className="browse" >
-            <h1 class="text-center">Available Items</h1>
+            <h1 class="text-center">Confirmed Orders</h1>
             <table className="bitem-table">
                 <thead>
                     <tr>
@@ -65,11 +70,11 @@ function Track() {
                 
                 </tbody>
             </table>
-            <GoogleMap class="map"
-            center={{lat: 37.7749, lng: -122.4194}}
-            zoom={13}>
-            <h2>Delivery Route</h2>
-            </GoogleMap>
+            { !isLoaded ? (
+             <div>Loading...</div>
+            ) : (
+                <div><Map mapData={locations}/></div>
+            )}
         </div>
     );
 }
@@ -105,5 +110,34 @@ class TableRow extends Component {
         }
     }
 }
+
+class Map extends Component {
+    render() {
+        var data = this.props.mapData;
+
+        if (Object.hasOwn(data, 'supplierAddress') && Object.hasOwn(data, 'clientAddress')) {
+            var locations = JSON.parse(data);
+
+           return (
+            <GoogleMap
+                onLoad={(map) => {
+                const bounds = new window.google.maps.LatLngBounds();
+                locations.forEach((location) => {
+                  bounds.extend({lat:parseFloat(location.lat),lng:parseFloat(location.lng)});
+                })
+                map.fitBounds(bounds);
+              }}
+             >
+    
+            <Marker position={locations[0]} />
+            <Marker position={locations[1]} />
+            </GoogleMap>
+            );     
+        }
+        else {
+            return (<div>Routes are loading...</div>);
+        }
+    };
+  }
 
 export default Track;

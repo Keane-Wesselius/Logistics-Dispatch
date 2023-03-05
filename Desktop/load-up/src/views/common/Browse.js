@@ -8,12 +8,13 @@ let ws = null;
 function Browse() {
     
 	const updateNavbar = useNavbarUpdate();
+    //ws = null;
 
 	// console.log(ws != null ? ws.status : "websocket is null");
     useEffect(() => {
-		if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-			ws = new WebSocket("ws://localhost:5005/");
-		}
+		//if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+            ws = new WebSocket("ws://localhost:5005/");
+		//}
 
          // websocket open and close
         ws.onopen = () => {
@@ -56,7 +57,7 @@ function Browse() {
         ws.onerror = (e) => {
             console.error("WebSocket error:", e.message);
         };
-    }, []);
+    }, [updateNavbar]);
 
     const [items, setItems] = useState([]);
     const heading = ["ID", "Name", "Description", "Quantity", "Price", "Weight", "Supplier", "Date", "Add to Cart"]

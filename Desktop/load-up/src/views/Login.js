@@ -70,7 +70,9 @@ function Login() {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
+	// login/register navbar + reset token
 	updateNavbar("");
+	localStorage.setItem('token', null);
 
 	return (
 		<section class="background-radial-gradient overflow-hidden">

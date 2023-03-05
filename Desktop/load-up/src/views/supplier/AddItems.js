@@ -1,43 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AddItems.css';
 import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
+
+let ws = null;
 
 function AddItems() {
     
     const updateNavbar = useNavbarUpdate();
     updateNavbar('supplier');
     
-    let ws = new WebSocket("ws://localhost:5005/");
-    // websocket open and close
-    ws.onopen = () => {
-        console.log("ws opened: add items");
-        const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
-        console.log("User string: " + userPacket.toString());
-        ws.send(userPacket.toString());
+    useEffect(() => {
+        ws = new WebSocket("ws://localhost:5005/");
+        // websocket open and close
+        ws.onopen = () => {
+            console.log("ws opened: add items");
+            const userPacket = new Packets.GetUserData(localStorage.getItem('token'));
+            console.log("User string: " + userPacket.toString());
+            ws.send(userPacket.toString());
 
-    }
-    ws.onclose = () => console.log("ws closed: add items");
-
-    // when websocket gets resposne back
-    ws.onmessage = (res) => {
-        const packet = res.data;
-        console.log(packet);
-        // On success save user id
-        if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
-            console.log(JSON.parse(packet).data._id);
-            localStorage.setItem('id', JSON.parse(packet).data._id);
-        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
-            // console.log("Linked items packet");
-            // TODO fix reading of data
-            // console.log(JSON.parse(packet).data.name);
         }
-    }; 
+        ws.onclose = () => console.log("ws closed: add items");
 
-    // websocket error
-    ws.onerror = (e) => {
-        console.error("WebSocket error:", e.message);
-    };
+        // when websocket gets resposne back
+        ws.onmessage = (res) => {
+            const packet = res.data;
+            console.log(packet);
+            // On success save user id
+            if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
+                console.log(JSON.parse(packet).data._id);
+                localStorage.setItem('id', JSON.parse(packet).data._id);
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_LINKED_ITEMS){
+                // console.log("Linked items packet");
+                // TODO fix reading of data
+                // console.log(JSON.parse(packet).data.name);
+            }
+        }; 
+
+        // websocket error
+        ws.onerror = (e) => {
+            console.error("WebSocket error:", e.message);
+        };
+    }, []);
+
 
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");

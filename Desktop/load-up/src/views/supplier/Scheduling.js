@@ -9,9 +9,9 @@ function Browse() {
     updateNavbar('supplier');
 
     useEffect(() => {
-        if (ws == null) {
+        //if (ws == null) {
             ws = new WebSocket("ws://localhost:5005/");
-        }
+        //}
     
          // websocket open and close
         ws.onopen = () => {

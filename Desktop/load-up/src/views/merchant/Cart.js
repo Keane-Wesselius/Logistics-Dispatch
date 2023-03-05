@@ -1,4 +1,4 @@
-import React, { useState, Component } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import './Cart.css';
 import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
@@ -8,49 +8,52 @@ function Cart() {
     const updateNavbar = useNavbarUpdate();
     updateNavbar('merchant');
 
-	if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-		ws = new WebSocket("ws://localhost:5005/");
-	}
+    useEffect(() => {
+        //if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+            ws = new WebSocket("ws://localhost:5005/");
+        //}
 
-    // websocket open and close
-    ws.onopen = () => {
-        console.log("ws opened: merchant cart");
-        const userPacket = new Packets.GetCartItems(localStorage.getItem('token')); // "//new Packets.GetLinkedItems(localStorage.getItem('token'));
-        console.log("User string: " + userPacket.toString());
-        ws.send(userPacket.toString());
-    }
-    ws.onclose = () => console.log("ws closed: merchant cart");
-
-    // when websocket gets resposne back
-    ws.onmessage = (res) => {
-        const packet = res.data;
-        console.log(packet);
-        if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_CART_ITEMS){
-			const setCartItemsPacket = Packets.SetCartItems.fromJSONString(packet);
-			
-            console.log("Cart items packet");
-            setItems(setCartItemsPacket.itemList);
-        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_SUCCESS){
-			alert("Successfully placed order!")
-        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_FAILURE){
-			alert("Failed to place order.")
-        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_SUCCESS){
-			alert("Item removed from cart!");
-            location.reload();
-        } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_FAILURE){
-			alert("Failed to remove item from cart!");
+        // websocket open and close
+        ws.onopen = () => {
+            console.log("ws opened: merchant cart");
+            const userPacket = new Packets.GetCartItems(localStorage.getItem('token')); // "//new Packets.GetLinkedItems(localStorage.getItem('token'));
+            console.log("User string: " + userPacket.toString());
+            ws.send(userPacket.toString());
         }
+        ws.onclose = () => console.log("ws closed: merchant cart");
 
-        // ws.close();
-    }; 
+        // when websocket gets resposne back
+        ws.onmessage = (res) => {
+            const packet = res.data;
+            console.log(packet);
+            if(Packets.getPacketType(packet) === Packets.PacketTypes.SET_CART_ITEMS){
+                const setCartItemsPacket = Packets.SetCartItems.fromJSONString(packet);
+                
+                console.log("Cart items packet");
+                setItems(setCartItemsPacket.itemList);
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_SUCCESS){
+                alert("Successfully placed order!")
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.PLACE_ORDER_FAILURE){
+                alert("Failed to place order.")
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_SUCCESS){
+                alert("Item removed from cart!");
+                window.location.reload();
+            } else if(Packets.getPacketType(packet) === Packets.PacketTypes.CART_ITEM_FAILURE){
+                alert("Failed to remove item from cart!");
+            }
 
-    // websocket error
-    ws.onerror = (e) => {
-        console.error("WebSocket error:", e.message);
-    };
+            // ws.close();
+        }; 
+
+        // websocket error
+        ws.onerror = (e) => {
+            console.error("WebSocket error:", e.message);
+        };
+    }, []);
 
     const handleOrder = () => {
 		const placeOrderPacket = new Packets.PlaceOrder(localStorage.getItem('token'));
+        console.log("Sending order packet: " + placeOrderPacket.toString());
         ws.send(placeOrderPacket.toString());
     }
 

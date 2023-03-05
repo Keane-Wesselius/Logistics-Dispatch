@@ -11,9 +11,9 @@ function MyItems() {
     updateNavbar('supplier');
 
     useEffect(() => {
-		if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+		//if (ws == null || (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
 			ws = new WebSocket("ws://localhost:5005/");
-		}
+		//}
 
          // websocket open and close
         ws.onopen = () => {
