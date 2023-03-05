@@ -29,6 +29,9 @@ export const Constants = {
 	ITEM_LIST: "itemList",
 	ITEM_ID: "itemId",
 	QUANTITY: "quantity",
+	LINKED_ID: "linkedId",
+	IMAGE_TYPE: "imageType",
+	IMAGE: "image",
 };
 
 // TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -82,6 +85,8 @@ export const PacketTypes = {
 	REMOVE_CART_ITEM: "removeCartItem",
 	CART_ITEM_SUCCESS: "cartItemSuccess",
 	CART_ITEM_FAILURE: "cartItemFailure",
+
+	UPLOAD_IMAGE: "uploadImage",
 };
 
 export const Status = {
@@ -113,6 +118,11 @@ export const ItemValues = {
 	WEIGHT: "weight"
 };
 
+export const ImageTypes = {
+	SIGNATURE: "signature",
+	PROFILE_PICTURE: "profilePicture",
+}
+
 // Helper Functions
 export function tryGet(object, field) {
 	try {
@@ -131,7 +141,7 @@ export function parseJSON(jsonString) {
 		jsonString = jsonString.toString();
 
 		// 5000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
-		if (jsonString != null && jsonString.length <= 5000) {
+		if (jsonString != null && jsonString.length <= 500000) {
 			return JSON.parse(jsonString);
 		}
 	} catch (ignored) {
@@ -639,5 +649,20 @@ export class CartItemFailure extends Packet {
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return new CartItemFailure(tryGet(jsonObject, Constants.ERROR_MESSAGE));
+	}
+}
+
+export class UploadImage extends Packet { 
+	constructor(linkedId, imageType, image) {
+		super(PacketTypes.UPLOAD_IMAGE);
+
+		this.linkedId = linkedId;
+		this.imageType = imageType;
+		this.image = image;
+	}
+
+	static fromJSONString(jsonString) {
+		const jsonObject = parseJSON(jsonString);
+		return new UploadImage(tryGet(jsonObject, Constants.LINKED_ID), tryGet(jsonObject, Constants.IMAGE_TYPE), tryGet(jsonObject, Constants.IMAGE));
 	}
 }

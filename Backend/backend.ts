@@ -456,7 +456,7 @@ wss.on("connection", function connection(ws) {
 				});
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
-			// Creating accounts and adding them to the database
+			//Retrieving user data from the database
 			database?.getUserData(clientUserData.email).then((object) => {
 				sendIfNotNull(ws, new Packets.SetUserData(JSON.stringify(object)));
 			});
@@ -619,6 +619,19 @@ wss.on("connection", function connection(ws) {
 				} else {
 					sendIfNotNull(ws, new Packets.CartItemFailure("Could not find cart item to remove."));
 				}
+			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.UPLOAD_IMAGE) {
+			const imagePacket = Packets.UploadImage.fromJSONString(data.toString());
+
+			if (imagePacket.imageType == Packets.ImageTypes.PROFILE_PICTURE) {
+				database?.updateProfilePicture(clientUserData.id, imagePacket.image).then((result) => {
+					if (result) {
+						console.log("PFP uploaded successfully.");
+					}
+					else {
+						console.log("Error uploading profile picture.");
+					}
+				});
 			}
 		} else {
 			console.log("Received invalid or unhandled packet from client: " + data.toString());

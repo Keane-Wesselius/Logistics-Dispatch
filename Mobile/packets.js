@@ -26,6 +26,18 @@
 		STATUS: "status",
 		TOKEN: "token",
 		ADDRESS: "address",
+		STARTING_ADDRESS: "startingAddress",
+		ENDING_ADDRESS: "endingAddress",
+		ESTIMATED_DELIVERY_DATE: "estimatedDeliveryDate",
+		MINIMUM_DELIVERY_PRICE: "minimumDeliveryPrice",
+		MAXIMUM_DELIVERY_PRICE: "maximumDeliveryPrice",
+		ITEM_ID_LIST: "itemIdList",
+		ITEM_LIST: "itemList",
+		ITEM_ID: "itemId",
+		QUANTITY: "quantity",
+		LINKED_ID: "linkedId",
+		IMAGE_TYPE: "imageType",
+		IMAGE: "image",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -72,6 +84,15 @@
 		PLACE_ORDER: "placeOrder",
 		PLACE_ORDER_SUCCESS: "placeOrderSuccess",
 		PLACE_ORDER_FAILURE: "placeOrderFailure",
+
+		GET_CART_ITEMS: "getCartItems",
+		SET_CART_ITEMS: "setCartItems",
+		ADD_CART_ITEM: "addCartItem",
+		REMOVE_CART_ITEM: "removeCartItem",
+		CART_ITEM_SUCCESS: "cartItemSuccess",
+		CART_ITEM_FAILURE: "cartItemFailure",
+
+		UPLOAD_IMAGE: "uploadImage",
 	};
 
 	const Status = {
@@ -103,6 +124,11 @@
 		WEIGHT: "weight"
 	};
 
+	const ImageTypes = {
+		SIGNATURE: "signature",
+		PROFILE_PICTURE: "profilePicture",
+	};
+
 	// Helper Functions
 	function tryGet(object, field) {
 		try {
@@ -121,7 +147,7 @@
 			jsonString = jsonString.toString();
 
 			// 5000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
-			if (jsonString != null && jsonString.length <= 5000) {
+			if (jsonString != null && jsonString.length <= 500000) {
 				return JSON.parse(jsonString);
 			}
 		} catch (ignored) {
@@ -527,34 +553,20 @@
 		}
 	}
 
-	// items contains
-	// name: string
-	// quantity: int
-	// price: double
-
-	// 'estimatedDeliveryDate' is new Date().toString();
 	class PlaceOrder extends Packet {
-		constructor(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
-			super(PacketTypes.PLACE_ORDER, jsonString);
-
-			this.merchantId = merchantId;
-			this.supplierId = supplierId;
-			this.items = items;
-			this.startingAddress = startingAddress;
-			this.endingAddress = endingAddress;
-			this.estimatedDeliveryDate = estimatedDeliveryDate;
-			this.minimumDeliveryPrice = minimumDeliveryPrice;
-			this.maximumDeliveryPrice = maximumDeliveryPrice;
+		constructor(token = null) {
+			super(PacketTypes.PLACE_ORDER, token);
 		}
 
 		static fromJSONString(jsonString) {
-			return new PlaceOrder(jsonString);
+			const jsonObject = parseJSON(jsonString);
+			return new PlaceOrder(tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
 	class PlaceOrderSuccess extends Packet {
-		constructor(token = null) {
-			super(PacketTypes.PLACE_ORDER_SUCCESS, token);
+		constructor() {
+			super(PacketTypes.PLACE_ORDER_SUCCESS);
 		}
 
 		static fromJSONString(jsonString) {
@@ -563,8 +575,8 @@
 	}
 
 	class PlaceOrderFailure extends Packet {
-		constructor(token = null) {
-			super(PacketTypes.PLACE_ORDER_FAILURE, token);
+		constructor() {
+			super(PacketTypes.PLACE_ORDER_FAILURE);
 		}
 
 		static fromJSONString(jsonString) {
@@ -572,20 +584,114 @@
 		}
 	}
 
+	class GetCartItems extends Packet {
+		constructor(token = null) {
+			super(PacketTypes.GET_CART_ITEMS, token);
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new GetCartItems(tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class SetCartItems extends Packet {
+		constructor(itemList) {
+			super(PacketTypes.SET_CART_ITEMS);
+
+			this.itemList = itemList;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new SetCartItems(tryGet(jsonObject, Constants.ITEM_LIST));
+		}
+	}
+
+	class AddCartItem extends Packet {
+		constructor(itemId, quantity, token = null) {
+			super(PacketTypes.ADD_CART_ITEM, token);
+
+			this.itemId = itemId;
+			this.quantity = quantity;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new AddCartItem(tryGet(jsonObject, Constants.ITEM_ID), tryGet(jsonObject, Constants.QUANTITY), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class RemoveCartItem extends Packet {
+		constructor(itemId, token = null) {
+			super(PacketTypes.REMOVE_CART_ITEM, token);
+
+			this.itemId = itemId;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new RemoveCartItem(tryGet(jsonObject, Constants.ITEM_ID), tryGet(jsonObject, Constants.TOKEN));
+		}
+	}
+
+	class CartItemSuccess extends Packet {
+		constructor() {
+			super(PacketTypes.CART_ITEM_SUCCESS);
+		}
+
+		static fromJSONString(jsonString) {
+			return new CartItemSuccess();
+		}
+	}
+
+	class CartItemFailure extends Packet {
+		constructor(errorMessage) {
+			super(PacketTypes.CART_ITEM_FAILURE);
+
+			this.errorMessage = errorMessage;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new CartItemFailure(tryGet(jsonObject, Constants.ERROR_MESSAGE));
+		}
+	}
+
+	class UploadImage extends Packet { 
+		constructor(linkedId, imageType, image) {
+			super(PacketTypes.UPLOAD_IMAGE);
+
+			this.linkedId = linkedId;
+			this.imageType = imageType;
+			this.image = image;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new UploadImage(tryGet(jsonObject, Constants.LINKED_ID), tryGet(jsonObject, Constants.IMAGE_TYPE), tryGet(jsonObject, Constants.IMAGE));
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
+	exports.AddCartItem = AddCartItem;
 	exports.AddItem = AddItem;
 	exports.AuthenticationFailedPacket = AuthenticationFailedPacket;
 	exports.AuthenticationSuccessPacket = AuthenticationSuccessPacket;
+	exports.CartItemFailure = CartItemFailure;
+	exports.CartItemSuccess = CartItemSuccess;
 	exports.Constants = Constants;
 	exports.CreateAccountPacket = CreateAccountPacket;
 	exports.CreateDriverAccountPacket = CreateDriverAccountPacket;
 	exports.GetAllCompletedOrders = GetAllCompletedOrders;
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;
+	exports.GetCartItems = GetCartItems;
 	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
+	exports.ImageTypes = ImageTypes;
 	exports.ItemUpdateFailed = ItemUpdateFailed;
 	exports.ItemUpdateSuccess = ItemUpdateSuccess;
 	exports.ItemValues = ItemValues;
@@ -594,10 +700,12 @@
 	exports.PlaceOrder = PlaceOrder;
 	exports.PlaceOrderFailure = PlaceOrderFailure;
 	exports.PlaceOrderSuccess = PlaceOrderSuccess;
+	exports.RemoveCartItem = RemoveCartItem;
 	exports.RemoveItem = RemoveItem;
 	exports.SetAllCompletedOrders = SetAllCompletedOrders;
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetAllOrders = SetAllOrders;
+	exports.SetCartItems = SetCartItems;
 	exports.SetLinkedItems = SetLinkedItems;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;
@@ -606,6 +714,7 @@
 	exports.UpdateOrderStatus = UpdateOrderStatus;
 	exports.UpdateOrderStatusFailure = UpdateOrderStatusFailure;
 	exports.UpdateOrderStatusSuccess = UpdateOrderStatusSuccess;
+	exports.UploadImage = UploadImage;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;

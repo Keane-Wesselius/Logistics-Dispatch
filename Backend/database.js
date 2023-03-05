@@ -162,7 +162,8 @@ class DatabaseHandler {
 		let result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ "_id": new ObjectId(userID) });
 		
 		if (result)
-		{	updated = result;
+		{	
+			let updated = result;
 			updated.profilePicture = picture;
 
 			let updatedResult = await this.dbClient.db(databaseName).collection(userCollection).updateOne({ "_id": new ObjectId(userID) }, { $set: updated });

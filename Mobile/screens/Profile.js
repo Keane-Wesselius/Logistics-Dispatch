@@ -15,19 +15,26 @@ import * as ImagePicker from "expo-image-picker";
 import Packets, { GetUserData } from "./packets";
 import { useIsFocused } from "@react-navigation/native";
 import { ActivityIndicator } from 'react-native';
+import {
+    Menu,
+    MenuProvider,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
+} from "react-native-popup-menu";
 
 let firstName = "";
 let lastName = "";
 const Profile = ({ navigation, route }) => {
   const isFocused = useIsFocused();
   const [user, setUser] = useState("");
+  const [image, setImage] = useState(null);
   //const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (isFocused) {
       
       global.ws.onmessage = (response) => {
         const packet = response.data;
-    
         if (Packets.getPacketType(packet) === Packets.PacketTypes.SET_USER_DATA) {
           console.log("\nGot profile data");
           let user = JSON.parse(packet);
@@ -36,10 +43,11 @@ const Profile = ({ navigation, route }) => {
           
           firstName = user.firstName;
           lastName = user.lastName;
-          console.log("data: " + user.firstName);
-          console.log("last: " + user.lastName);
-          console.log("email here: " + user.email);
           setUser(user);
+
+          if (user.profilePicture != null) {
+            setImage("data:image/jpeg;base64," + user.profilePicture);
+          }
         }
       };
 
@@ -70,7 +78,7 @@ const Profile = ({ navigation, route }) => {
   let defaultProf = require("../assets/profile.png");
 
   const [hasPermission, setHasPermission] = useState();
-  const [image, setImage] = useState(null);
+  
 
   useEffect(() => {
     (async () => {
@@ -84,17 +92,38 @@ const Profile = ({ navigation, route }) => {
   //pass the whole result
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      //base64: true,
+      base64: true,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.4,
     });
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      try {
+        const imagePacket = new Packets.UploadImage(null, Packets.ImageTypes.PROFILE_PICTURE, result.assets[0].base64);
+        global.ws.send(imagePacket.toString());
+      } catch (error) {
+        alert("Connection error, check that you are connected to the internet");
+      }
     }
   };
+
+  const takeImage = async () => {
+    if (hasPermission) {
+      let result = await ImagePicker.launchCameraAsync({
+        base64: true,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.4,
+      })
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    }
+  }
 
   if (user == "") {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -108,17 +137,23 @@ const Profile = ({ navigation, route }) => {
       <Logout />
       <View style={styles.content}>
         <View style={styles.profile}>
-          <TouchableOpacity
-            style={styles.editProfile}
-            onPress={() => pickImage()}
-          >
-            {
+          <MenuProvider style={styles.editProfile}>
+            <Menu>
+              <MenuTrigger>
+              {
               <Image
                 source={image ? { uri: image } : defaultProf}
                 style={styles.profilePic}
               />
             }
-          </TouchableOpacity>
+              </MenuTrigger>
+              <MenuOptions>
+                <MenuOption onSelect={() => takeImage()} text="Open camera" />
+                <MenuOption onSelect={() => pickImage()} text="Select from gallery" />
+              </MenuOptions>
+            </Menu>
+          </MenuProvider>
+          
           <Text style={styles.name}>
             {firstName} {lastName}
           </Text>
@@ -183,6 +218,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
+  },
+
+  editProfile: {
+    paddingTop: 30,
   },
 
   profilePic: {
