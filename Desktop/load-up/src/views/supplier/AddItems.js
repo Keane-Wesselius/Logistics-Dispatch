@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import './AddItems.css';
-
+import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
 
 function AddItems() {
-
+    
+    const updateNavbar = useNavbarUpdate();
+    updateNavbar('supplier');
+    
     let ws = new WebSocket("ws://localhost:5005/");
-
     // websocket open and close
     ws.onopen = () => {
         console.log("ws opened: add items");

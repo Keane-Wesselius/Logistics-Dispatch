@@ -25,7 +25,7 @@ function SupplierNavbar() {
                     </div>
                     <ul className={click ? 'nav-menu active' : 'nav-menu'}>
                     <li className='nav-item'>
-                                <Link to='/browse' className='nav-links' onclick={closeMobileMenu}>
+                                <Link to='/myitems' className='nav-links' onclick={closeMobileMenu}>
                                     My Items
                                 </Link>
                             </li>

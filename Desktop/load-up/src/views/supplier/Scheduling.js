@@ -1,9 +1,13 @@
 import './Scheduling.css';
 import React, { useState, useEffect, Component } from 'react';
+import { useNavbarUpdate } from '../../NavbarContext';
 const Packets = require("../../backend/packets");
 
 let ws = null;
 function Browse() {
+    const updateNavbar = useNavbarUpdate();
+    updateNavbar('supplier');
+
     useEffect(() => {
         if (ws == null) {
             ws = new WebSocket("ws://localhost:5005/");
