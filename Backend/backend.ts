@@ -458,6 +458,10 @@ wss.on("connection", function connection(ws) {
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_USER_DATA) {
 			//Retrieving user data from the database
 			database?.getUserData(clientUserData.email).then((object) => {
+				// Remove password from sent user data.
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				object.password = null;
 				sendIfNotNull(ws, new Packets.SetUserData(JSON.stringify(object)));
 			});
 		} else if (packetType == Packets.PacketTypes.CREATE_ACCOUNT) {
@@ -495,6 +499,7 @@ wss.on("connection", function connection(ws) {
 			}
 		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.PLACE_ORDER) {
 			if (clientUserData.isMerchant()) {
+				const placeOrderPacket = Packets.PlaceOrder.fromJSONString(data);
 				const supplierIdToItemOrderArrayMap = new Map<string, Array<ItemData>>();
 
 				// Need to check user's cart items, get the linked supplier Id's, then add that order to the database.
@@ -517,8 +522,8 @@ wss.on("connection", function connection(ws) {
 								actualItemDataArray.push({ name: item.itemName, quantity: item.quantity, price: item.price });
 							}
 
-							// TODO: Add date parameters and price.
-							database.placeOrder(clientUserData.id, supplierId, actualItemDataArray, supplierUserData.address, clientUserData.address, "todo", "todo", "todo").then((placedOrderSuccessfully) => {
+							// TODO: Modify price based on preferred date parameter.
+							database.placeOrder(clientUserData.id, clientUserData.name, supplierId, supplierUserData.name, actualItemDataArray, supplierUserData.address, clientUserData.address, placeOrderPacket.preferredDate, 100).then((placedOrderSuccessfully) => {
 								if (placedOrderSuccessfully) {
 									sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
 								} else {

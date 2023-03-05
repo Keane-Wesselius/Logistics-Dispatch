@@ -32,6 +32,7 @@ export const Constants = {
 	LINKED_ID: "linkedId",
 	IMAGE_TYPE: "imageType",
 	IMAGE: "image",
+	PREFERRED_DATE: "preferredDate",
 };
 
 // TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -548,13 +549,15 @@ export class SetAllOrders extends JSONPacket {
 }
 
 export class PlaceOrder extends Packet {
-	constructor(token = null) {
+	constructor(preferredDate, token = null) {
 		super(PacketTypes.PLACE_ORDER, token);
+
+		this.preferredDate = preferredDate;
 	}
 
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
-		return new PlaceOrder(tryGet(jsonObject, Constants.TOKEN));
+		return new PlaceOrder(tryGet(jsonObject, Constants.PREFERRED_DATE), tryGet(jsonObject, Constants.TOKEN));
 	}
 }
 
@@ -652,7 +655,7 @@ export class CartItemFailure extends Packet {
 	}
 }
 
-export class UploadImage extends Packet { 
+export class UploadImage extends Packet {
 	constructor(linkedId, imageType, image) {
 		super(PacketTypes.UPLOAD_IMAGE);
 

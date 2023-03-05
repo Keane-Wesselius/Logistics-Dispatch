@@ -35,6 +35,10 @@
 		ITEM_LIST: "itemList",
 		ITEM_ID: "itemId",
 		QUANTITY: "quantity",
+		LINKED_ID: "linkedId",
+		IMAGE_TYPE: "imageType",
+		IMAGE: "image",
+		PREFERRED_DATE: "preferredDate",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -88,6 +92,8 @@
 		REMOVE_CART_ITEM: "removeCartItem",
 		CART_ITEM_SUCCESS: "cartItemSuccess",
 		CART_ITEM_FAILURE: "cartItemFailure",
+
+		UPLOAD_IMAGE: "uploadImage",
 	};
 
 	const Status = {
@@ -119,6 +125,11 @@
 		WEIGHT: "weight"
 	};
 
+	const ImageTypes = {
+		SIGNATURE: "signature",
+		PROFILE_PICTURE: "profilePicture",
+	};
+
 	// Helper Functions
 	function tryGet(object, field) {
 		try {
@@ -137,7 +148,7 @@
 			jsonString = jsonString.toString();
 
 			// 5000 characters is kinda an arbitrary limit, but it should prevent some attacks from receiving a large string which requires many CPU cycles to parse, resulting in a DOS attack.
-			if (jsonString != null && jsonString.length <= 5000) {
+			if (jsonString != null && jsonString.length <= 500000) {
 				return JSON.parse(jsonString);
 			}
 		} catch (ignored) {
@@ -544,13 +555,15 @@
 	}
 
 	class PlaceOrder extends Packet {
-		constructor(token = null) {
+		constructor(preferredDate, token = null) {
 			super(PacketTypes.PLACE_ORDER, token);
+
+			this.preferredDate = preferredDate;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new PlaceOrder(tryGet(jsonObject, Constants.TOKEN));
+			return new PlaceOrder(tryGet(jsonObject, Constants.PREFERRED_DATE), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -648,6 +661,21 @@
 		}
 	}
 
+	class UploadImage extends Packet {
+		constructor(linkedId, imageType, image) {
+			super(PacketTypes.UPLOAD_IMAGE);
+
+			this.linkedId = linkedId;
+			this.imageType = imageType;
+			this.image = image;
+		}
+
+		static fromJSONString(jsonString) {
+			const jsonObject = parseJSON(jsonString);
+			return new UploadImage(tryGet(jsonObject, Constants.LINKED_ID), tryGet(jsonObject, Constants.IMAGE_TYPE), tryGet(jsonObject, Constants.IMAGE));
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AddCartItem = AddCartItem;
@@ -666,6 +694,7 @@
 	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
+	exports.ImageTypes = ImageTypes;
 	exports.ItemUpdateFailed = ItemUpdateFailed;
 	exports.ItemUpdateSuccess = ItemUpdateSuccess;
 	exports.ItemValues = ItemValues;
@@ -688,6 +717,7 @@
 	exports.UpdateOrderStatus = UpdateOrderStatus;
 	exports.UpdateOrderStatusFailure = UpdateOrderStatusFailure;
 	exports.UpdateOrderStatusSuccess = UpdateOrderStatusSuccess;
+	exports.UploadImage = UploadImage;
 	exports.getPacketType = getPacketType;
 	exports.parseJSON = parseJSON;
 	exports.tryGet = tryGet;
