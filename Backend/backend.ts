@@ -534,6 +534,7 @@ wss.on("connection", function connection(ws) {
 							}
 
 							const preferredDateObject = new Date(placeOrderPacket.preferredDate);
+							// TODO: Periodically sweep the database and update deliveryPrice for non-completed orders.
 							const daysUntilDelivery = dateDiffInDays(new Date(), preferredDateObject);
 							console.log("Days until delivery: " + daysUntilDelivery);
 							let deliveryPrice = 100;

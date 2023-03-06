@@ -138,18 +138,21 @@ class DatabaseHandler {
 		}
 	}
 
-	async getName(desktopID){
-		let result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(desktopID) });
+	async getName(objectId){
+		let result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(objectId) });
 		if (!result)
 		{
-			result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: new ObjectId(desktopID) });
+			result = await this.dbClient.db(databaseName).collection(userCollection).findOne({ _id: objectId });
 		}
 
 		if(result)
 		{
-			if (result.name)
-			{
+			if(result.name != null) {
 				return result.name;
+			} else if(result.firstName != null && result.lastName != null) {
+				return result.firstName + " " + result.lastName;
+			} else {
+				return null;
 			}
 		}
 		else{
@@ -495,14 +498,14 @@ class DatabaseHandler {
 
 
 	//This is what happens when a driver accepts an order 
-	async acceptOrder(orderID, driverID) {
+	async acceptOrder(orderID, driverId) {
 		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result) {
 			if (result.status == "confirmed") {
 				let updated = result;
 				updated.status = "accepted";
-				updated.driverId = new ObjectId(driverID);
+				updated.driverId = new ObjectId(driverId);
 
 				let name = await this.getName(updated.driverId)
 					if (name)
@@ -511,7 +514,7 @@ class DatabaseHandler {
 					}
 					else
 					{
-						console.log("Order place failed: couldn't get drivers name");
+						console.log("Order place failed: couldn't get drivers name from driverId: " + updated.driverId + " (type: " + (typeof updated.driverId) + ")");
 						return false;
 					}
 

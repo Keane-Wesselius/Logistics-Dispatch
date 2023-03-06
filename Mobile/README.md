@@ -4,7 +4,7 @@ This folder contains the code which is required for the Mobile to function, whic
 To execute the Mobile client, execute the following commands:
 ```
 npm install
-npx expo run
+npx expo start
 ```
 
 <!-- TODO: Add note about ports and ip addresses, what the mobile is actually doing, etc. -->
