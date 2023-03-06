@@ -507,7 +507,7 @@ class DatabaseHandler {
 				updated.status = "accepted";
 				updated.driverId = new ObjectId(driverID);
 
-				let name = await this.getName(updated.driverId)
+				let name = await this.getName(driverID)
 					if (name)
 					{
 						updated.driverName = name;
