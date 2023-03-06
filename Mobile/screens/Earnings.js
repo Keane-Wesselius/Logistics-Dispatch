@@ -7,7 +7,7 @@ import { useIsFocused } from "@react-navigation/native";
 import Packets, { GetUserData } from "./packets";
 import { ActivityIndicator } from "react-native";
 
-const earningsMap = new Map();
+let earningsMap = new Map();
 let earningsSet = false;
 
 const Earning = ({ navigation, route }) => {
@@ -21,6 +21,7 @@ const Earning = ({ navigation, route }) => {
 
   useEffect(() => {
     if (isFocused) {
+      earningsMap = new Map();
 
       global.ws.onmessage = (response) => {
         const orderPacket = response.data;
