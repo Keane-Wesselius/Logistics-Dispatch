@@ -7,7 +7,7 @@ import { useIsFocused } from "@react-navigation/native";
 import Packets, { GetUserData } from "./packets";
 import { ActivityIndicator } from "react-native";
 
-const earningsMap = new Map();
+let earningsMap = new Map();
 let earningsSet = false;
 
 const Earning = ({ navigation, route }) => {
@@ -21,6 +21,7 @@ const Earning = ({ navigation, route }) => {
 
   useEffect(() => {
     if (isFocused) {
+      earningsMap = new Map();
 
       global.ws.onmessage = (response) => {
         const orderPacket = response.data;
@@ -31,17 +32,17 @@ const Earning = ({ navigation, route }) => {
     
           const json_obj = JSON.parse(orderPacket);
           let allOrders = json_obj.data;
-    
+          
           for (var i = 0; i < allOrders.length; i++) {
             console.log(allOrders[i]);
             let date = new Date(allOrders[i].completed_date);
             date = moment(date).format("MM/DD");
             //console.log(date);
             if (!earningsMap.has(date)) {
-              earningsMap.set(date, allOrders[i].minimumDeliveryPrice);
+              earningsMap.set(date, allOrders[i].deliveryPrice);
             } else {
               let oldPay = earningsMap.get(date);
-              earningsMap.set(date, allOrders[i].minimumDeliveryPrice + oldPay);
+              earningsMap.set(date, allOrders[i].deliveryPrice + oldPay);
             }
           }
           //console.log(...earningsMap.entries());

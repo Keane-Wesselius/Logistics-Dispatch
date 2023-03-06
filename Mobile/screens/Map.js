@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native'
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "../components/BottomSheet";
 import { useIsFocused } from '@react-navigation/native';
+import Packets from "./packets";
 //import { BottomSheet } from "react-native-elements";
 
 const {width, height} = Dimensions.get('window');
@@ -64,15 +65,39 @@ const [searchDeliveryAddress, setSearchDeliveryAddress] = useState(null);
  
  //clearing delivery route when went out of screen
  useEffect(() => {
- 
-  if(!isFocused){
+  if (isFocused) {
+    global.ws.onmessage = (response) => {
+      const packet = response.data;
+
+      if (Packets.getPacketType(packet) == Packets.PacketTypes.SET_CURRENT_ORDER) {
+        console.log("SETTING CURRENT ORDER " + packet);
+        const json_obj = JSON.parse(packet);
+        let allOrders = json_obj.data;
+
+        if(allOrders.length >= 1) {
+          setDeliveryAddress(allOrders[0].endingAddress);
+          setOrderId(allOrders[0]._id);
+          setStartAddress(allOrders[0].startingAddress);
+        }
+      }
+    }
+
+    try {
+      const packet = new Packets.GetCurrentOrder();
+      global.ws.send(packet.toString());
+    } catch {
+      alert("Error sending packet on map screen");
+    }
+  }
+  else{
     setDeliveryAddress('');
     setCoordinates('');
     setDuration(0);
     setMiles(0);
     setStartAddressCoord('');
-    setStartAddress('');
-  }},[isFocused])
+    setStartAddress('');    
+  }
+},[isFocused])
 
   //clearing delivery Address
   function clearDeliveryAddress(){

@@ -125,7 +125,7 @@ function CompletedDelivery() {
               <View style={styles.order}>
                 {/* <View> */}
                 <Text style={styles.each}>Date: {order.completed_date}</Text>
-                <Text style={styles.each}>Earning: ${order.totalCost}</Text>
+                <Text style={styles.each}>Earning: ${order.deliveryPrice}</Text>
                 {/* </View> */}
               </View>
             </CollapseHeader>
@@ -133,9 +133,9 @@ function CompletedDelivery() {
             <CollapseBody>
               <View style={styles.orderDetails}>
                 {/* <View> */}
-                <Text style={styles.each}>Order ID: {order.driverId}</Text>
+                <Text style={styles.each}>Order ID: {order._id}</Text>
 
-                <Text style={styles.each}>Supplier: {order.supplierId}</Text>
+                <Text style={styles.each}>Supplier: {order.supplierName}</Text>
                 {/*<Text style={styles.each}>merchant: {order.}</Text>*/}
               </View>
             </CollapseBody>

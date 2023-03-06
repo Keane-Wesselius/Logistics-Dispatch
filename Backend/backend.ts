@@ -667,6 +667,15 @@ wss.on("connection", function connection(ws) {
 					}
 				});
 			}
+		} else if (isClientAuthenticated && packetType == Packets.PacketTypes.GET_CURRENT_ORDER) {
+			if (clientUserData.isDriver()) {
+				database?.getAllAcceptedOrdersByDriver(clientUserData.id).then((result) => {
+					sendIfNotNull(ws, new Packets.SetCurrentOrder(JSON.stringify(result)));
+				});
+			}
+			else {
+				console.log("Got invalid account type for action GET_CURRENT_ORDER: " + clientUserData.accountType);
+			}
 		} else {
 			console.log("Received invalid or unhandled packet from client: " + data.toString());
 		}
