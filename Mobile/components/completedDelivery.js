@@ -125,7 +125,7 @@ function CompletedDelivery() {
               <View style={styles.order}>
                 {/* <View> */}
                 <Text style={styles.each}>Date: {order.completed_date}</Text>
-                <Text style={styles.each}>Earning: ${order.totalCost}</Text>
+                <Text style={styles.each}>Earning: ${order.deliveryPrice}</Text>
                 {/* </View> */}
               </View>
             </CollapseHeader>

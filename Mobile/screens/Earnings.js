@@ -38,10 +38,10 @@ const Earning = ({ navigation, route }) => {
             date = moment(date).format("MM/DD");
             //console.log(date);
             if (!earningsMap.has(date)) {
-              earningsMap.set(date, allOrders[i].minimumDeliveryPrice);
+              earningsMap.set(date, allOrders[i].deliveryPrice);
             } else {
               let oldPay = earningsMap.get(date);
-              earningsMap.set(date, allOrders[i].minimumDeliveryPrice + oldPay);
+              earningsMap.set(date, allOrders[i].deliveryPrice);
             }
           }
           //console.log(...earningsMap.entries());
