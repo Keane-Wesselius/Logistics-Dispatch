@@ -177,6 +177,17 @@ function generateToken() {
 	return generateRandomAlphaNumericString(tokenLength);
 }
 
+// Taken From 3/5/2023 6:48 PM: https://stackoverflow.com/a/15289883
+// a and b are javascript Date objects
+function dateDiffInDays(a : Date, b : Date) {
+	const _MS_PER_DAY = 1000 * 60 * 60 * 24;
+	// Discard the time and time-zone information.
+	const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+	const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+	return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+}
+
 // Contains all active WebSocket connection, their associated authentication token, and their database user data if they have one.
 // TODO: Should periodically drop inactive connections.
 const activeConnections = new Set<ActiveConnection>();
@@ -522,8 +533,25 @@ wss.on("connection", function connection(ws) {
 								actualItemDataArray.push({ name: item.itemName, quantity: item.quantity, price: item.price });
 							}
 
-							// TODO: Modify price based on preferred date parameter.
-							database.placeOrder(clientUserData.id, clientUserData.name, supplierId, supplierUserData.name, actualItemDataArray, supplierUserData.address, clientUserData.address, placeOrderPacket.preferredDate, 100).then((placedOrderSuccessfully) => {
+							const preferredDateObject = new Date(placeOrderPacket.preferredDate);
+							const daysUntilDelivery = dateDiffInDays(new Date(), preferredDateObject);
+							console.log("Days until delivery: " + daysUntilDelivery);
+							let deliveryPrice = 100;
+							if (daysUntilDelivery >= 5) {
+								deliveryPrice *= 1;
+							} else if (daysUntilDelivery >= 4) {
+								deliveryPrice *= 1.05;
+							} else if (daysUntilDelivery >= 3) {
+								deliveryPrice *= 1.075;
+							} else if (daysUntilDelivery >= 2) {
+								deliveryPrice *= 1.1;
+							} else if (daysUntilDelivery <= 1) {
+								deliveryPrice *= 1.15;
+							}
+
+							console.log("deliveryPrice: " + deliveryPrice);
+
+							database.placeOrder(clientUserData.id, clientUserData.name, supplierId, supplierUserData.name, actualItemDataArray, supplierUserData.address, clientUserData.address, placeOrderPacket.preferredDate, deliveryPrice).then((placedOrderSuccessfully) => {
 								if (placedOrderSuccessfully) {
 									sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
 								} else {
