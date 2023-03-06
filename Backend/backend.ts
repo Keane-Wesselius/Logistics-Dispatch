@@ -551,7 +551,7 @@ wss.on("connection", function connection(ws) {
 							}
 
 							console.log("deliveryPrice: " + deliveryPrice);
-
+							deliveryPrice = roundMoney(deliveryPrice);
 							database.placeOrder(clientUserData.id, clientUserData.name, supplierId, supplierUserData.name, actualItemDataArray, supplierUserData.address, clientUserData.address, placeOrderPacket.preferredDate, deliveryPrice).then((placedOrderSuccessfully) => {
 								if (placedOrderSuccessfully) {
 									sendIfNotNull(ws, new Packets.PlaceOrderSuccess().toString());
@@ -681,3 +681,9 @@ wss.on("connection", function connection(ws) {
 		}
 	});
 });
+
+function roundMoney(num, decimalPlaces = 2) {
+	var p = Math.pow(10, decimalPlaces);
+	var n = (num * p) * (1 + Number.EPSILON);
+	return Math.round(n) / p;
+}

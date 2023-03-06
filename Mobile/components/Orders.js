@@ -21,8 +21,11 @@ const Orders = (props) => {
         console.log("Order Got a packet back");
         console.log("Order got this packet:" + packet);
         if (Packets.getPacketType(packet) == Packets.PacketTypes.SET_CURRENT_ORDER) {
+            hasCurrentOrder = null;
+
             const json_obj = JSON.parse(packet);
             let acceptedOrders = json_obj.data;
+
 
             if (acceptedOrders.length >= 1) {
                 console.log("Has a current order");
@@ -57,6 +60,7 @@ const Orders = (props) => {
     }
 
     if (hasCurrentOrder != null) {
+        console.log(hasCurrentOrder);
         if (!hasCurrentOrder) {
             console.log('order trying to get accepted');
             const acceptPacket = new Packets.UpdateOrderStatus(props.orderId, Status.ACCEPTED);
@@ -69,9 +73,9 @@ const Orders = (props) => {
                 alert("Connection error, check that you are connected to the internet");
             }
             }
-        }
-        else {
-            alert("There is an active order, cancel to accept a new order.");
+            else {
+                alert("There is an active order, cancel to accept a new order.");
+            }
         }
     }
 
@@ -129,17 +133,16 @@ const Orders = (props) => {
           
         <View>
           
-          <Text>Estimated Delivery Date: {props.estimatedDeliveryDate}</Text>
+          <Text>Estimated Delivery Date: {props.preferredDate}</Text>
           <Text>Start Address: {props.startAddress}</Text>
           <Text>Shipping Address: {props.shippingAddress}</Text>
-          <Text>Maximum Delivery Price: {props.maximumDeliveryPrice}</Text>
-          <Text>MerchantId: {props.merchantId}</Text>
-          <Text>Minimum Delivery Price: {props.minimumDeliveryPrice}</Text>
+          <Text>Delivery Price: ${props.deliveryPrice}</Text>
+          <Text>Merchant: {props.merchantName}</Text>
           {/*<Text>Pending Date: {props.pendingDate}</Text>
           <Text>Pending Time: {props.pendingTime}</Text>
     <Text>Status: {props.status}</Text>*/}
-          <Text>SupplierId: {props.supplierId}</Text>
-          <Text>TotalCost : {props.totalCost }</Text>
+          <Text>Supplier: {props.supplierName}</Text>
+          <Text>TotalCost: ${props.totalCost}</Text>
           <Text>Items: </Text>
           <Text>{props.items}</Text>
           

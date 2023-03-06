@@ -177,17 +177,13 @@ const OrderList = ({navigation, props, route}) => {
       orderNumber = {index +1}
       orderId = {order._id}
       driverId = {order.driverId}
-      confirmedDate = {order.confirmed_date}
-      confirmedTime = {order.confirmed_date}
-      estimatedDeliveryDate = {order.estimatedDeliveryDate}
+      preferredDate = {order.preferredDate}
       startAddress = {order.startingAddress}
-      maximumDeliveryPrice = {order.maximumDeliveryPrice}
       merchantId = {order.merchantId}
-      minimumDeliveryPrice = {order.minimumDeliveryPrice}
-      pendingDate = {order.pendingDate}
-      pendingTime = {order.pendingTime}
-      status = {order.status}
+      merchantName = {order.merchantName}
       supplierId = {order.supplierId}
+      supplierName = {order.supplierName}
+      deliveryPrice = {order.deliveryPrice}
       totalCost = {order.totalCost}
       items = {order.items.map((item) => (
         <Item
