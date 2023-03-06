@@ -498,14 +498,14 @@ class DatabaseHandler {
 
 
 	//This is what happens when a driver accepts an order 
-	async acceptOrder(orderID, driverId) {
+	async acceptOrder(orderID, driverID) {
 		let result = await this.dbClient.db(databaseName).collection(orderCollection).findOne({ "_id": new ObjectId(orderID) });
 
 		if (result) {
 			if (result.status == "confirmed") {
 				let updated = result;
 				updated.status = "accepted";
-				updated.driverId = new ObjectId(driverId);
+				updated.driverId = new ObjectId(driverID);
 
 				let name = await this.getName(driverId)
 					if (name)
