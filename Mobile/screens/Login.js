@@ -201,8 +201,8 @@ const Sign_in = ({ navigation, route }) => {
       } catch (error) {
         alert("Connection error, check that you are connected to the internet");
 
-        navigation.navigate("Home");
-        console.log("shiva");
+        //navigation.navigate("Home");
+        //console.log("shiva");
       }
     } else {
       alert("Invalid email");
