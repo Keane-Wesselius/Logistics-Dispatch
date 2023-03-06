@@ -154,15 +154,6 @@ class DatabaseHandler {
 			} else {
 				return null;
 			}
-
-			else if (result.firstName && result.lastName)
-			{
-				return result.firstName + " " + result.lastName;
-			}
-
-			else{
-				return null;
-			}
 		}
 		else{
 			return null;
