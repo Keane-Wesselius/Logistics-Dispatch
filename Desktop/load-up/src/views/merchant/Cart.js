@@ -51,10 +51,17 @@ function Cart() {
         };
     }, []);
 
+    const [date, setDate] = useState("");
+
     const handleOrder = () => {
-		const placeOrderPacket = new Packets.PlaceOrder(localStorage.getItem('token'));
-        console.log("Sending order packet: " + placeOrderPacket.toString());
-        ws.send(placeOrderPacket.toString());
+        if(date == "") {
+            alert("Please select a delivery date.")
+        } else {
+            const placeOrderPacket = new Packets.PlaceOrder(date, localStorage.getItem('token'));
+            console.log("Sending order packet: " + placeOrderPacket.toString());
+            ws.send(placeOrderPacket.toString());
+        }
+        
     }
 
     const [items, setItems] = useState([]);
@@ -74,6 +81,10 @@ function Cart() {
                     {items.map((item) => (<TableRow rowContent={item} />))}
                 </tbody>
             </table>
+            <form>
+                <label for="delivery_date">Preferred Delivery Date:</label>
+		        <input type="date" id="delivery_date" name="delivery_date" required onChange={e => setDate(e.target.value)}></input> 
+            </form>
             <button className="place-order-btn" onClick={handleOrder}>
                 Place Order
             </button>
