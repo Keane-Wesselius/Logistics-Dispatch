@@ -43,7 +43,7 @@ function Register() {
 
     if(!emailPattern.test(email)){
       alert("Please enter a valid email");
-    } else if(name == "" || accType == "" || email == "" || street == "" || city == "" || state == "" || zip == "" || password == "") {
+    } else if(name === "" || accType === "" || email === "" || street === "" || city === "" || state === "" || zip === "" || password === "") {
       alert("Please fill out all fields")
     }else{
       const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType, address);
