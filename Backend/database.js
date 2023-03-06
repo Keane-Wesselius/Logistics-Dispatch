@@ -256,16 +256,21 @@ class DatabaseHandler {
 	// 	estimatedDeliveryDate (date)
 	// 	minimumDeliveryPrice (double)
 	// 	maximumDeliveryPrice (double)
-	async placeOrder(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+	// async placeOrder(merchantId, supplierId, items, startingAddress, endingAddress, estimatedDeliveryDate, minimumDeliveryPrice, maximumDeliveryPrice) {
+	async placeOrder(merchantId, merchantName, supplierId, supplierName, items, startingAddress, endingAddress, preferredDate, deliveryPrice) {
 		let orderDetails = {};
-		orderDetails.merchantId = merchantId;
-		orderDetails.supplierId = supplierId;
+		orderDetails.merchantId = new ObjectId(merchantId);
+		orderDetails.merchantName = merchantName;
+		orderDetails.supplierId = new ObjectId(supplierId);
+		orderDetails.supplierName = supplierName;
 		orderDetails.items = items;
 		orderDetails.startingAddress = startingAddress;
 		orderDetails.endingAddress = endingAddress;
-		orderDetails.estimatedDeliveryDate = estimatedDeliveryDate;
-		orderDetails.minimumDeliveryPrice = minimumDeliveryPrice;
-		orderDetails.maximumDeliveryPrice = maximumDeliveryPrice;
+		// orderDetails.estimatedDeliveryDate = estimatedDeliveryDate;
+		// orderDetails.minimumDeliveryPrice = minimumDeliveryPrice;
+		// orderDetails.maximumDeliveryPrice = maximumDeliveryPrice;
+		orderDetails.preferredDate = preferredDate;
+		orderDetails.deliveryPrice = deliveryPrice;
 
 		orderDetails.status = "pending";
 
