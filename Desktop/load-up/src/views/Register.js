@@ -23,14 +23,7 @@ function Register() {
   
       if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_SUCCESS) {
         alert("Account created successfully");
-        
-        if (accType === "merchant") {
-          navigate("/merchant_home");
-        }
-        else {
-          navigate("/supplier_home");
-        }
-  
+        navigate("/");
         updateNavbar(accType);
       }
       else if (Packets.getPacketType(packet) === Packets.PacketTypes.ACCOUNT_CREATE_FAILED) {
@@ -46,17 +39,28 @@ function Register() {
 
   const handleCreate = (e) => {
     e.preventDefault();
-    const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType, address);
-    console.log("Account create string: " + accountPacket.toString());
+    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,4}\b/;
 
-    ws.send(accountPacket.toString());
+    if(!emailPattern.test(email)){
+      alert("Please enter a valid email");
+    } else if(name == "" || accType == "" || email == "" || street == "" || city == "" || state == "" || zip == "" || password == "") {
+      alert("Please fill out all fields")
+    }else{
+      const accountPacket = new Packets.CreateAccountPacket(name, email, password, accType, address);
+      console.log("Account create string: " + accountPacket.toString());
+      ws.send(accountPacket.toString());
+    }
   };
 
   const [name, setName] = useState("");
   const [accType, setAccType] = useState("");
   const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
   const [password, setPassword] = useState("");
+  const address = street + ', ' + city + ', ' + state + ' ' + zip;
 
   return (
     <section class="background-radial-gradient overflow-hidden">
@@ -89,10 +93,25 @@ function Register() {
                   <label class="form-label" for="form3Example3">Email</label>
                 </div>
 
-                {/*<!-- Email input -->*/}
+                {/*<!-- Address input -->*/}
                 <div class="form-outline mb-4">
-                  <input type="text" name="address" id="form3Example3" class="form-control" required onChange={e => setAddress(e.target.value)} />
-                  <label class="form-label" for="form3Example3">Address</label>
+                  <input type="text" name="address" id="form3Example3" class="form-control" required onChange={e => setStreet(e.target.value)} />
+                  <label class="form-label" for="form3Example3">Street</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="text" name="city" id="form3Example3" class="form-control" required onChange={e => setCity(e.target.value)} />
+                  <label class="form-label" for="form3Example3">City</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="text" name="state" id="form3Example3" class="form-control" required onChange={e => setState(e.target.value)} />
+                  <label class="form-label" for="form3Example3">State</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="text" name="zip" id="form3Example3" class="form-control" required onChange={e => setZip(e.target.value)} />
+                  <label class="form-label" for="form3Example3">Zip Code</label>
                 </div>
   
                 {/*<!-- Password input -->*/}

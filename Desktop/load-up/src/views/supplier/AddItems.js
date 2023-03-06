@@ -73,37 +73,30 @@ function AddItems() {
         document.getElementById("item_weight").value = "";
     }
 
+    function isFloat(n){
+        return Number(n) === n && n % 1 !== 0;
+      }
+
     // Function to handle form submission
     function handleFormSubmit(event) {
         event.preventDefault(); // Prevent form from submitting and refreshing the page
-
+ 
+        // If form is complete
+        if (name == "" || description == "" || quantity == "" || price == "" || weight == "") {
+            alert("Please fill all fields");
+        } else {
         // Send add item packet to backend
         const itemPacket = new Packets.AddItem(name, description, quantity, price, weight, localStorage.getItem('token'));
         console.log("Item add string: " + itemPacket.toString());
         ws.send(itemPacket.toString());
-
-        // Retrieve linked items
-        const itemsPacket = new Packets.GetLinkedItems(localStorage.getItem('token'));
-        console.log("Item list string: " + itemsPacket.toString());
-        ws.send(itemsPacket.toString());
-
-        // Get form data
-        const itemName = document.getElementById("item_name").value;
-        const itemDescription = document.getElementById("item_description").value;
-        const itemQuantity = document.getElementById("item_quantity").value;
-        const itemPrice = document.getElementById("item_price").value;
-        const itemWeight = document.getElementById("item_weight").value;
-        
-        // If form is complete
-        if (itemName !== "" && itemDescription !== "" && itemQuantity !== "" && itemPrice !== "" && itemWeight !== "")
-        {
-           // Create item object
+        alert("Item successfully added");
+        // Create item object
         const item = {
-            name: itemName,
-            description: itemDescription,
-            quantity: itemQuantity,
-            price: itemPrice,
-            weight: itemWeight
+            name: name,
+            description: description,
+            quantity: quantity,
+            price: price,
+            weight: weight
         };
 
         // Add item to items array
