@@ -32,7 +32,7 @@ const Earning = ({ navigation, route }) => {
     
           const json_obj = JSON.parse(orderPacket);
           let allOrders = json_obj.data;
-    
+          
           for (var i = 0; i < allOrders.length; i++) {
             console.log(allOrders[i]);
             let date = new Date(allOrders[i].completed_date);

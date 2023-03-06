@@ -73,6 +73,9 @@
 		GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
 		SET_ALL_COMPLETED_ORDERS: "setAllCompletedOrders",
 
+		GET_CURRENT_ORDER: "getCurrentOrder",
+		SET_CURRENT_ORDER: "setCurrentOrder",
+
 		GET_ALL_ORDERS: "getAllOrders",
 		SET_ALL_ORDERS: "setAllOrders",
 
@@ -676,6 +679,26 @@
 		}
 	}
 
+	class GetCurrentOrder extends Packet {
+		constructor() {
+			super(PacketTypes.GET_CURRENT_ORDER);
+		}
+
+		static fromJSONString(jsonString) {
+			return new GetCurrentOrder();
+		}
+	}
+
+	class SetCurrentOrder extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_CURRENT_ORDER, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetCurrentOrder(jsonString);
+		}
+	}
+
 	exports.AccountCreateFailedPacket = AccountCreateFailedPacket;
 	exports.AccountCreateSuccessPacket = AccountCreateSuccessPacket;
 	exports.AddCartItem = AddCartItem;
@@ -691,6 +714,7 @@
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;
 	exports.GetCartItems = GetCartItems;
+	exports.GetCurrentOrder = GetCurrentOrder;
 	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
@@ -709,6 +733,7 @@
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetAllOrders = SetAllOrders;
 	exports.SetCartItems = SetCartItems;
+	exports.SetCurrentOrder = SetCurrentOrder;
 	exports.SetLinkedItems = SetLinkedItems;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;

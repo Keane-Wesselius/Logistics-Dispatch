@@ -38,6 +38,7 @@
 		LINKED_ID: "linkedId",
 		IMAGE_TYPE: "imageType",
 		IMAGE: "image",
+		PREFERRED_DATE: "preferredDate",
 	};
 
 	// TODO: Create a dictionary of PacketTypes to Packet classes for easy casting / parsing.
@@ -71,6 +72,9 @@
 
 		GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
 		SET_ALL_COMPLETED_ORDERS: "setAllCompletedOrders",
+
+		GET_CURRENT_ORDER: "getCurrentOrder",
+		SET_CURRENT_ORDER: "setCurrentOrder",
 
 		GET_ALL_ORDERS: "getAllOrders",
 		SET_ALL_ORDERS: "setAllOrders",
@@ -554,13 +558,15 @@
 	}
 
 	class PlaceOrder extends Packet {
-		constructor(token = null) {
+		constructor(preferredDate, token = null) {
 			super(PacketTypes.PLACE_ORDER, token);
+
+			this.preferredDate = preferredDate;
 		}
 
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
-			return new PlaceOrder(tryGet(jsonObject, Constants.TOKEN));
+			return new PlaceOrder(tryGet(jsonObject, Constants.PREFERRED_DATE), tryGet(jsonObject, Constants.TOKEN));
 		}
 	}
 
@@ -658,7 +664,7 @@
 		}
 	}
 
-	class UploadImage extends Packet { 
+	class UploadImage extends Packet {
 		constructor(linkedId, imageType, image) {
 			super(PacketTypes.UPLOAD_IMAGE);
 
@@ -670,6 +676,26 @@
 		static fromJSONString(jsonString) {
 			const jsonObject = parseJSON(jsonString);
 			return new UploadImage(tryGet(jsonObject, Constants.LINKED_ID), tryGet(jsonObject, Constants.IMAGE_TYPE), tryGet(jsonObject, Constants.IMAGE));
+		}
+	}
+
+	class GetCurrentOrder extends Packet {
+		constructor() {
+			super(PacketTypes.GET_CURRENT_ORDER);
+		}
+
+		static fromJSONString(jsonString) {
+			return new GetCurrentOrder();
+		}
+	}
+
+	class SetCurrentOrder extends JSONPacket {
+		constructor(jsonString) {
+			super(PacketTypes.SET_CURRENT_ORDER, jsonString);
+		}
+
+		static fromJSONString(jsonString) {
+			return new SetCurrentOrder(jsonString);
 		}
 	}
 
@@ -688,6 +714,7 @@
 	exports.GetAllConfirmedOrders = GetAllConfirmedOrders;
 	exports.GetAllOrders = GetAllOrders;
 	exports.GetCartItems = GetCartItems;
+	exports.GetCurrentOrder = GetCurrentOrder;
 	exports.GetLinkedItems = GetLinkedItems;
 	exports.GetLinkedOrders = GetLinkedOrders;
 	exports.GetUserData = GetUserData;
@@ -706,6 +733,7 @@
 	exports.SetAllConfirmedOrders = SetAllConfirmedOrders;
 	exports.SetAllOrders = SetAllOrders;
 	exports.SetCartItems = SetCartItems;
+	exports.SetCurrentOrder = SetCurrentOrder;
 	exports.SetLinkedItems = SetLinkedItems;
 	exports.SetLinkedOrders = SetLinkedOrders;
 	exports.SetUserData = SetUserData;

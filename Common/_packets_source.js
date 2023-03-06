@@ -67,6 +67,9 @@ export const PacketTypes = {
 	GET_ALL_COMPLETED_ORDERS: "getAllCompletedOrders",
 	SET_ALL_COMPLETED_ORDERS: "setAllCompletedOrders",
 
+	GET_CURRENT_ORDER: "getCurrentOrder",
+	SET_CURRENT_ORDER: "setCurrentOrder",
+
 	GET_ALL_ORDERS: "getAllOrders",
 	SET_ALL_ORDERS: "setAllOrders",
 
@@ -667,5 +670,25 @@ export class UploadImage extends Packet {
 	static fromJSONString(jsonString) {
 		const jsonObject = parseJSON(jsonString);
 		return new UploadImage(tryGet(jsonObject, Constants.LINKED_ID), tryGet(jsonObject, Constants.IMAGE_TYPE), tryGet(jsonObject, Constants.IMAGE));
+	}
+}
+
+export class GetCurrentOrder extends Packet {
+	constructor() {
+		super(PacketTypes.GET_CURRENT_ORDER);
+	}
+
+	static fromJSONString(jsonString) {
+		return new GetCurrentOrder();
+	}
+}
+
+export class SetCurrentOrder extends JSONPacket {
+	constructor(jsonString) {
+		super(PacketTypes.SET_CURRENT_ORDER, jsonString);
+	}
+
+	static fromJSONString(jsonString) {
+		return new SetCurrentOrder(jsonString);
 	}
 }

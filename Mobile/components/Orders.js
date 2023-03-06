@@ -13,17 +13,26 @@ const Orders = (props) => {
   const[currentIndex, setCurrentIndex] = useState(null);
   //const[shippingAddress, setShippingAddress] = useState('');
   const {shippingAddress, onPress} = props;
+  let hasCurrentOrder = null;
   const handlePress = (dest_address, startAddress) =>{
-    if (props.orderId == "")
-    {
-        console.log("We already have a order");
-    }
 
     global.ws.onmessage = (response) => {
         const packet = response.data;
         console.log("Order Got a packet back");
         console.log("Order got this packet:" + packet);
-        if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS) {
+        if (Packets.getPacketType(packet) == Packets.PacketTypes.SET_CURRENT_ORDER) {
+            const json_obj = JSON.parse(packet);
+            let acceptedOrders = json_obj.data;
+
+            if (acceptedOrders.length >= 1) {
+                console.log("Has a current order");
+                hasCurrentOrder = true;
+            }
+            else {
+                console.log("Does not have a current order");
+                hasCurrentOrder = false;
+            }
+        } else if (Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS) {
             console.log("Order was accepted");
         
             navigation.navigate('Map', {
@@ -40,18 +49,30 @@ const Orders = (props) => {
       };
 
 
-
-
-    console.log('order trying to get accepted');
-      const acceptPacket = new Packets.UpdateOrderStatus(props.orderId, Status.ACCEPTED);
-      console.log(acceptPacket);
-      try{
-	    global.ws.send(acceptPacket.toString());
-      }
-      catch
-      {
+    const getCurrentOrdersPacket = new Packets.GetCurrentOrder();
+    try {
+        global.ws.send(getCurrentOrdersPacket.toString());
+    } catch {
         alert("Connection error, check that you are connected to the internet");
-      }
+    }
+
+    if (hasCurrentOrder != null) {
+        if (!hasCurrentOrder) {
+            console.log('order trying to get accepted');
+            const acceptPacket = new Packets.UpdateOrderStatus(props.orderId, Status.ACCEPTED);
+            console.log(acceptPacket);
+            try{
+                global.ws.send(acceptPacket.toString());
+            }
+            catch
+            {
+                alert("Connection error, check that you are connected to the internet");
+            }
+            }
+        }
+        else {
+            alert("There is an active order, cancel to accept a new order.");
+        }
     }
 
     

@@ -507,14 +507,14 @@ class DatabaseHandler {
 				updated.status = "accepted";
 				updated.driverId = new ObjectId(driverID);
 
-				let name = await this.getName(driverId)
+				let name = await this.getName(driverID)
 					if (name)
 					{
 						updated.driverName = name;
 					}
 					else
 					{
-						console.log("Order place failed: couldn't get drivers name from driverId: " + updated.driverId + " (type: " + (typeof updated.driverId) + ")");
+						console.log("Order place failed: couldn't get drivers name from driverId: " + updated.driverID + " (type: " + (typeof updated.driverID) + ")");
 						return false;
 					}
 

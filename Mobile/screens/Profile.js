@@ -121,6 +121,12 @@ const Profile = ({ navigation, route }) => {
 
       if (!result.canceled) {
         setImage(result.assets[0].uri);
+        try {
+          const imagePacket = new Packets.UploadImage(null, Packets.ImageTypes.PROFILE_PICTURE, result.assets[0].base64);
+          global.ws.send(imagePacket.toString());
+        } catch (error) {
+          alert("Connection error, check that you are connected to the internet");
+        }
       }
     }
   }

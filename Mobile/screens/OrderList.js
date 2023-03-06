@@ -51,7 +51,8 @@ const OrderList = ({navigation, props, route}) => {
           allOrders = json_obj.data;
           
     
-        }
+        } 
+
         setLoading(false);
         setHiddenValue(false);
       };
@@ -59,18 +60,12 @@ const OrderList = ({navigation, props, route}) => {
 
       console.log('orderList about to send packet');
       const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
-      console.log(getAllConfirmedOrdersPacket);
       try{
         global.ws.send(getAllConfirmedOrdersPacket.toString());
-        }
-        catch
-        {
+      } catch {
           alert("Connection error, check that you are connected to the internet");
-        }
+      }
 
-
-      
-        console.log("route: " + route);
     } 
     
     
