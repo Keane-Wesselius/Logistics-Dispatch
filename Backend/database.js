@@ -504,6 +504,17 @@ class DatabaseHandler {
 				updated.status = "accepted";
 				updated.driverId = new ObjectId(driverID);
 
+				let name = await this.getName(updated.driverId)
+					if (name)
+					{
+						updated.driverName = name;
+					}
+					else
+					{
+						console.log("Order place failed: couldn't get drivers name");
+						return false;
+					}
+
 
 				updated.accepted_date = getDate();
 				//updated.accepted_time = getTime();

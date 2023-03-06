@@ -16,12 +16,25 @@ let allOrders = [];
 const OrderList = ({navigation, props, route}) => {
   //dealing with having to change
   const [loading, setLoading] = useState(true);
+  const [hiddenValue, setHiddenValue] = useState(true);
   const isFocused = useIsFocused();
  
 
   
 
   useEffect(() => {
+    const intervalId = setInterval(() => {
+      setHiddenValue(true);
+      const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
+      try{
+        global.ws.send(getAllConfirmedOrdersPacket.toString());
+        }
+        catch
+        {
+          alert("Connection error, check that you are connected to the internet");
+        }
+    }, 10000);
+
     if (isFocused) {
 
       global.ws.onmessage = (response) => {
@@ -41,6 +54,7 @@ const OrderList = ({navigation, props, route}) => {
     
         }
         setLoading(false);
+        setHiddenValue(false);
       };
 
 
@@ -48,18 +62,28 @@ const OrderList = ({navigation, props, route}) => {
       const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
       console.log(getAllConfirmedOrdersPacket);
       try{
-	    global.ws.send(getAllConfirmedOrdersPacket.toString());
-      }
-      catch
-      {
-        alert("Connection error, check that you are connected to the internet");
-      }
-    } else {
+        global.ws.send(getAllConfirmedOrdersPacket.toString());
+        }
+        catch
+        {
+          alert("Connection error, check that you are connected to the internet");
+        }
+
+
+      
+
+    } 
+    
+    
+    else {
+      clearInterval(intervalId);
       setLoading(true);
       console.log('OrderList is not focused');
     }
 
     console.log("Orderlist isFocused = " + isFocused);
+
+    
     
   }, [isFocused]);
 
@@ -146,6 +170,9 @@ const OrderList = ({navigation, props, route}) => {
     <View style = {styles.tasksWrapper}>
       <Text style = {styles.sectionTitle}>Today's Orders</Text>
     </View>
+    <View style={{ display: 'none' }}>
+        {hiddenValue}
+      </View>
       <View style = {styles.items}>
       {/**List of all orders with Order component */}
       {allOrders.map((order, index) => (
