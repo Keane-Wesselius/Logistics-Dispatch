@@ -23,7 +23,8 @@ const OrderList = ({navigation, props, route}) => {
   
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    /*const intervalId = setInterval(() => {
+      console.log(hiddenValue);
       if(!hiddenValue) {
         const getAllConfirmedOrdersPacket = new Packets.GetAllConfirmedOrders();
         try{
@@ -32,7 +33,7 @@ const OrderList = ({navigation, props, route}) => {
             alert("Connection error, check that you are connected to the internet");
         }
       }
-    }, 10000);
+    }, 10000);*/
     if (isFocused) {
 
       global.ws.onmessage = (response) => {
@@ -69,14 +70,15 @@ const OrderList = ({navigation, props, route}) => {
 
 
       
-        console.log("route params: " + route.params);
+        console.log("route: " + route);
     } 
     
     
     else {
-      clearInterval(intervalId);
+      //clearInterval(intervalId);
       setLoading(true);
-      setHiddenValue(true);
+      //setHiddenValue(true);
+      //console.log(hiddenValue);
       console.log('OrderList is not focused');
     }
 
