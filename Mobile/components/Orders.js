@@ -14,7 +14,10 @@ const Orders = (props) => {
   //const[shippingAddress, setShippingAddress] = useState('');
   const {shippingAddress, onPress} = props;
   const handlePress = (dest_address, startAddress) =>{
-
+    if (props.orderId == "")
+    {
+        console.log("We already have a order");
+    }
 
     global.ws.onmessage = (response) => {
         const packet = response.data;
