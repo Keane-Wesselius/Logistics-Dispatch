@@ -33,6 +33,7 @@ function Browse() {
             } else if(Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_SUCCESS){
                 console.log("Order status change success packet");
                 alert("Order has been confirmed!");
+                window.location.reload();
             } else if(Packets.getPacketType(packet) === Packets.PacketTypes.UPDATE_ORDER_STATUS_FAILURE){
                 console.log("Order status change failure packet");
                 alert("Can only confirm pending orders!");
@@ -48,7 +49,7 @@ function Browse() {
     }, []);
 
     const [orders, setOrders] = useState([]);
-    const heading = ["Merchant ID", "Items", "Start Address", "End Address", "Est Delivery Date", "Min Delivery Price", "Max Delivery Price", "Status", "Pending Date", "Pending Time", "Total Cost", "Confirm Order"]
+    const heading = ["Merchant Name", "Items", "Start Address", "End Address", "Est Delivery Date", "Delivery Price", "Status", "Pending Date", "Pending Time", "Total Cost", "Confirm Order"]
 
     return (
         <div className="browse" >
@@ -86,18 +87,17 @@ class TableRow extends Component {
             range.push(i);
         }
 
-        if (Object.hasOwn(row, 'merchantId') && Object.hasOwn(row, 'items') && Object.hasOwn(row, 'startingAddress') && Object.hasOwn(row, 'endingAddress') && 
-            Object.hasOwn(row, 'estimatedDeliveryDate') && Object.hasOwn(row, 'minimumDeliveryPrice') && Object.hasOwn(row, 'maximumDeliveryPrice') && 
-            Object.hasOwn(row, 'status') && Object.hasOwn(row, 'pendingDate') && Object.hasOwn(row, 'pendingTime') && Object.hasOwn(row, 'totalCost')){
+        if (Object.hasOwn(row, 'merchantName') && Object.hasOwn(row, 'items') && Object.hasOwn(row, 'startingAddress') && Object.hasOwn(row, 'endingAddress') && 
+            Object.hasOwn(row, 'preferredDate') && Object.hasOwn(row, 'deliveryPrice') && Object.hasOwn(row, 'status') && Object.hasOwn(row, 'pendingDate') && 
+            Object.hasOwn(row, 'pendingTime') && Object.hasOwn(row, 'totalCost')){
             return (
                 <tr>
-                    <td>{row.merchantId}</td>
+                    <td>{row.merchantName}</td>
                     <td>Items</td>
                     <td>{row.startingAddress}</td>
                     <td>{row.endingAddress}</td>
-                    <td>{row.estimatedDeliveryDate}</td>
-                    <td>{row.minimumDeliveryPrice}</td>
-                    <td>{row.maximumDeliveryPrice}</td>
+                    <td>{row.preferredDate}</td>
+                    <td>{row.deliveryPrice}</td>
                     <td>{row.status}</td>
                     <td>{row.pendingDate}</td>
                     <td>{row.pendingTime}</td>
