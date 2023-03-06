@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\b/;
 
 const Packets = require("./packets");
 
@@ -49,20 +50,36 @@ const Signup = ({ navigation }) => {
     if (password == confirmPassword) {
       //THERE IS NO DATA FOR PROFILE PICTURE BEING SENT TO BACKEND
       //SHOULD WE JUST STORE THE PROFILE PICTURE ON THE DEVICE?
-      const accountPacket = new Packets.CreateDriverAccountPacket(
-        firstName,
-        lastName,
-        email,
-        password,
-        accType
-      );
-      console.log("Account create string: " + accountPacket.toString());
-      try {
-        global.ws.send(accountPacket.toString());
-      } catch (error) {
-        alert("Connection error, check that you are connected to the internet");
+      if (emailPattern.test(email)) {
+
+          if (firstName != "" && lastName != "" && password != "")
+        {
+          const accountPacket = new Packets.CreateDriverAccountPacket(
+            firstName,
+            lastName,
+            email,
+            password,
+            accType
+          );
+          console.log("Account create string: " + accountPacket.toString());
+          try {
+            global.ws.send(accountPacket.toString());
+          } catch (error) {
+            alert("Connection error, check that you are connected to the internet");
+          }
+        }
+        else{
+          alert("Must fill out all the fields");
+        }
+        
+        
+
       }
-    } else {
+      else{
+        alert("Invalid email address");
+      }
+    } 
+    else {
       alert("Error: passwords do not match");
     }
   };
