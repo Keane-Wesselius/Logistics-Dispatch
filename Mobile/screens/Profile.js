@@ -168,7 +168,7 @@ const Profile = ({ navigation, route }) => {
             style={styles.showDelivery}
             onPress={() => setModalVisible(true)}
           >
-            <Text>Deliveries: 0</Text>
+            <Text>Deliveries</Text>
           </TouchableOpacity>
         </View>
       </View>

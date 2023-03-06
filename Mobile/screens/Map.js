@@ -17,7 +17,7 @@ import * as TaskManger from "expo-task-manager";
 import { useNavigation } from '@react-navigation/native'
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet from "../components/BottomSheet";
-
+import { useIsFocused } from '@react-navigation/native';
 //import { BottomSheet } from "react-native-elements";
 
 const {width, height} = Dimensions.get('window');
@@ -28,12 +28,27 @@ const ASPECT_RATIO = width/height;
  * { route, navigation },
  */
 const Map = ({ route}) => {
-  
+   /*
+    All const variables 
+  */
+ //getting current position of drivers
+ const [location, setLocation] = useState(null);
+ //getting time to get to the location, getting angle of car right
+ const [duration, setDuration] = useState(0);
+ const [miles, setMiles] = useState(0);
+ const [isReady, setIsReady] = useState(false);
+ const [angle, setAngle] = useState(0);
+ const mapViewRef = useRef();
+// for inputing address and getting coordinates
+const [address, setAddress] = useState("");
+const [coordinates, setCoordinates] = useState([]);
+const [searchDeliveryAddress, setSearchDeliveryAddress] = useState(null);
+  const isFocused = useIsFocused();
   //getting delivery addresss from orderlist on press
  const [deliveryAddress, setDeliveryAddress] = useState(null);
  const [startAddress, setStartAddress] = useState(null);
  const [startAddressCoord, setStartAddressCoord] = useState(null);
-
+  let waypoints = []
  //gets start and delivery address from orderlist when deliver is pressed
  const [orderId, setOrderId] = useState(null);
   useEffect(() => {
@@ -44,39 +59,40 @@ const Map = ({ route}) => {
     }
   
   }, [route.params]);
-  // making start address waypoints
-  const waypoints = [startAddress];
+ 
+ //console.log(isFocused);
+ 
+ //clearing delivery route when went out of screen
+ useEffect(() => {
+ 
+  if(!isFocused){
+    setDeliveryAddress('');
+    setCoordinates('');
+    setDuration(0);
+    setMiles(0);
+    setStartAddressCoord('');
+    setStartAddress('');
+  }},[isFocused])
 
- 
- 
   //clearing delivery Address
   function clearDeliveryAddress(){
     setDeliveryAddress('');
     setCoordinates('');
     setDuration(0);
+    setMiles(0);
+    setStartAddressCoord('');
+    setStartAddress('');
+    
  
   }
+  console.log(startAddress)
   /**
    * Handling when presed complete delivery, the deliveries in orderlist should be deleted
    */
   const removeOrder = () => {
      
   }
-  /*
-    All const variables 
-  */
- //getting current position of drivers
-   const [location, setLocation] = useState(null);
-   //getting time to get to the location, getting angle of car right
-   const [duration, setDuration] = useState(0);
-   const [miles, setMiles] = useState(0);
-   const [isReady, setIsReady] = useState(false);
-   const [angle, setAngle] = useState(0);
-   const mapViewRef = useRef();
-  // for inputing address and getting coordinates
-  const [address, setAddress] = useState("");
-  const [coordinates, setCoordinates] = useState([]);
-  const [searchDeliveryAddress, setSearchDeliveryAddress] = useState(null);
+ 
  /**
    * 
    * when clicked search button on map, handles, the minutes and routing
@@ -212,6 +228,14 @@ const Map = ({ route}) => {
 
     return Math.atan2(dy,dx) *180/ Math.PI;
   }
+
+   // making start address waypoints
+   if(startAddress){
+    waypoints = [startAddress];
+   }
+   else{
+     waypoints = [location];
+   }
   
   /**
    * Renders Map to Screen
@@ -245,7 +269,7 @@ const Map = ({ route}) => {
             destination={deliveryAddress}
             strokeColor = 'purple'
             strokeWidth= {3}
-            //waypoints = {waypoints}
+            waypoints = {waypoints}
             alternatives = {true}
             apikey="AIzaSyDNawxdz2xAwd8sqY_vq9YB7ZRTQPgp-tA"
             mode="DRIVING"
@@ -337,7 +361,7 @@ const Map = ({ route}) => {
         {startAddressCoord && startAddressCoord.map((coord, index) => (
           <Marker key={index} coordinate={coord} title={startAddress} >
              <View>
-                  <Entypo name="location-pin" size={24} color="red" />
+                  <Entypo name="location-pin" size={24} color="black" />
               </View>
           </Marker>
         ))}
@@ -370,7 +394,7 @@ const Map = ({ route}) => {
       
       }}
       >
-         {!deliveryAddress &&(
+         {!startAddress &&(
         <View
         style = {{
           flexDirection: 'row',
@@ -443,7 +467,9 @@ const Map = ({ route}) => {
           justifyContent: 'center'
         }}>
           <StatusBar style = "light"/>
-          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder} orderId = {orderId}/>
+          { deliveryAddress && startAddress && (
+          <BottomSheet clearDeliveryAddress = {clearDeliveryAddress} removeOrder = {removeOrder} orderId = {orderId}/>)
+          }
         </View>
         
         

@@ -35,6 +35,7 @@ const BottomSheet = (props) => {
 
             else {
                 alert("Unable to cancel order");
+                props.clearDeliveryAddress();
             }
         };
 
@@ -51,7 +52,7 @@ const BottomSheet = (props) => {
       }
 
 
-
+      //props.clearDeliveryAddress();
         
         
     }
@@ -97,42 +98,13 @@ const BottomSheet = (props) => {
   const handleData = (data) => {
     console.log(data);
   };  
-  
- /* const saveSignature = async(signature)=>{
-    //const signature = await signatureRef.current.readSignature();
-    //console.log('signature:', signature);
-    const path = FileSystem.cacheDirectory + "sign.png";
-    /*try{
-    await FileSystem.writeAsStringAsync(
-        path,
-        signature.replace("sign/png;base64,", ""),
-        { encoding: FileSystem.EncodingType.Base64 }
-      )
-        .then(() => FileSystem.getInfoAsync(path))
-        .then(console.log)
-        .catch(console.error);
-    }
-    catch(error){
-        console.error(error);
-    }
-} */
-  
-    const saveSignature = async() =>{
-        try {
-            // Get the signature data from the ref
-            //const signature = await signatureRef.current.readSignature();
-            //console.log('signature:', signature);
-            // Create a file URI for the signature image
-            //const signatureUri = FileSystem.documentDirectory + 'signature.png';
-            // Convert the signature data to a base64-encoded PNG image
-            //const base64Image = signature.replace('data:image/png;base64,', '');
 
-            // Write the signature image to a file in the local storage
-            //await FileSystem.writeAsStringAsync(signatureUri, base64Image, {
-            //encoding: FileSystem.EncodingType.Base64,
-            //});
+    
+    const saveSignature = () =>{
+      
+        try {
             console.log('About to confirm order');
-            console.log(props.orderId);
+            //console.log(props.orderId);
             const ConfirmOrderPacket = new Packets.UpdateOrderStatus(props.orderId, Status.COMPLETED);
             //console.log(getAllConfirmedOrdersPacket);
             
@@ -144,45 +116,22 @@ const BottomSheet = (props) => {
             // Clear the signature canvas
             //signatureRef.current.clearSignature();
             console.log('Signature saved:');
-            
+            navigation.navigate('Profile', {
+            })
+            props.clearDeliveryAddress();
            
 
         } catch (error) {
             console.error("Error saving signature: ", error);
+            props.clearDeliveryAddress();
         }
-        props.clearDeliveryAddress();
+        
     }
     // indexes for opening and closing div when pressed button    
     const[currentIndex, setCurrentIndex] = useState(false);
     const[currentSign, setCurrentSign] = useState(false);
           
-   /**
-    * Implementing an animated div to scroll up and down
    
-    const translateY = useSharedValue(0);
-
-    const context = useSharedValue({y: 0});
-    const gesture = Gesture.Pan()
-    .onStart(()=>{
-        context.value = {y: translateY.value};
-    })
-   .onUpdate((event) =>{
-        translateY.value = event.translationY + context.value.y;
-       // console.log(translateY.value)
-        translateY.value = Math.max(translateY.value, -SCREEN_HEIGHT/4)
-        translateY.value = Math.min(translateY.value, SCREEN_HEIGHT/4)
-   })
-
-   useEffect(() =>{
-        translateY.value = withTiming(Math.min(translateY.value, SCREEN_HEIGHT/4));
-
-   }, []);
-    const rBottomSheetStyle = useAnimatedStyle(()=>{
-        return{
-            transform: [{translateY: translateY.value}],
-        };
-    }) */
-    {/*ref = {scrollViewRef}  scrollEnabled={!isSigning} >*/}
 
 
     return (
@@ -254,6 +203,7 @@ const BottomSheet = (props) => {
                                 justifyContent: 'center',
                                 alignContent: 'center', 
                             }}
+                            onPress = {saveSignature}
                             >
                                 <Text
                                 style = {{
