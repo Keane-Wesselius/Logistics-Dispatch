@@ -81,10 +81,10 @@ function Cart() {
                     {items.map((item) => (<TableRow rowContent={item} />))}
                 </tbody>
             </table>
-            <form>
+            <div className="date">
                 <label for="delivery_date">Preferred Delivery Date:</label>
 		        <input type="date" id="delivery_date" name="delivery_date" required onChange={e => setDate(e.target.value)}></input> 
-            </form>
+            </div>
             <button className="place-order-btn" onClick={handleOrder}>
                 Place Order
             </button>
