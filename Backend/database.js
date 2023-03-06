@@ -154,6 +154,15 @@ class DatabaseHandler {
 			} else {
 				return null;
 			}
+
+			else if (result.firstName && result.lastName)
+			{
+				return result.firstName + " " + result.lastName;
+			}
+
+			else{
+				return null;
+			}
 		}
 		else{
 			return null;
@@ -507,7 +516,7 @@ class DatabaseHandler {
 				updated.status = "accepted";
 				updated.driverId = new ObjectId(driverId);
 
-				let name = await this.getName(updated.driverId)
+				let name = await this.getName(driverID)
 					if (name)
 					{
 						updated.driverName = name;
