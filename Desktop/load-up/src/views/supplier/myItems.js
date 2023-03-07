@@ -65,6 +65,12 @@ function MyItems() {
   
 }
 
+function roundMoney(num, decimalPlaces = 2) {
+	var p = Math.pow(10, decimalPlaces);
+	var n = (num * p) * (1 + Number.EPSILON);
+	return Math.round(n) / p;
+}
+
 class TableRow extends Component {
     render() {
         var row = this.props.rowContent;
@@ -81,8 +87,8 @@ class TableRow extends Component {
                     <td>{row.itemName}</td>
                     <td>{row.description}</td>
                     <td>{row.quantity}</td>
-                    <td>{row.price}</td>
-                    <td>{row.weight}</td>
+                    <td>{"$" + roundMoney(row.price).toFixed(2)}</td>
+                    <td>{row.weight + " lb"}</td>
                     <td>{row.postedDate}</td>
                 </tr>
             )

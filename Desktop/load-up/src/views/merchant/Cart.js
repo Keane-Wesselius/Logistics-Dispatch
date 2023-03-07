@@ -61,7 +61,6 @@ function Cart() {
             console.log("Sending order packet: " + placeOrderPacket.toString());
             ws.send(placeOrderPacket.toString());
         }
-        
     }
 
     const [items, setItems] = useState([]);

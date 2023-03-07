@@ -68,16 +68,39 @@ function Browse() {
             </table>
         </div>
     );
-  
+}
+
+function createItemString(items) {
+	let returnString = "";
+	for (const item of items) {
+		if (returnString.length > 1000) {
+			returnString += "...";
+			break;
+		}
+
+		returnString += "Name: " + item.name + ",\nQuantity: " + item.quantity + ",\nPrice $" + item.price + ",\n";
+	}
+
+	return returnString.substring(0, returnString.length - 2);
+}
+
+function roundMoney(num, decimalPlaces = 2) {
+	var p = Math.pow(10, decimalPlaces);
+	var n = (num * p) * (1 + Number.EPSILON);
+	return Math.round(n) / p;
 }
 
 // TODO add drop down for items list
 class TableRow extends Component {
     // add to cart
     handleSubmit = () => {
-        const confirmPacket = new Packets.UpdateOrderStatus(this.props.rowContent._id, 'confirmed', localStorage.getItem('token'));
-        console.log("User string: " + confirmPacket.toString());
-        ws.send(confirmPacket.toString());
+		if(this.props.rowContent.status === "pending") {
+			const confirmPacket = new Packets.UpdateOrderStatus(this.props.rowContent._id, 'confirmed', localStorage.getItem('token'));
+			console.log("User string: " + confirmPacket.toString());
+			ws.send(confirmPacket.toString());
+		} else {
+			alert("Can only confirm pending orders!");
+		}
     }
 
     render() {
@@ -87,13 +110,13 @@ class TableRow extends Component {
             range.push(i);
         }
 
-        if (Object.hasOwn(row, 'merchantName') && Object.hasOwn(row, 'items') && Object.hasOwn(row, 'startingAddress') && Object.hasOwn(row, 'endingAddress') && 
+        if (row.status === "pending" && Object.hasOwn(row, 'merchantName') && Object.hasOwn(row, 'items') && Object.hasOwn(row, 'startingAddress') && Object.hasOwn(row, 'endingAddress') && 
             Object.hasOwn(row, 'preferredDate') && Object.hasOwn(row, 'deliveryPrice') && Object.hasOwn(row, 'status') && Object.hasOwn(row, 'pendingDate') && 
             Object.hasOwn(row, 'pendingTime') && Object.hasOwn(row, 'totalCost')){
             return (
                 <tr>
                     <td>{row.merchantName}</td>
-                    <td>Items</td>
+                    <td>{createItemString(row.items)}</td>
                     <td>{row.startingAddress}</td>
                     <td>{row.endingAddress}</td>
                     <td>{row.preferredDate}</td>
@@ -101,7 +124,7 @@ class TableRow extends Component {
                     <td>{row.status}</td>
                     <td>{row.pendingDate}</td>
                     <td>{row.pendingTime}</td>
-                    <td>{row.totalCost}</td>
+                    <td>{"$" + roundMoney(row.totalCost).toFixed(2)}</td>
                     <td>
                         <button className="confirm" onClick={this.handleSubmit}>
                             Confirm

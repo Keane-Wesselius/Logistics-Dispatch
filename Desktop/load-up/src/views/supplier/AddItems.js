@@ -128,7 +128,7 @@ function AddItems() {
                 <label class="font-weight-bold" for="item_price">Price Per Unit:</label>
                 <input type="text" id="item_price" name="item_price" required onChange={e => setPrice(e.target.value)}/>
 
-                <label class="font-weight-bold" for="item_weight">Weight:</label>
+                <label class="font-weight-bold" for="item_weight">Weight (in pounds):</label>
                 <input type="text" id="item_weight" name="item_weight" required onChange={e => setWeight(e.target.value)}/>
 
                 <input className="item-submit" type="submit" value="Add Item" onClick={handleFormSubmit}  />
