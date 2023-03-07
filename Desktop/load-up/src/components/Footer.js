@@ -7,7 +7,7 @@ function Footer() {
     <div className='footer-container'>
       <section className='footer-section'>
         <p className='footer-heading'>
-          Logistic so good, it's criminal!
+          Delivering Happiness To Your Doorstep!
         </p>
       </section>
     </div>
